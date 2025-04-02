@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -161,20 +160,19 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
     public async Task<List<DepartmentDto>> QueryAsync(DeptQueryCriteria deptQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(deptQueryCriteria);
         List<Department> deptList;
-        if (deptQueryCriteria.ParentId.IsNull())
+        if (deptQueryCriteria.ParentId == 0)
         {
             var queryOptions = new QueryOptions<Department>
             {
                 Pagination = pagination,
-                WhereLambda = whereExpression
+                ConditionalModels = deptQueryCriteria.ApplyQueryConditionalModel()
             };
             deptList = await SugarRepository.QueryPageListAsync(queryOptions);
         }
         else
         {
-            deptList = await SugarRepository.QueryListAsync(whereExpression);
+            deptList = await TableWhere(deptQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         }
 
         var deptDataList = App.Mapper.MapTo<List<DepartmentDto>>(deptList);
@@ -192,8 +190,7 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
 
     public async Task<List<ExportBase>> DownloadAsync(DeptQueryCriteria deptQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(deptQueryCriteria);
-        var depts = await TableWhere(whereExpression).ToListAsync();
+        var depts = await TableWhere(deptQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
         roleExports.AddRange(depts.Select(x => new DepartmentExport()
         {
@@ -296,29 +293,6 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
         }
 
         return allIds;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<Department, bool>> GetWhereExpression(DeptQueryCriteria deptQueryCriteria)
-    {
-        Expression<Func<Department, bool>> whereExpression = x => true;
-        whereExpression = deptQueryCriteria.ParentId.IsNotNull()
-            ? whereExpression.AndAlso(x => x.ParentId == deptQueryCriteria.ParentId)
-            : whereExpression.AndAlso(x => x.ParentId == 0);
-        if (!deptQueryCriteria.DeptName.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Name.Contains(deptQueryCriteria.DeptName));
-        }
-
-        if (!deptQueryCriteria.Enabled.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Enabled == deptQueryCriteria.Enabled);
-        }
-
-        return whereExpression;
     }
 
     #endregion

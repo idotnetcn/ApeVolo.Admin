@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -91,11 +89,10 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     public async Task<List<EmailAccountDto>> QueryAsync(EmailAccountQueryCriteria emailAccountQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(emailAccountQueryCriteria);
         var queryOptions = new QueryOptions<EmailAccount>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = emailAccountQueryCriteria.ApplyQueryConditionalModel(),
         };
         return App.Mapper.MapTo<List<EmailAccountDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -103,8 +100,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
 
     public async Task<List<ExportBase>> DownloadAsync(EmailAccountQueryCriteria emailAccountQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(emailAccountQueryCriteria);
-        var emailAccounts = await TableWhere(whereExpression).ToListAsync();
+        var emailAccounts = await TableWhere(emailAccountQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> emailAccountExports = new List<ExportBase>();
         emailAccountExports.AddRange(emailAccounts.Select(x => new EmailAccountExport()
         {
@@ -118,35 +114,6 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
             CreateTime = x.CreateTime
         }));
         return emailAccountExports;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<EmailAccount, bool>> GetWhereExpression(
-        EmailAccountQueryCriteria emailAccountQueryCriteria)
-    {
-        Expression<Func<EmailAccount, bool>> whereExpression = x => true;
-        if (!emailAccountQueryCriteria.Username.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Username.Contains(emailAccountQueryCriteria.Username));
-        }
-
-        if (!emailAccountQueryCriteria.DisplayName.IsNullOrEmpty())
-        {
-            whereExpression =
-                whereExpression.AndAlso(x => x.DisplayName.Contains(emailAccountQueryCriteria.DisplayName));
-        }
-
-        if (!emailAccountQueryCriteria.CreateTime.IsNullOrEmpty() && emailAccountQueryCriteria.CreateTime.Count > 1)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.CreateTime >= emailAccountQueryCriteria.CreateTime[0] &&
-                x.CreateTime <= emailAccountQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

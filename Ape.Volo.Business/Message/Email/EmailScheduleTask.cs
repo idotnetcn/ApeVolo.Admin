@@ -70,7 +70,7 @@ public class EmailScheduleTask : IEmailScheduleTask
 
             try
             {
-                await _emailSender.SendEmailAsync(
+                var isTrue = await _emailSender.SendEmailAsync(
                     await _emailAccountService.TableWhere(x => x.Id == queuedEmail.EmailAccountId).FirstAsync(),
                     queuedEmail.Subject,
                     queuedEmail.Body,
@@ -83,7 +83,11 @@ public class EmailScheduleTask : IEmailScheduleTask
                     bcc,
                     cc);
 
-                queuedEmail.SendTime = DateTime.Now;
+                queuedEmail.IsSend = isTrue;
+                if (isTrue)
+                {
+                    queuedEmail.SendTime = DateTime.Now;
+                }
             }
             catch (Exception exc)
             {

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -36,22 +34,10 @@ public class ExceptionLogService : BaseServices<ExceptionLog>, IExceptionLogServ
 
     public async Task<List<ExceptionLogDto>> QueryAsync(LogQueryCriteria logQueryCriteria, Pagination pagination)
     {
-        Expression<Func<ExceptionLog, bool>> whereLambda = l => true;
-        if (!logQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereLambda = whereLambda.AndAlso(l => l.Description.Contains(logQueryCriteria.KeyWords));
-        }
-
-        if (!logQueryCriteria.CreateTime.IsNullOrEmpty())
-        {
-            whereLambda = whereLambda.AndAlso(l =>
-                l.CreateTime >= logQueryCriteria.CreateTime[0] && l.CreateTime <= logQueryCriteria.CreateTime[1]);
-        }
-
         var queryOptions = new QueryOptions<ExceptionLog>
         {
             Pagination = pagination,
-            WhereLambda = whereLambda,
+            ConditionalModels = logQueryCriteria.ApplyQueryConditionalModel(),
             IsSplitTable = true
         };
         var logs = await SugarRepository.QueryPageListAsync(queryOptions);

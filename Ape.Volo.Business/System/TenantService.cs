@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -120,11 +118,10 @@ public class TenantService : BaseServices<Tenant>, ITenantService
 
     public async Task<List<TenantDto>> QueryAsync(TenantQueryCriteria tenantQueryCriteria, Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(tenantQueryCriteria);
         var queryOptions = new QueryOptions<Tenant>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = tenantQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<TenantDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -139,8 +136,7 @@ public class TenantService : BaseServices<Tenant>, ITenantService
 
     public async Task<List<ExportBase>> DownloadAsync(TenantQueryCriteria tenantQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(tenantQueryCriteria);
-        var tenants = await TableWhere(whereExpression).ToListAsync();
+        var tenants = await TableWhere(tenantQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> tenantExports = new List<ExportBase>();
         tenantExports.AddRange(tenants.Select(x => new TenantExport()
         {
@@ -155,38 +151,4 @@ public class TenantService : BaseServices<Tenant>, ITenantService
         }));
         return tenantExports;
     }
-
-
-    #region 条件表达式
-
-    private static Expression<Func<Tenant, bool>> GetWhereExpression(TenantQueryCriteria tenantQueryCriteria)
-    {
-        Expression<Func<Tenant, bool>> whereExpression = r => true;
-        if (!tenantQueryCriteria.Name.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.Name.Contains(tenantQueryCriteria.Name));
-        }
-
-        if (tenantQueryCriteria.TenantType.IsNotNull())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.TenantType == tenantQueryCriteria.TenantType);
-        }
-
-        if (tenantQueryCriteria.DbType.IsNotNull())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.DbType == tenantQueryCriteria.DbType);
-        }
-
-        if (tenantQueryCriteria.CreateTime.IsNotNull())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.CreateTime >= tenantQueryCriteria.CreateTime[0] &&
-                r.CreateTime <= tenantQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
-    }
-
-    #endregion
 }

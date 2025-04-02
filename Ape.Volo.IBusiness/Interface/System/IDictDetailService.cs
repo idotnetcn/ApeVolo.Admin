@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Base;
 using Ape.Volo.IBusiness.Dto.System;
+using Ape.Volo.IBusiness.QueryModel;
 
 namespace Ape.Volo.IBusiness.Interface.System;
 
@@ -37,9 +38,9 @@ public interface IDictDetailService : IBaseServices<DictDetail>
     /// <summary>
     /// 查询
     /// </summary>
-    /// <param name="dictName"></param>
+    /// <param name="dictDetailQueryCriteria"></param>
     /// <returns></returns>
-    Task<List<DictDetailDto>> QueryAsync(string dictName);
+    Task<List<DictDetailDto>> QueryAsync(DictDetailQueryCriteria dictDetailQueryCriteria);
 
     #endregion
 }

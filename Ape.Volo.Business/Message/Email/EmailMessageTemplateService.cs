@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -88,43 +86,13 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
     public async Task<List<EmailMessageTemplateDto>> QueryAsync(
         EmailMessageTemplateQueryCriteria messageTemplateQueryCriteria, Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(messageTemplateQueryCriteria);
         var queryOptions = new QueryOptions<EmailMessageTemplate>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = messageTemplateQueryCriteria.ApplyQueryConditionalModel(),
         };
         return App.Mapper.MapTo<List<EmailMessageTemplateDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<EmailMessageTemplate, bool>> GetWhereExpression(
-        EmailMessageTemplateQueryCriteria messageTemplateQueryCriteria)
-    {
-        Expression<Func<EmailMessageTemplate, bool>> whereExpression = x => true;
-        if (!messageTemplateQueryCriteria.Name.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Name.Contains(messageTemplateQueryCriteria.Name));
-        }
-
-        if (messageTemplateQueryCriteria.IsActive.IsNotNull())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.IsActive == messageTemplateQueryCriteria.IsActive);
-        }
-
-        if (!messageTemplateQueryCriteria.CreateTime.IsNullOrEmpty() &&
-            messageTemplateQueryCriteria.CreateTime.Count > 1)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.CreateTime >= messageTemplateQueryCriteria.CreateTime[0] &&
-                x.CreateTime <= messageTemplateQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

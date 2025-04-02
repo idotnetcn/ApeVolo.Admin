@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -109,11 +108,10 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     public async Task<List<QueuedEmailDto>> QueryAsync(QueuedEmailQueryCriteria queuedEmailQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(queuedEmailQueryCriteria);
         var queryOptions = new QueryOptions<QueuedEmail>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = queuedEmailQueryCriteria.ApplyQueryConditionalModel(),
         };
         return App.Mapper.MapTo<List<QueuedEmailDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -180,7 +178,11 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
                     queuedEmail.ReplyToName,
                     bcc,
                     cc);
-                queuedEmail.SendTime = DateTime.Now;
+                queuedEmail.IsSend = isTrue;
+                if (isTrue)
+                {
+                    queuedEmail.SendTime = DateTime.Now;
+                }
                 // 如果开启redis并且开启消息队列功能 可以使用下面方式
                 // await App.Cache.GetDatabase()
                 //     .ListLeftPushAsync(MqTopicNameKey.MailboxQueue, queuedEmail.Id.ToString());
@@ -204,53 +206,6 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
         }
 
         return isTrue;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<QueuedEmail, bool>> GetWhereExpression(
-        QueuedEmailQueryCriteria queuedEmailQueryCriteria)
-    {
-        Expression<Func<QueuedEmail, bool>> whereExpression = x => true;
-        if (queuedEmailQueryCriteria.Id > 0)
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Id == queuedEmailQueryCriteria.Id);
-        }
-
-        if (queuedEmailQueryCriteria.MaxTries > 0)
-        {
-            whereExpression = whereExpression.AndAlso(x => x.SentTries < queuedEmailQueryCriteria.MaxTries);
-        }
-
-        if (queuedEmailQueryCriteria.EmailAccountId > 0)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.EmailAccountId == queuedEmailQueryCriteria.EmailAccountId);
-        }
-
-        if (!queuedEmailQueryCriteria.To.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.To.Contains(queuedEmailQueryCriteria.To) || x.ToName.Contains(queuedEmailQueryCriteria.To));
-        }
-
-        if (queuedEmailQueryCriteria.IsSend.IsNotNull())
-        {
-            whereExpression = queuedEmailQueryCriteria.IsSend.ToBool()
-                ? whereExpression.AndAlso(x => x.SendTime != null)
-                : whereExpression.AndAlso(x => x.SendTime == null);
-        }
-
-        if (!queuedEmailQueryCriteria.CreateTime.IsNullOrEmpty() && queuedEmailQueryCriteria.CreateTime.Count > 1)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.CreateTime >= queuedEmailQueryCriteria.CreateTime[0] &&
-                x.CreateTime <= queuedEmailQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

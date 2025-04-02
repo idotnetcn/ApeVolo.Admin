@@ -84,6 +84,12 @@ public class QueuedEmail : BaseEntity
     public int SentTries { get; set; }
 
     /// <summary>
+    /// 是否已发送
+    /// </summary>
+    [SugarColumn(IsNullable = true)]
+    public bool? IsSend { get; set; }
+
+    /// <summary>
     /// 发送时间
     /// </summary>
     [SugarColumn(IsNullable = true)]

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -63,26 +61,10 @@ public class ApisService : BaseServices<Apis>, IApisService
 
     public async Task<List<Apis>> QueryAsync(ApisQueryCriteria apisQueryCriteria, Pagination pagination)
     {
-        Expression<Func<Apis, bool>> whereExpression = x => true;
-        if (!apisQueryCriteria.Group.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Group.Contains(apisQueryCriteria.Group));
-        }
-
-        if (!apisQueryCriteria.Description.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Description.Contains(apisQueryCriteria.Description));
-        }
-
-        if (!apisQueryCriteria.Method.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Method == apisQueryCriteria.Method);
-        }
-
         var queryOptions = new QueryOptions<Apis>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = apisQueryCriteria.ApplyQueryConditionalModel()
         };
         return await SugarRepository.QueryPageListAsync(queryOptions);
     }

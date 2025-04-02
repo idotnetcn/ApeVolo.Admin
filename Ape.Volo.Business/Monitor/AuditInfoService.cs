@@ -45,22 +45,10 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
     public async Task<List<AuditLogDto>> QueryAsync(LogQueryCriteria logQueryCriteria,
         Pagination pagination)
     {
-        Expression<Func<AuditLog, bool>> whereLambda = l => true;
-        if (!logQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereLambda = whereLambda.AndAlso(l => l.Description.Contains(logQueryCriteria.KeyWords));
-        }
-
-        if (!logQueryCriteria.CreateTime.IsNullOrEmpty())
-        {
-            whereLambda = whereLambda.AndAlso(l =>
-                l.CreateTime >= logQueryCriteria.CreateTime[0] && l.CreateTime <= logQueryCriteria.CreateTime[1]);
-        }
-
         var queryOptions = new QueryOptions<AuditLog>
         {
             Pagination = pagination,
-            WhereLambda = whereLambda,
+            ConditionalModels = logQueryCriteria.ApplyQueryConditionalModel(),
             IsSplitTable = true
         };
 

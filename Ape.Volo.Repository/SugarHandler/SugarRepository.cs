@@ -586,6 +586,12 @@ public class SugarRepository<TEntity> : ISugarRepository<TEntity> where TEntity 
         }
 
         query = query.WhereIF(queryOptions.WhereLambda != null, queryOptions.WhereLambda);
+
+        if (queryOptions.ConditionalModels != null)
+        {
+            query.Where(queryOptions.ConditionalModels);
+        }
+
         if (queryOptions.SelectExpression != null)
         {
             query = query.Select(queryOptions.SelectExpression);

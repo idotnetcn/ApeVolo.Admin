@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -78,11 +77,10 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
     public async Task<List<AppSecretDto>> QueryAsync(AppsecretQueryCriteria appsecretQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(appsecretQueryCriteria);
         var queryOptions = new QueryOptions<AppSecret>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = appsecretQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<AppSecretDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -90,8 +88,8 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
 
     public async Task<List<ExportBase>> DownloadAsync(AppsecretQueryCriteria appsecretQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(appsecretQueryCriteria);
-        var appSecrets = await TableWhere(whereExpression).ToListAsync();
+        var conditionalModels = appsecretQueryCriteria.ApplyQueryConditionalModel();
+        var appSecrets = await TableWhere(conditionalModels).ToListAsync();
         List<ExportBase> appSecretExports = new List<ExportBase>();
         appSecretExports.AddRange(appSecrets.Select(x => new AppSecretExport()
         {
@@ -102,31 +100,6 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
             CreateTime = x.CreateTime
         }));
         return appSecretExports;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<AppSecret, bool>> GetWhereExpression(AppsecretQueryCriteria appsecretQueryCriteria)
-    {
-        Expression<Func<AppSecret, bool>> whereExpression = r => true;
-        if (!appsecretQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.AppId.Contains(appsecretQueryCriteria.KeyWords) ||
-                r.AppName.Contains(appsecretQueryCriteria.KeyWords) ||
-                r.Remark.Contains(appsecretQueryCriteria.KeyWords));
-        }
-
-        if (!appsecretQueryCriteria.CreateTime.IsNull())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.CreateTime >= appsecretQueryCriteria.CreateTime[0] &&
-                r.CreateTime <= appsecretQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -110,11 +109,10 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
     public async Task<List<FileRecordDto>> QueryAsync(FileRecordQueryCriteria fileRecordQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(fileRecordQueryCriteria);
         var queryOptions = new QueryOptions<FileRecord>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = fileRecordQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<FileRecordDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -122,8 +120,8 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
 
     public async Task<List<ExportBase>> DownloadAsync(FileRecordQueryCriteria fileRecordQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(fileRecordQueryCriteria);
-        var fileRecords = await TableWhere(whereExpression).ToListAsync();
+        var conditionalModels = fileRecordQueryCriteria.ApplyQueryConditionalModel();
+        var fileRecords = await TableWhere(conditionalModels).ToListAsync();
         List<ExportBase> fileRecordExports = new List<ExportBase>();
         fileRecordExports.AddRange(fileRecords.Select(x => new FileRecordExport()
         {
@@ -138,31 +136,6 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
             CreateTime = x.CreateTime
         }));
         return fileRecordExports;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<FileRecord, bool>> GetWhereExpression(
-        FileRecordQueryCriteria fileRecordQueryCriteria)
-    {
-        Expression<Func<FileRecord, bool>> whereExpression = r => true;
-        if (!fileRecordQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.Description.Contains(fileRecordQueryCriteria.KeyWords) ||
-                r.OriginalName.Contains(fileRecordQueryCriteria.KeyWords));
-        }
-
-        if (!fileRecordQueryCriteria.CreateTime.IsNull())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.CreateTime >= fileRecordQueryCriteria.CreateTime[0] &&
-                r.CreateTime <= fileRecordQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

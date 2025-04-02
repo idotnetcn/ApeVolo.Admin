@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -19,8 +18,8 @@ using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.ExportModel.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
 using Ape.Volo.IBusiness.QueryModel;
-using Mapster;
 using Microsoft.AspNetCore.Http;
+using SqlSugar;
 
 namespace Ape.Volo.Business.Permission;
 
@@ -188,12 +187,11 @@ public class UserService : BaseServices<User>, IUserService
     /// <returns></returns>
     public async Task<List<UserDto>> QueryAsync(UserQueryCriteria userQueryCriteria, Pagination pagination)
     {
-        var whereExpression = await GetWhereExpression(userQueryCriteria);
-
+        var conditionalModels = await GetConditionalModel(userQueryCriteria);
         var queryOptions = new QueryOptions<User>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = conditionalModels,
             IsIncludes = true
         };
         var users = await SugarRepository.QueryPageListAsync(queryOptions);
@@ -204,9 +202,9 @@ public class UserService : BaseServices<User>, IUserService
 
     public async Task<List<ExportBase>> DownloadAsync(UserQueryCriteria userQueryCriteria)
     {
-        var whereExpression = await GetWhereExpression(userQueryCriteria);
+        var conditionalModels = await GetConditionalModel(userQueryCriteria);
         var users = await Table.Includes(x => x.Dept).Includes(x => x.Roles)
-            .Includes(x => x.Jobs).WhereIF(whereExpression != null, whereExpression).ToListAsync();
+            .Includes(x => x.Jobs).Where(conditionalModels).ToListAsync();
         List<ExportBase> userExports = new List<ExportBase>();
         userExports.AddRange(users.Select(x => new UserExport()
         {
@@ -415,53 +413,21 @@ public class UserService : BaseServices<User>, IUserService
 
     #endregion
 
-    #region 条件表达式
+    #region 条件模型
 
-    private async Task<Expression<Func<User, bool>>> GetWhereExpression(UserQueryCriteria userQueryCriteria)
+    private async Task<List<IConditionalModel>> GetConditionalModel(UserQueryCriteria userQueryCriteria)
     {
-        Expression<Func<User, bool>> whereExpression = u => true;
-        if (userQueryCriteria.Id > 0)
-        {
-            whereExpression = whereExpression.AndAlso(u => u.Id == userQueryCriteria.Id);
-        }
-
-        if (!userQueryCriteria.Enabled.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(u => u.Enabled == userQueryCriteria.Enabled);
-        }
-
         if (userQueryCriteria.DeptId > 0)
         {
             var allIds = await _departmentService.GetChildIds([userQueryCriteria.DeptId], null);
             if (allIds.Any())
             {
-                whereExpression = whereExpression.AndAlso(u => allIds.Contains(u.DeptId));
+                userQueryCriteria.DeptIdItems = string.Join(",", allIds);
             }
         }
 
-        if (!userQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(u =>
-                u.Username.Contains(userQueryCriteria.KeyWords) ||
-                u.NickName.Contains(userQueryCriteria.KeyWords) || u.Email.Contains(userQueryCriteria.KeyWords));
-        }
-
-        if (!userQueryCriteria.CreateTime.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(u =>
-                u.CreateTime >= userQueryCriteria.CreateTime[0] && u.CreateTime <= userQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
+        return userQueryCriteria.ApplyQueryConditionalModel();
     }
 
     #endregion
-}
-
-public static class SourceClassExtensions
-{
-    public static UserDto AdaptToUserDto(this User self)
-    {
-        return self.Adapt<UserDto>();
-    }
 }

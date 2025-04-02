@@ -89,5 +89,18 @@ public interface IBaseServices<TEntity> where TEntity : class
         Expression<Func<TEntity, object>> orderExpression = null, OrderByType? orderByType = null,
         bool isClearCreateByFilter = false);
 
+
+    /// <summary>
+    /// 泛型Queryable
+    /// </summary>
+    /// <param name="conditionalModels">条件模型</param>
+    /// <param name="orderExpression">排序表达式</param>
+    /// <param name="orderByType">排序方式</param>
+    /// <param name="isClearCreateByFilter">清除创建人过滤器</param>
+    /// <returns></returns>
+    ISugarQueryable<TEntity> TableWhere(List<IConditionalModel> conditionalModels = null,
+        Expression<Func<TEntity, object>> orderExpression = null, OrderByType? orderByType = null,
+        bool isClearCreateByFilter = false);
+
     #endregion
 }

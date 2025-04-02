@@ -1,17 +1,30 @@
-﻿namespace Ape.Volo.IBusiness.QueryModel;
+﻿using Ape.Volo.Common.Attributes;
+using SqlSugar;
+
+namespace Ape.Volo.IBusiness.QueryModel;
 
 /// <summary>
 /// 字典详情查询参数
 /// </summary>
-public class DictDetailQueryCriteria
+public class DictDetailQueryCriteria : IConditionalModel
 {
+    /// <summary>
+    /// 字典ID
+    /// </summary>
+    [QueryCondition(ConditionType = ConditionalType.Equal)]
+    public long DictId { get; set; }
+
+
+    /// <summary>
+    /// 字典ID
+    /// </summary>
+    [QueryCondition(ConditionType = ConditionalType.Equal)]
+    public string DictName { get; set; }
+
+
     /// <summary>
     /// 标题
     /// </summary>
+    [QueryCondition(ConditionType = ConditionalType.Like)]
     public string Label { get; set; }
-
-    /// <summary>
-    /// 字典名称
-    /// </summary>
-    public string DictName { get; set; }
 }

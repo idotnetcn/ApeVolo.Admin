@@ -8,6 +8,8 @@ using Ape.Volo.Common.Extensions;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
 using Ape.Volo.IBusiness.Interface.System;
+using Ape.Volo.IBusiness.QueryModel;
+using SqlSugar;
 
 namespace Ape.Volo.Business.System;
 
@@ -80,28 +82,29 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
         return await LogicDelete<DictDetail>(x => x.Id == id) > 0;
     }
 
-    public async Task<List<DictDetailDto>> QueryAsync(string dictName)
+    public async Task<List<DictDetailDto>> QueryAsync(DictDetailQueryCriteria dictDetailQueryCriteria)
     {
-        //这样写生成的key太长太多
-        // var list = await SugarClient.Queryable<Dict>().RightJoin<DictDetail>((d, dd) => d.Id == dd.DictId)
-        //     .Where((d, dd) => d.Name == dictName).OrderBy((d, dd) => dd.DictSort).Select((d, dd) => dd).WithCache(86400)
-        //     .ToListAsync();
-
-
         var dictList = await SugarClient.Queryable<Dict>().WithCache(86400).ToListAsync();
         var dictDetailList = await Table.WithCache(86400).ToListAsync();
-        var dictModel = dictList.FirstOrDefault(x => x.Name == dictName);
-        if (dictModel != null)
-        {
-            var dictDetailDtos =
-                App.Mapper.MapTo<List<DictDetailDto>>(dictDetailList.Where(x => x.DictId == dictModel.Id)
-                    .ToList());
 
-            //dictDetailDtos.ForEach(dd => dd.Dict = new DictDto2 { Id = dd.DictId });
-            return dictDetailDtos.OrderBy(x => x.DictSort).ToList();
+        if (!dictDetailQueryCriteria.DictName.IsNullOrEmpty())
+        {
+            var dict = dictList
+                .FirstOrDefault(x => x.Name == dictDetailQueryCriteria.DictName);
+            if (dict == null)
+            {
+                return new List<DictDetailDto>();
+            }
+
+            dictDetailQueryCriteria.DictId = dict.Id;
         }
 
-        return new List<DictDetailDto>();
+        return App.Mapper.MapTo<List<DictDetailDto>>(dictDetailList
+            .WhereIF(dictDetailQueryCriteria.DictId > 0, x => x.DictId == dictDetailQueryCriteria.DictId)
+            .WhereIF(!dictDetailQueryCriteria.Label.IsNullOrEmpty(),
+                x => x.Label.Contains(dictDetailQueryCriteria.Label))
+            .OrderBy(x => x.DictSort)
+            .ToList());
     }
 
     #endregion

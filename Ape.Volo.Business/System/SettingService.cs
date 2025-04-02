@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
@@ -82,11 +81,10 @@ public class SettingService : BaseServices<Setting>, ISettingService
 
     public async Task<List<SettingDto>> QueryAsync(SettingQueryCriteria settingQueryCriteria, Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(settingQueryCriteria);
         var queryOptions = new QueryOptions<Setting>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = settingQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<SettingDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -94,8 +92,7 @@ public class SettingService : BaseServices<Setting>, ISettingService
 
     public async Task<List<ExportBase>> DownloadAsync(SettingQueryCriteria settingQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(settingQueryCriteria);
-        var settings = await TableWhere(whereExpression).ToListAsync();
+        var settings = await TableWhere(settingQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> settingExports = new List<ExportBase>();
         settingExports.AddRange(settings.Select(x => new SettingExport()
         {
@@ -141,35 +138,6 @@ public class SettingService : BaseServices<Setting>, ISettingService
 
         var converter = TypeDescriptor.GetConverter(type);
         return converter.CanConvertFrom(typeof(string)) ? converter.ConvertFromInvariantString(value) : null;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<Setting, bool>> GetWhereExpression(SettingQueryCriteria settingQueryCriteria)
-    {
-        Expression<Func<Setting, bool>> whereExpression = r => true;
-        if (!settingQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.Name.Contains(settingQueryCriteria.KeyWords) || r.Value.Contains(settingQueryCriteria.KeyWords) ||
-                r.Description.Contains(settingQueryCriteria.KeyWords));
-        }
-
-        if (!settingQueryCriteria.Enabled.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Enabled == settingQueryCriteria.Enabled);
-        }
-
-        if (!settingQueryCriteria.CreateTime.IsNull())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.CreateTime >= settingQueryCriteria.CreateTime[0] &&
-                r.CreateTime <= settingQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

@@ -1,9 +1,13 @@
-﻿namespace Ape.Volo.IBusiness.QueryModel;
+﻿using Ape.Volo.Common.Attributes;
+using Ape.Volo.Common.Model;
+using SqlSugar;
+
+namespace Ape.Volo.IBusiness.QueryModel;
 
 /// <summary>
 /// 部门查询参数
 /// </summary>
-public class DeptQueryCriteria : DateRange
+public class DeptQueryCriteria : DateRange, IConditionalModel
 {
     /// <summary>
     /// 部门名称
@@ -18,5 +22,6 @@ public class DeptQueryCriteria : DateRange
     /// <summary>
     /// 父级ID
     /// </summary>
-    public long? ParentId { get; set; }
+    [QueryCondition(ConditionType = ConditionalType.Equal, IsGreaterThanNumberDefault = false)]
+    public long ParentId { get; set; }
 }

@@ -1,5 +1,7 @@
 ﻿namespace Ape.Volo.IBusiness.Vo.ServerResources;
-
+/// <summary>
+/// 
+/// </summary>
 public class Memory
 {
     /// <summary>

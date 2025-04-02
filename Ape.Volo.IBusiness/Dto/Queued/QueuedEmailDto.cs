@@ -72,6 +72,11 @@ public class QueuedEmailDto : BaseEntityDto<long>
     public int SentTries { get; set; }
 
     /// <summary>
+    /// 是否已发送
+    /// </summary>
+    public bool? IsSend { get; set; }
+
+    /// <summary>
     /// 发送时间
     /// </summary>
     public DateTime? SendTime { get; set; }

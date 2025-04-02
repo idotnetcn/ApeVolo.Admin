@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -39,11 +37,10 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
     public async Task<List<QuartzNetLogDto>> QueryAsync(QuartzNetLogQueryCriteria quartzNetLogQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(quartzNetLogQueryCriteria);
         var queryOptions = new QueryOptions<QuartzNetLog>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = quartzNetLogQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<QuartzNetLogDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -51,8 +48,7 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
 
     public async Task<List<ExportBase>> DownloadAsync(QuartzNetLogQueryCriteria quartzNetLogQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(quartzNetLogQueryCriteria);
-        var quartzNetLogs = await TableWhere(whereExpression).ToListAsync();
+        var quartzNetLogs = await TableWhere(quartzNetLogQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> quartzNetLogExports = new List<ExportBase>();
         quartzNetLogExports.AddRange(quartzNetLogs.Select(x => new QuartzNetLogExport()
         {
@@ -69,36 +65,6 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
             CreateTime = x.CreateTime
         }));
         return quartzNetLogExports;
-    }
-
-    #endregion
-
-
-    #region 条件表达式
-
-    private static Expression<Func<QuartzNetLog, bool>> GetWhereExpression(
-        QuartzNetLogQueryCriteria quartzNetLogQueryCriteria)
-    {
-        Expression<Func<QuartzNetLog, bool>> whereExpression = x => true;
-
-        if (!quartzNetLogQueryCriteria.Id.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.TaskId == quartzNetLogQueryCriteria.Id);
-        }
-
-        if (quartzNetLogQueryCriteria.IsSuccess.HasValue)
-        {
-            whereExpression = whereExpression.AndAlso(x => x.IsSuccess == quartzNetLogQueryCriteria.IsSuccess);
-        }
-
-        if (!quartzNetLogQueryCriteria.CreateTime.IsNullOrEmpty() && quartzNetLogQueryCriteria.CreateTime.Count > 1)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.CreateTime >= quartzNetLogQueryCriteria.CreateTime[0] &&
-                x.CreateTime <= quartzNetLogQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

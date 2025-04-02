@@ -8,6 +8,9 @@ namespace Ape.Volo.IBusiness.RequestModel;
 /// </summary>
 public class IdCollectionString
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Required]
     public HashSet<string> IdArray { get; set; }
 }

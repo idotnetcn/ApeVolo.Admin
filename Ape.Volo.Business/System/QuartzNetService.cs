@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -100,11 +98,10 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
     public async Task<List<QuartzNetDto>> QueryAsync(QuartzNetQueryCriteria quartzNetQueryCriteria,
         Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(quartzNetQueryCriteria);
         var queryOptions = new QueryOptions<QuartzNet>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = quartzNetQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<QuartzNetDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -112,8 +109,7 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
 
     public async Task<List<ExportBase>> DownloadAsync(QuartzNetQueryCriteria quartzNetQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(quartzNetQueryCriteria);
-        var quartzNets = await TableWhere(whereExpression).ToListAsync();
+        var quartzNets = await TableWhere(quartzNetQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> quartzExports = new List<ExportBase>();
         quartzExports.AddRange(quartzNets.Select(x => new QuartzNetExport()
         {
@@ -139,28 +135,6 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
             CreateTime = x.CreateTime
         }));
         return quartzExports;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<QuartzNet, bool>> GetWhereExpression(QuartzNetQueryCriteria quartzNetQueryCriteria)
-    {
-        Expression<Func<QuartzNet, bool>> whereExpression = x => true;
-        if (!quartzNetQueryCriteria.TaskName.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.TaskName.Contains(quartzNetQueryCriteria.TaskName));
-        }
-
-        if (!quartzNetQueryCriteria.CreateTime.IsNullOrEmpty() && quartzNetQueryCriteria.CreateTime.Count > 1)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.CreateTime >= quartzNetQueryCriteria.CreateTime[0] &&
-                x.CreateTime <= quartzNetQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

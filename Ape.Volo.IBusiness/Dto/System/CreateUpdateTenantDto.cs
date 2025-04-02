@@ -7,6 +7,9 @@ using SqlSugar;
 
 namespace Ape.Volo.IBusiness.Dto.System;
 
+/// <summary>
+/// 
+/// </summary>
 [AutoMapping(typeof(Tenant), typeof(CreateUpdateTenantDto))]
 public class CreateUpdateTenantDto : BaseEntityDto<long>
 {

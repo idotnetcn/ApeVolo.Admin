@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -146,11 +144,10 @@ public class RoleService : BaseServices<Role>, IRoleService
 
     public async Task<List<RoleDto>> QueryAsync(RoleQueryCriteria roleQueryCriteria, Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(roleQueryCriteria);
         var queryOptions = new QueryOptions<Role>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = roleQueryCriteria.ApplyQueryConditionalModel(),
             IsIncludes = true,
             IgnorePropertyNameList = new[] { "Users" }
         };
@@ -167,8 +164,8 @@ public class RoleService : BaseServices<Role>, IRoleService
     /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync(RoleQueryCriteria roleQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(roleQueryCriteria);
-        var roles = await TableWhere(whereExpression).Includes(x => x.DepartmentList).ToListAsync();
+        var roles = await TableWhere(roleQueryCriteria.ApplyQueryConditionalModel()).Includes(x => x.DepartmentList)
+            .ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
         roleExports.AddRange(roles.Select(x => new RoleExport()
         {
@@ -190,7 +187,7 @@ public class RoleService : BaseServices<Role>, IRoleService
 
     public async Task<List<RoleDto>> QueryAllAsync()
     {
-        var roleList = await TableWhere().Includes(x => x.MenuList).Includes(x => x.DepartmentList).ToListAsync();
+        var roleList = await Table.Includes(x => x.MenuList).Includes(x => x.DepartmentList).ToListAsync();
 
         return App.Mapper.MapTo<List<RoleDto>>(roleList);
     }
@@ -297,29 +294,6 @@ public class RoleService : BaseServices<Role>, IRoleService
         }
 
         return true;
-    }
-
-    #endregion
-
-
-    #region 条件表达式
-
-    private static Expression<Func<Role, bool>> GetWhereExpression(RoleQueryCriteria roleQueryCriteria)
-    {
-        Expression<Func<Role, bool>> whereExpression = r => true;
-        if (!roleQueryCriteria.RoleName.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.Name.Contains(roleQueryCriteria.RoleName));
-        }
-
-        if (!roleQueryCriteria.CreateTime.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(r =>
-                r.CreateTime >= roleQueryCriteria.CreateTime[0] && r.CreateTime <= roleQueryCriteria.CreateTime[1]);
-        }
-
-        return whereExpression;
     }
 
     #endregion

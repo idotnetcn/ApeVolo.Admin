@@ -8,7 +8,6 @@ using Ape.Volo.Common;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Permission;
 using Ape.Volo.IBusiness.Dto.Permission;
@@ -80,12 +79,12 @@ public class JobService : BaseServices<Job>, IJobService
 
     public async Task<List<JobDto>> QueryAsync(JobQueryCriteria jobQueryCriteria, Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(jobQueryCriteria);
         var queryOptions = new QueryOptions<Job>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = jobQueryCriteria.ApplyQueryConditionalModel(),
         };
+
 
         return App.Mapper.MapTo<List<JobDto>>(
             await SugarRepository.QueryPageListAsync(queryOptions));
@@ -93,8 +92,8 @@ public class JobService : BaseServices<Job>, IJobService
 
     public async Task<List<ExportBase>> DownloadAsync(JobQueryCriteria jobQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(jobQueryCriteria);
-        var jbos = await TableWhere(whereExpression).ToListAsync();
+        var conditionalModels = jobQueryCriteria.ApplyQueryConditionalModel();
+        var jbos = await TableWhere(conditionalModels).ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
         roleExports.AddRange(jbos.Select(x => new JobExport()
         {
@@ -118,32 +117,6 @@ public class JobService : BaseServices<Job>, IJobService
 
         return App.Mapper.MapTo<List<JobDto>>(await SugarRepository.QueryListAsync(whereExpression, x => x.Sort,
             OrderByType.Asc));
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<Job, bool>> GetWhereExpression(JobQueryCriteria jobQueryCriteria)
-    {
-        Expression<Func<Job, bool>> whereExpression = x => true;
-        if (!jobQueryCriteria.JobName.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Name.Contains(jobQueryCriteria.JobName));
-        }
-
-        if (!jobQueryCriteria.CreateTime.IsNullOrEmpty() && jobQueryCriteria.CreateTime.Count > 1)
-        {
-            whereExpression = whereExpression.AndAlso(x =>
-                x.CreateTime >= jobQueryCriteria.CreateTime[0] && x.CreateTime <= jobQueryCriteria.CreateTime[1]);
-        }
-
-        if (!jobQueryCriteria.Enabled.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(x => x.Enabled == jobQueryCriteria.Enabled);
-        }
-
-        return whereExpression;
     }
 
     #endregion

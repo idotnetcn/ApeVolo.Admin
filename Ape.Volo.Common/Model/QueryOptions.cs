@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using SqlSugar;
 
 namespace Ape.Volo.Common.Model;
 
@@ -18,6 +20,13 @@ public class QueryOptions<T>
     /// 条件表达式
     /// </summary>
     public Expression<Func<T, bool>> WhereLambda { get; set; } = null;
+
+
+    /// <summary>
+    /// 条件模型
+    /// </summary>
+    public List<IConditionalModel> ConditionalModels { get; set; } = null;
+
 
     /// <summary>
     /// 查询表达式

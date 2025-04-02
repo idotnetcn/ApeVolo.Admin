@@ -81,28 +81,57 @@ namespace Ape.Volo.Business.Base
 
         #region Queryable
 
-        public ISugarQueryable<TEntity> Table => SugarClient.Queryable<TEntity>();
-
         /// <summary>
         /// Table
         /// </summary>
-        /// <param name="whereExpression">条件</param>
+        public ISugarQueryable<TEntity> Table => SugarClient.Queryable<TEntity>();
+
+
+        /// <summary>
+        /// TableWhere
+        /// </summary>
+        /// <param name="whereExpression">条件表达式</param>
         /// <param name="orderExpression">排序表达式</param>
         /// <param name="orderByType">排序方式</param>
         /// <param name="isClearCreateByFilter">清除创建人过滤器</param>
         /// <returns></returns>
-        public ISugarQueryable<TEntity> TableWhere(Expression<Func<TEntity, bool>> whereExpression = null,
+        public ISugarQueryable<TEntity> TableWhere(Expression<Func<TEntity, bool>> whereExpression,
+            Expression<Func<TEntity, object>> orderExpression = null, OrderByType? orderByType = null,
+            bool isClearCreateByFilter = false)
+        {
+            
+            orderByType ??= OrderByType.Asc;
+            if (isClearCreateByFilter)
+            {
+                return Table.ClearFilter<ICreateByEntity>().Where(whereExpression)
+                    .OrderByIF(orderExpression != null, orderExpression, (OrderByType)orderByType);
+            }
+
+            return Table.Where(whereExpression)
+                .OrderByIF(orderExpression != null, orderExpression, (OrderByType)orderByType);
+        }
+
+
+        /// <summary>
+        /// TableWhere
+        /// </summary>
+        /// <param name="conditionalModels">条件模型</param>
+        /// <param name="orderExpression">排序表达式</param>
+        /// <param name="orderByType">排序方式</param>
+        /// <param name="isClearCreateByFilter">清除创建人过滤器</param>
+        /// <returns></returns>
+        public ISugarQueryable<TEntity> TableWhere(List<IConditionalModel> conditionalModels,
             Expression<Func<TEntity, object>> orderExpression = null, OrderByType? orderByType = null,
             bool isClearCreateByFilter = false)
         {
             orderByType ??= OrderByType.Asc;
             if (isClearCreateByFilter)
             {
-                return Table.ClearFilter<ICreateByEntity>().WhereIF(whereExpression != null, whereExpression)
+                return Table.ClearFilter<ICreateByEntity>().Where(conditionalModels)
                     .OrderByIF(orderExpression != null, orderExpression, (OrderByType)orderByType);
             }
 
-            return Table.WhereIF(whereExpression != null, whereExpression)
+            return Table.Where(conditionalModels)
                 .OrderByIF(orderExpression != null, orderExpression, (OrderByType)orderByType);
         }
 

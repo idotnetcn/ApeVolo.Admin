@@ -224,9 +224,8 @@ public class MenuService : BaseServices<Menu>, IMenuService
 
     public async Task<List<MenuDto>> QueryAsync(MenuQueryCriteria menuQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(menuQueryCriteria);
-        //pagination.SortFields = new List<string> { "sort asc" };
-        var menus = await TableWhere(whereExpression, x => x.Sort, OrderByType.Asc).ToListAsync();
+        var menus = await TableWhere(menuQueryCriteria.ApplyQueryConditionalModel(), x => x.Sort, OrderByType.Asc)
+            .ToListAsync();
         var menuDtos = App.Mapper.MapTo<List<MenuDto>>(menus);
         return menuDtos;
     }
@@ -234,8 +233,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
 
     public async Task<List<ExportBase>> DownloadAsync(MenuQueryCriteria menuQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(menuQueryCriteria);
-        var menus = await TableWhere(whereExpression).ToListAsync();
+        var menus = await TableWhere(menuQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
         roleExports.AddRange(menus.Select(x => new MenuExport()
         {
@@ -480,26 +478,6 @@ public class MenuService : BaseServices<Menu>, IMenuService
         }
 
         return new List<long>();
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<Menu, bool>> GetWhereExpression(MenuQueryCriteria menuQueryCriteria)
-    {
-        Expression<Func<Menu, bool>> whereExpression = m => true;
-        if (!menuQueryCriteria.Title.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(m =>
-                m.Title.Contains(menuQueryCriteria.Title));
-        }
-
-        whereExpression = menuQueryCriteria.ParentId.IsNull()
-            ? whereExpression.AndAlso(m => m.ParentId == 0)
-            : whereExpression.AndAlso(m => m.ParentId == menuQueryCriteria.ParentId);
-
-        return whereExpression;
     }
 
     #endregion

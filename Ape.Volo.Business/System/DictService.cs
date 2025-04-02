@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
@@ -69,11 +67,10 @@ public class DictService : BaseServices<Dict>, IDictService
 
     public async Task<List<DictDto>> QueryAsync(DictQueryCriteria dictQueryCriteria, Pagination pagination)
     {
-        var whereExpression = GetWhereExpression(dictQueryCriteria);
         var queryOptions = new QueryOptions<Dict>
         {
             Pagination = pagination,
-            WhereLambda = whereExpression,
+            ConditionalModels = dictQueryCriteria.ApplyQueryConditionalModel()
             //IsIncludes = true
         };
         var list = await SugarRepository.QueryPageListAsync(queryOptions);
@@ -88,8 +85,8 @@ public class DictService : BaseServices<Dict>, IDictService
 
     public async Task<List<ExportBase>> DownloadAsync(DictQueryCriteria dictQueryCriteria)
     {
-        var whereExpression = GetWhereExpression(dictQueryCriteria);
-        var dicts = await Table.Includes(x => x.DictDetails).WhereIF(whereExpression != null, whereExpression)
+        var conditionalModels = dictQueryCriteria.ApplyQueryConditionalModel();
+        var dicts = await Table.Includes(x => x.DictDetails).Where(conditionalModels)
             .ToListAsync();
         List<ExportBase> dictExports = new List<ExportBase>();
 
@@ -107,28 +104,6 @@ public class DictService : BaseServices<Dict>, IDictService
         });
 
         return dictExports;
-    }
-
-    #endregion
-
-    #region 条件表达式
-
-    private static Expression<Func<Dict, bool>> GetWhereExpression(DictQueryCriteria dictQueryCriteria)
-    {
-        Expression<Func<Dict, bool>> whereExpression = u => true;
-        if (!dictQueryCriteria.KeyWords.IsNullOrEmpty())
-        {
-            whereExpression = whereExpression.AndAlso(d =>
-                d.Name.Contains(dictQueryCriteria.KeyWords) || d.Description.Contains(dictQueryCriteria.KeyWords));
-        }
-
-        if (dictQueryCriteria.DictType.IsNotNull())
-        {
-            whereExpression = whereExpression.AndAlso(d =>
-                d.DictType == dictQueryCriteria.DictType);
-        }
-
-        return whereExpression;
     }
 
     #endregion

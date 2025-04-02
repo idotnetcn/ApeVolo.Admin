@@ -3,9 +3,9 @@
 namespace Ape.Volo.IBusiness.RequestModel;
 
 /// <summary>
-/// 登录用户
+/// Swagger登录用户
 /// </summary>
-public class LoginAuthUser
+public class SwaggerLoginAuthUser
 {
     /// <summary>
     /// 用户名
@@ -18,16 +18,4 @@ public class LoginAuthUser
     /// </summary>
     [Required]
     public string Password { get; set; }
-
-    /// <summary>
-    /// 验证码
-    /// </summary>
-    //[Required]
-    public string Captcha { get; set; }
-
-    /// <summary>
-    /// 唯一ID
-    /// </summary>
-    [Required]
-    public string CaptchaId { get; set; }
 }

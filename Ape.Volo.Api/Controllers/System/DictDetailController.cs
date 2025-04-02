@@ -5,6 +5,7 @@ using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Dto.System;
 using Ape.Volo.IBusiness.Interface.System;
+using Ape.Volo.IBusiness.QueryModel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.System;
@@ -100,14 +101,14 @@ public class DictDetailController : BaseApiController
     /// <summary>
     /// 查看字典详情列表
     /// </summary>
-    /// <param name="dictName"></param>
+    /// <param name="dictDetailQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
     [Description("查询")]
-    public async Task<ActionResult> Query(string dictName)
+    public async Task<ActionResult> Query(DictDetailQueryCriteria dictDetailQueryCriteria)
     {
-        var list = await _dictDetailService.QueryAsync(dictName);
+        var list = await _dictDetailService.QueryAsync(dictDetailQueryCriteria);
         return JsonContent(new ActionResultVm<DictDetailDto>
         {
             Content = list,

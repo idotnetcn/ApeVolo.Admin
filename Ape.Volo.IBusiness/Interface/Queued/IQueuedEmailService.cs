@@ -20,28 +20,28 @@ public interface IQueuedEmailService : IBaseServices<QueuedEmail>
     /// </summary>
     /// <param name="createUpdateQueuedEmailDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto);
+    Task<OperateResult> CreateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto);
 
     /// <summary>
     /// 更新发送次数
     /// </summary>
     /// <param name="queuedEmailDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateTriesAsync(QueuedEmailDto queuedEmailDto);
+    Task<OperateResult> UpdateTriesAsync(QueuedEmailDto queuedEmailDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateQueuedEmailDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询
@@ -61,7 +61,7 @@ public interface IQueuedEmailService : IBaseServices<QueuedEmail>
     /// <param name="emailAddres"></param>
     /// <param name="messageTemplateName"></param>
     /// <returns></returns>
-    Task<bool> ResetEmail(string emailAddres, string messageTemplateName);
+    Task<OperateResult> ResetEmail(string emailAddres, string messageTemplateName);
 
     #endregion
 }

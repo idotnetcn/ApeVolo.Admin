@@ -5,7 +5,6 @@ using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Caches;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Test;
 using Ape.Volo.IBusiness.Interface.Test;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -87,7 +86,7 @@ public class TestController : BaseApiController
             // ignored
         }
 
-        return Success();
+        return Ok(OperateResult.Success());
     }
 
     // [HttpGet]
@@ -113,7 +112,7 @@ public class TestController : BaseApiController
     {
         try
         {
-            var userId = 1306054134645919750;
+            var userId = 163519427764300;
             for (var i = 1; i <= 1000; i++)
             {
                 var eventMessage = new UserQueryIntegrationEvent(userId, i);
@@ -143,10 +142,6 @@ public class TestController : BaseApiController
         //     Price = 5000
         // });
         var list = await _testOrderService.Table.ToListAsync();
-        return JsonContent(new ActionResultVm<TestOrder>
-        {
-            Content = list,
-            TotalElements = list.Count
-        });
+        return JsonContent(list);
     }
 }

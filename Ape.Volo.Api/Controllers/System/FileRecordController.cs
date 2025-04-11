@@ -64,8 +64,8 @@ public class FileRecordController : BaseApiController
             return Error($"文件过大，请选择文件小于等于{fileLimitSize}MB的重新进行尝试!");
         }
 
-        await _fileRecordService.CreateAsync(description, file);
-        return Create();
+        var result = await _fileRecordService.CreateAsync(description, file);
+        return Ok(result);
     }
 
     /// <summary>
@@ -85,8 +85,8 @@ public class FileRecordController : BaseApiController
             return Error(actionError);
         }
 
-        await _fileRecordService.UpdateAsync(createUpdateAppSecretDto);
-        return NoContent();
+        var result = await _fileRecordService.UpdateAsync(createUpdateAppSecretDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -105,8 +105,8 @@ public class FileRecordController : BaseApiController
             return Error(actionError);
         }
 
-        await _fileRecordService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _fileRecordService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
 
@@ -124,11 +124,7 @@ public class FileRecordController : BaseApiController
     {
         var fileRecordList = await _fileRecordService.QueryAsync(fileRecordQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<FileRecordDto>
-        {
-            Content = fileRecordList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(fileRecordList, pagination);
     }
 
 

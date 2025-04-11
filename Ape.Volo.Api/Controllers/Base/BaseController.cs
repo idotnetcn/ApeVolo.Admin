@@ -1,5 +1,6 @@
 using System;
-using Ape.Volo.Api.ActionExtension.Json;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +11,7 @@ namespace Ape.Volo.Api.Controllers.Base;
 /// <summary>
 /// 基控制器
 /// </summary>
-[JsonParamter]
+//[JsonParamter]
 public class BaseController : Controller
 {
     /// <summary>
@@ -28,7 +29,7 @@ public class BaseController : Controller
                 ActionError = vm.ActionError,
                 Message = vm.Message,
                 Timestamp = DateTime.Now.ToUnixTimeStampMillisecond().ToString(),
-                Path = Request.Path.Value?.ToLower() //HttpContext.Request.Path.Value?.ToLower()
+                Path = Request.Path.Value?.ToLower()
             }.ToJson(),
             ContentType = "application/json; charset=utf-8",
             StatusCode = vm.Status
@@ -37,7 +38,7 @@ public class BaseController : Controller
 
 
     /// <summary>
-    /// 
+    /// 返回Json
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
@@ -51,13 +52,99 @@ public class BaseController : Controller
         };
     }
 
+    /// <summary>
+    /// 返回Json
+    /// </summary>
+    /// <param name="content"></param>
+    /// <param name="pagination"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected ContentResult JsonContent<T>(List<T> content, Pagination pagination) where T : class, new()
+    {
+        var result = new ActionResultVm<T>
+        {
+            Content = content,
+            TotalElements = pagination.TotalElements,
+            TotalPages = pagination.TotalPages
+        };
+
+        return new ContentResult
+        {
+            Content = result.ToJson(),
+            ContentType = "application/json; charset=utf-8",
+            StatusCode = StatusCodes.Status200OK
+        };
+    }
+
+
+    /// <summary>
+    /// 返回Json  忽略空值字段
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    protected ContentResult JsonContentIgnoreNullValue(object obj)
+    {
+        return new ContentResult
+        {
+            Content = obj.ToJsonByIgnore(),
+            ContentType = "application/json; charset=utf-8",
+            StatusCode = StatusCodes.Status200OK
+        };
+    }
+
+
+    /// <summary>
+    /// 返回响应
+    /// </summary>
+    /// <returns></returns>
+    protected ActionResult Ok(OperateResult operateResult)
+    {
+        var msg = "请求成功";
+        if (!operateResult.IsSuccess)
+        {
+            return Error(operateResult.Message);
+        }
+
+        if (Request.Method.ToUpper() == "POST")
+        {
+            string pattern = @"/create$";
+            bool isMatch = Regex.IsMatch(Request.Path, pattern);
+            if (isMatch)
+            {
+                return Created();
+            }
+        }
+
+        if (Request.Method == "PUT")
+        {
+            string pattern = @"/edit$";
+            bool isMatch = Regex.IsMatch(Request.Path, pattern);
+            if (isMatch)
+            {
+                return new NoContentResult();
+            }
+        }
+
+        if (Request.Method == "DELETE")
+        {
+            string pattern = @"/delete$";
+            bool isMatch = Regex.IsMatch(Request.Path, pattern);
+            if (isMatch)
+            {
+                msg = "删除成功";
+            }
+        }
+
+        return Success(msg);
+    }
+
 
     /// <summary>
     /// 返回成功
     /// </summary>
     /// <param name="msg">消息</param>
     /// <returns></returns>
-    protected ContentResult Success(string msg = "")
+    private ContentResult Success(string msg = "")
     {
         msg = msg.IsNullOrEmpty() ? "请求成功" : msg;
         var vm = new ActionResultVm
@@ -73,7 +160,7 @@ public class BaseController : Controller
     /// 创建成功
     /// </summary>
     /// <returns></returns>
-    protected ContentResult Create(string msg = "")
+    private ContentResult Created(string msg = "")
     {
         msg = msg.IsNullOrEmpty() ? "创建成功" : msg;
         var vm = new ActionResultVm
@@ -83,19 +170,6 @@ public class BaseController : Controller
         };
 
         return JsonContent(vm);
-    }
-
-    /// <summary>
-    /// 更新成功 无需刷新
-    /// </summary>
-    /// <returns></returns>
-    protected ContentResult NoContent(string msg = "")
-    {
-        return new ContentResult
-        {
-            ContentType = "application/json; charset=utf-8",
-            StatusCode = StatusCodes.Status204NoContent
-        };
     }
 
     /// <summary>

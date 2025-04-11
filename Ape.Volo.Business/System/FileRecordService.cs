@@ -5,11 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
 using Ape.Volo.IBusiness.ExportModel.System;
@@ -31,18 +30,18 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(string description, IFormFile file)
+    public async Task<OperateResult> CreateAsync(string description, IFormFile file)
     {
         if (await TableWhere(x => x.Description == description).AnyAsync())
         {
-            throw new BadRequestException($"文件描述=>{description}=>已存在!");
+            return OperateResult.Error($"文件描述=>{description}=>已存在!");
         }
 
         var fileExtensionName = FileHelper.GetExtensionName(file.FileName);
         var fileTypeName = FileHelper.GetFileTypeName(fileExtensionName);
         var fileTypeNameEn = FileHelper.GetFileTypeNameEn(fileTypeName);
 
-        string fileName = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + IdHelper.GetId() +
+        string fileName = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + IdHelper.NextId() +
                           file.FileName.Substring(Math.Max(file.FileName.LastIndexOf('.'), 0));
 
         var prefix = App.WebHostEnvironment.WebRootPath;
@@ -72,29 +71,31 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
             ContentTypeName = fileTypeName,
             ContentTypeNameEn = fileTypeNameEn
         };
-        return await AddEntityAsync(fileRecord);
+        var result = await AddAsync(fileRecord);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAsync(CreateUpdateFileRecordDto createUpdateFileRecordDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateFileRecordDto createUpdateFileRecordDto)
     {
         //取出待更新数据
         var oldFileRecord = await TableWhere(x => x.Id == createUpdateFileRecordDto.Id).FirstAsync();
         if (oldFileRecord.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldFileRecord.Description != createUpdateFileRecordDto.Description &&
             await TableWhere(x => x.Description == createUpdateFileRecordDto.Description).AnyAsync())
         {
-            throw new BadRequestException($"文件描述=>{createUpdateFileRecordDto.Description}=>已存在!");
+            return OperateResult.Error($"文件描述=>{createUpdateFileRecordDto.Description}=>已存在!");
         }
 
         var fileRecord = App.Mapper.MapTo<FileRecord>(createUpdateFileRecordDto);
-        return await UpdateEntityAsync(fileRecord);
+        var result = await UpdateAsync(fileRecord);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var appSecretList = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         await LogicDelete<FileRecord>(x => ids.Contains(x.Id));
@@ -103,7 +104,7 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
             FileHelper.Delete(appSecret.FilePath);
         }
 
-        return true;
+        return OperateResult.Success();
     }
 
     public async Task<List<FileRecordDto>> QueryAsync(FileRecordQueryCriteria fileRecordQueryCriteria,
@@ -115,7 +116,7 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
             ConditionalModels = fileRecordQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<FileRecordDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     public async Task<List<ExportBase>> DownloadAsync(FileRecordQueryCriteria fileRecordQueryCriteria)

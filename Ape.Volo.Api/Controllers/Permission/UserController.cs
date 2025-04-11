@@ -54,8 +54,9 @@ public class UserController : BaseApiController
             return Error(actionError);
         }
 
-        await _userService.CreateAsync(createUpdateUserDto);
-        return Create();
+        var result = await _userService.CreateAsync(createUpdateUserDto);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -75,8 +76,8 @@ public class UserController : BaseApiController
             return Error(actionError);
         }
 
-        await _userService.UpdateAsync(createUpdateUserDto);
-        return NoContent();
+        var result = await _userService.UpdateAsync(createUpdateUserDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -95,8 +96,8 @@ public class UserController : BaseApiController
             return Error(actionError);
         }
 
-        await _userService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _userService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     [HttpPut]
@@ -110,8 +111,8 @@ public class UserController : BaseApiController
             return Error(actionError);
         }
 
-        await _userService.UpdateCenterAsync(updateUserCenterDto);
-        return NoContent();
+        var result = await _userService.UpdateCenterAsync(updateUserCenterDto);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -125,8 +126,8 @@ public class UserController : BaseApiController
             return Error(actionError);
         }
 
-        await _userService.UpdatePasswordAsync(updateUserPassDto);
-        return Success();
+        var result = await _userService.UpdatePasswordAsync(updateUserPassDto);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -140,8 +141,8 @@ public class UserController : BaseApiController
             return Error(actionError);
         }
 
-        await _userService.UpdateEmailAsync(updateUserEmailDto);
-        return Success();
+        var result = await _userService.UpdateEmailAsync(updateUserEmailDto);
+        return Ok(result);
     }
 
     [HttpPost, HttpOptions]
@@ -149,13 +150,13 @@ public class UserController : BaseApiController
     [Description("更新头像")]
     public async Task<ActionResult> UpdateAvatar([FromForm] IFormFile avatar) //多文件使用  IFormFileCollection
     {
-        if (avatar == null)
+        if (avatar.IsNull())
         {
             return Error();
         }
 
-        await _userService.UpdateAvatarAsync(avatar);
-        return Success();
+        var result = await _userService.UpdateAvatarAsync(avatar);
+        return Ok(result);
     }
 
 
@@ -172,11 +173,7 @@ public class UserController : BaseApiController
         Pagination pagination)
     {
         var list = await _userService.QueryAsync(userQueryCriteria, pagination);
-        return JsonContent(new ActionResultVm<UserDto>
-        {
-            Content = list,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(list, pagination);
     }
 
     /// <summary>

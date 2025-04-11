@@ -2,9 +2,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Attributes;
-using Ape.Volo.Common.Extensions;
 using Ape.Volo.IBusiness.Interface.Monitor;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Monitor;
@@ -33,7 +31,7 @@ public class ServerResourcesController : BaseApiController
     {
         var resourcesInfo = await _serverResourcesService.Query();
 
-        return Ok(resourcesInfo);
+        return JsonContent(resourcesInfo);
     }
 
     #endregion

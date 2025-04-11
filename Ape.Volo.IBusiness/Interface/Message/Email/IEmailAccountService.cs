@@ -20,21 +20,21 @@ public interface IEmailAccountService : IBaseServices<EmailAccount>
     /// </summary>
     /// <param name="createUpdateEmailAccountDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto);
+    Task<OperateResult> CreateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateEmailAccountDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

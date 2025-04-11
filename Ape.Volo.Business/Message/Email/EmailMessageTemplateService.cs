@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Message.Email;
@@ -32,13 +31,15 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
     /// </summary>
     /// <param name="createUpdateEmailMessageTemplateDto"></param>
     /// <returns></returns>
-    public async Task<bool> CreateAsync(CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto)
+    public async Task<OperateResult> CreateAsync(
+        CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto)
     {
         var messageTemplate = await TableWhere(x => x.Name == createUpdateEmailMessageTemplateDto.Name).FirstAsync();
         if (messageTemplate.IsNotNull())
-            throw new BadRequestException($"模板名称=>{createUpdateEmailMessageTemplateDto.Name}=>已存在!");
+            return OperateResult.Error($"模板名称=>{createUpdateEmailMessageTemplateDto.Name}=>已存在!");
 
-        return await AddEntityAsync(App.Mapper.MapTo<EmailMessageTemplate>(createUpdateEmailMessageTemplateDto));
+        var result = await AddAsync(App.Mapper.MapTo<EmailMessageTemplate>(createUpdateEmailMessageTemplateDto));
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -46,22 +47,24 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
     /// </summary>
     /// <param name="createUpdateEmailMessageTemplateDto"></param>
     /// <returns></returns>
-    public async Task<bool> UpdateAsync(CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto)
+    public async Task<OperateResult> UpdateAsync(
+        CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto)
     {
         var emailMessageTemplate = await TableWhere(x => x.Id == createUpdateEmailMessageTemplateDto.Id).FirstAsync();
         if (emailMessageTemplate.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (emailMessageTemplate.Name != createUpdateEmailMessageTemplateDto.Name &&
             await TableWhere(j => j.Name == emailMessageTemplate.Name).AnyAsync())
         {
-            throw new BadRequestException($"模板名称=>{createUpdateEmailMessageTemplateDto.Name}=>已存在!");
+            return OperateResult.Error($"模板名称=>{createUpdateEmailMessageTemplateDto.Name}=>已存在!");
         }
 
-        return await UpdateEntityAsync(
+        var result = await UpdateAsync(
             App.Mapper.MapTo<EmailMessageTemplate>(createUpdateEmailMessageTemplateDto));
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -69,12 +72,13 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var messageTemplateList = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (messageTemplateList.Count <= 0)
-            throw new BadRequestException("数据不存在！");
-        return await LogicDelete<EmailMessageTemplate>(x => ids.Contains(x.Id)) > 0;
+            return OperateResult.Error("数据不存在！");
+        var result = await LogicDelete<EmailMessageTemplate>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -92,7 +96,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
             ConditionalModels = messageTemplateQueryCriteria.ApplyQueryConditionalModel(),
         };
         return App.Mapper.MapTo<List<EmailMessageTemplateDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     #endregion

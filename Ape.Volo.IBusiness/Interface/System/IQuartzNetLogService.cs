@@ -20,7 +20,7 @@ public interface IQuartzNetLogService : IBaseServices<QuartzNetLog>
     /// </summary>
     /// <param name="quartzNetLog"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(QuartzNetLog quartzNetLog);
+    Task<OperateResult> CreateAsync(QuartzNetLog quartzNetLog);
 
     /// <summary>
     /// 查询

@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
@@ -35,39 +34,41 @@ public class SettingService : BaseServices<Setting>, ISettingService
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(CreateUpdateSettingDto createUpdateSettingDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateSettingDto createUpdateSettingDto)
     {
         if (await TableWhere(r => r.Name == createUpdateSettingDto.Name).AnyAsync())
         {
-            throw new BadRequestException($"设置键=>{createUpdateSettingDto.Name}=>已存在!");
+            return OperateResult.Error($"设置键=>{createUpdateSettingDto.Name}=>已存在!");
         }
 
         var setting = App.Mapper.MapTo<Setting>(createUpdateSettingDto);
-        return await AddEntityAsync(setting);
+        var result = await AddAsync(setting);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAsync(CreateUpdateSettingDto createUpdateSettingDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateSettingDto createUpdateSettingDto)
     {
         //取出待更新数据
         var oldSetting = await TableWhere(x => x.Id == createUpdateSettingDto.Id).FirstAsync();
         if (oldSetting.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldSetting.Name != createUpdateSettingDto.Name &&
             await TableWhere(x => x.Name == createUpdateSettingDto.Name).AnyAsync())
         {
-            throw new BadRequestException($"设置键=>{createUpdateSettingDto.Name}=>已存在!");
+            return OperateResult.Error($"设置键=>{createUpdateSettingDto.Name}=>已存在!");
         }
 
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadSettingByName +
                                     oldSetting.Name.ToMd5String16());
         var setting = App.Mapper.MapTo<Setting>(createUpdateSettingDto);
-        return await UpdateEntityAsync(setting);
+        var result = await UpdateAsync(setting);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var settings = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         foreach (var setting in settings)
@@ -76,7 +77,10 @@ public class SettingService : BaseServices<Setting>, ISettingService
                                         setting.Name.ToMd5String16());
         }
 
-        return await LogicDelete<Setting>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<Setting>(x => ids.Contains(x.Id));
+
+        return OperateResult.Result(result);
+        ;
     }
 
     public async Task<List<SettingDto>> QueryAsync(SettingQueryCriteria settingQueryCriteria, Pagination pagination)
@@ -86,8 +90,7 @@ public class SettingService : BaseServices<Setting>, ISettingService
             Pagination = pagination,
             ConditionalModels = settingQueryCriteria.ApplyQueryConditionalModel()
         };
-        return App.Mapper.MapTo<List<SettingDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+        return App.Mapper.MapTo<List<SettingDto>>(await TablePageAsync(queryOptions));
     }
 
     public async Task<List<ExportBase>> DownloadAsync(SettingQueryCriteria settingQueryCriteria)

@@ -13,7 +13,8 @@ using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.SnowflakeIdHelper;
+using Ape.Volo.Common.IdGenerator;
+using Ape.Volo.Common.Model;
 using Ape.Volo.Common.WebApp;
 using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
@@ -23,8 +24,6 @@ using Ape.Volo.IBusiness.RequestModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Ape.Volo.Api.Controllers.Auth;
 
@@ -97,7 +96,7 @@ public class AuthorizationController : BaseApiController
             captchaOptions.FontSize, captchaOptions.KeyLength);
         var img = ImgHelper.ToBase64StringUrl(imgBytes);
         var captchaId = GlobalConstants.CachePrefix.CaptchaId +
-                        IdHelper.GetId().Base64Encode();
+                        IdHelper.NextId().ToString().Base64Encode();
         await App.Cache.SetAsync(captchaId, code, TimeSpan.FromMinutes(2), null);
         var response = new
         {
@@ -106,7 +105,7 @@ public class AuthorizationController : BaseApiController
             showCaptcha
         };
 
-        return Ok(response);
+        return JsonContent(response);
     }
 
 
@@ -268,7 +267,8 @@ public class AuthorizationController : BaseApiController
         if (token.IsNullOrEmpty()) return Error("token已丢失，请重新登录！");
 
         var tokenMd5 = token.ToMd5String16();
-        var tokenBlacklist = await _tokenBlacklistService.TableWhere(x => x.AccessToken == tokenMd5, null, null, true)
+        var tokenBlacklist = await _tokenBlacklistService
+            .TableWhere(x => x.AccessToken == tokenMd5, null, null, null, true)
             .FirstAsync();
         if (tokenBlacklist.IsNull())
         {
@@ -306,7 +306,7 @@ public class AuthorizationController : BaseApiController
         var permissionIdentifierList = await _permissionService.GetPermissionIdentifierAsync(netUser.Id);
         permissionIdentifierList.AddRange(netUser.Roles.Select(r => r.Permission));
         var jwtUserVo = await _onlineUserService.CreateJwtUserAsync(netUser, permissionIdentifierList);
-        return Ok(jwtUserVo);
+        return JsonContent(jwtUserVo);
     }
 
 
@@ -321,8 +321,8 @@ public class AuthorizationController : BaseApiController
     {
         if (!email.IsEmail()) throw new BadRequestException("请输入正确的邮箱！");
 
-        var isTrue = await _queuedEmailService.ResetEmail(email, "EmailVerificationCode");
-        return isTrue ? Success() : Error();
+        var result = await _queuedEmailService.ResetEmail(email, "EmailVerificationCode");
+        return Ok(result);
     }
 
 
@@ -353,7 +353,7 @@ public class AuthorizationController : BaseApiController
                                         App.HttpUser.Id.ToString().ToMd5String16());
         }
 
-        return Success();
+        return Ok(OperateResult.Success());
     }
 
 
@@ -382,7 +382,7 @@ public class AuthorizationController : BaseApiController
 
         if (!userDto.Enabled) return Error("用户未激活");
         App.HttpContext.Session.SetInt32("swagger-key", 1);
-        return Success();
+        return Ok(OperateResult.Success());
     }
 
     #endregion
@@ -424,11 +424,11 @@ public class AuthorizationController : BaseApiController
                 {
                     user = jwtUserVo, token
                 };
-                return Ok(response);
+                return JsonContent(response);
             case "refresh":
-                return Ok(token);
+                return JsonContent(token);
             default:
-                return Ok();
+                return Ok(OperateResult.Error("参数错误！"));
         }
     }
 

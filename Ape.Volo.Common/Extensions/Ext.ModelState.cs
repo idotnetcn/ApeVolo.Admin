@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Ape.Volo.Common.Extensions;
@@ -28,7 +28,7 @@ public static partial class ExtObject
         foreach (var item in self)
         {
             if (item.Value.ValidationState != ModelValidationState.Invalid) continue;
-            var name = item.Key.IsNullOrEmpty() ? IdHelper.GetId() : item.Key;
+            var name = item.Key.IsNullOrEmpty() ? IdHelper.NextId().ToString() : item.Key;
             actionError.Errors.Add(name, item.Value.Errors.FirstOrDefault()?.ErrorMessage);
         }
 

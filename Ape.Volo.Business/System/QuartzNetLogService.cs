@@ -29,9 +29,10 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(QuartzNetLog quartzNetLog)
+    public async Task<OperateResult> CreateAsync(QuartzNetLog quartzNetLog)
     {
-        return await SugarRepository.AddReturnBoolAsync(quartzNetLog);
+        var result = await AddAsync(quartzNetLog);
+        return OperateResult.Result(result);
     }
 
     public async Task<List<QuartzNetLogDto>> QueryAsync(QuartzNetLogQueryCriteria quartzNetLogQueryCriteria,
@@ -43,7 +44,7 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
             ConditionalModels = quartzNetLogQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<QuartzNetLogDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     public async Task<List<ExportBase>> DownloadAsync(QuartzNetLogQueryCriteria quartzNetLogQueryCriteria)

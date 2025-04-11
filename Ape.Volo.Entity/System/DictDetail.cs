@@ -12,7 +12,7 @@ public class DictDetail : BaseEntityNoDataScope
     /// <summary>
     /// 字典ID
     /// </summary>
-    [SugarColumn(IsNullable = false)]
+    [SugarColumn(IsNullable = false, IsOnlyIgnoreUpdate = true)]
     public long DictId { get; set; }
 
     /// <summary>

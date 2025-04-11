@@ -11,8 +11,8 @@ using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Ape.Volo.Entity.Permission;
 using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.ExportModel.Permission;
@@ -48,21 +48,21 @@ public class UserService : BaseServices<User>, IUserService
     #region 基础方法
 
     [UseTran]
-    public async Task<bool> CreateAsync(CreateUpdateUserDto createUpdateUserDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateUserDto createUpdateUserDto)
     {
         if (await TableWhere(x => x.Username == createUpdateUserDto.Username).AnyAsync())
         {
-            throw new BadRequestException($"名称=>{createUpdateUserDto.Username}=>已存在!");
+            return OperateResult.Error($"名称=>{createUpdateUserDto.Username}=>已存在!");
         }
 
         if (await TableWhere(x => x.Email == createUpdateUserDto.Email).AnyAsync())
         {
-            throw new BadRequestException($"邮箱=>{createUpdateUserDto.Email}=>已存在!");
+            return OperateResult.Error($"邮箱=>{createUpdateUserDto.Email}=>已存在!");
         }
 
         if (await TableWhere(x => x.Phone == createUpdateUserDto.Phone).AnyAsync())
         {
-            throw new BadRequestException($"电话=>{createUpdateUserDto.Phone}=>已存在!");
+            return OperateResult.Error($"电话=>{createUpdateUserDto.Phone}=>已存在!");
         }
 
         var user = App.Mapper.MapTo<User>(createUpdateUserDto);
@@ -71,12 +71,12 @@ public class UserService : BaseServices<User>, IUserService
         user.Password = BCryptHelper.Hash("123456");
         user.DeptId = user.Dept.Id;
         //用户
-        await AddEntityAsync(user);
+        await AddAsync(user);
 
         //角色
         if (user.Roles.Count < 1)
         {
-            throw new BadRequestException("角色至少选择一个");
+            return OperateResult.Error("角色至少选择一个");
         }
 
         await SugarClient.Deleteable<UserRole>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
@@ -87,7 +87,7 @@ public class UserService : BaseServices<User>, IUserService
         //岗位
         if (user.Jobs.Count < 1)
         {
-            throw new BadRequestException("岗位至少选择一个");
+            return OperateResult.Error("岗位至少选择一个");
         }
 
 
@@ -96,35 +96,35 @@ public class UserService : BaseServices<User>, IUserService
         userJobs.AddRange(user.Jobs.Select(x => new UserJob() { UserId = user.Id, JobId = x.Id }));
         await SugarClient.Insertable(userJobs).ExecuteCommandAsync();
 
-        return true;
+        return OperateResult.Success();
     }
 
     [UseTran]
-    public async Task<bool> UpdateAsync(CreateUpdateUserDto createUpdateUserDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateUserDto createUpdateUserDto)
     {
         //取出待更新数据
         var oldUser = await TableWhere(x => x.Id == createUpdateUserDto.Id).Includes(x => x.Roles).FirstAsync();
         if (oldUser.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldUser.Username != createUpdateUserDto.Username &&
             await TableWhere(x => x.Username == createUpdateUserDto.Username).AnyAsync())
         {
-            throw new BadRequestException($"名称=>{createUpdateUserDto.Username}=>已存在!");
+            return OperateResult.Error($"名称=>{createUpdateUserDto.Username}=>已存在!");
         }
 
         if (oldUser.Email != createUpdateUserDto.Email &&
             await TableWhere(x => x.Email == createUpdateUserDto.Email).AnyAsync())
         {
-            throw new BadRequestException($"邮箱=>{createUpdateUserDto.Email}=>已存在!");
+            return OperateResult.Error($"邮箱=>{createUpdateUserDto.Email}=>已存在!");
         }
 
         if (oldUser.Phone != createUpdateUserDto.Phone &&
             await TableWhere(x => x.Phone == createUpdateUserDto.Phone).AnyAsync())
         {
-            throw new BadRequestException($"电话=>{createUpdateUserDto.Phone}=>已存在!");
+            return OperateResult.Error($"电话=>{createUpdateUserDto.Phone}=>已存在!");
         }
 
         //验证角色等级
@@ -133,11 +133,11 @@ public class UserService : BaseServices<User>, IUserService
         var user = App.Mapper.MapTo<User>(createUpdateUserDto);
         user.DeptId = user.Dept.Id;
         //更新用户
-        await UpdateEntityAsync(user, new List<string> { "password", "salt_key", "avatar_name", "avatar_path" });
+        await UpdateAsync(user, null, x => new { x.Password, x.AvatarPath, x.IsAdmin, x.PasswordReSetTime });
         //角色
         if (user.Roles.Count < 1)
         {
-            throw new BadRequestException("角色至少选择一个！");
+            return OperateResult.Error("角色至少选择一个！");
         }
 
         await SugarClient.Deleteable<UserRole>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
@@ -148,7 +148,7 @@ public class UserService : BaseServices<User>, IUserService
         //岗位
         if (user.Jobs.Count < 1)
         {
-            throw new BadRequestException("岗位至少选择一个！");
+            return OperateResult.Error("岗位至少选择一个！");
         }
 
         await SugarClient.Deleteable<UserJob>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
@@ -158,17 +158,19 @@ public class UserService : BaseServices<User>, IUserService
 
         //清理缓存
         await ClearUserCache(user.Id);
-        return true;
+        return OperateResult.Success();
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
-        //验证角色等级
-        await _roleService.VerificationUserRoleLevelAsync(await _roleService.QueryUserRoleLevelAsync(ids));
         if (ids.Contains(App.HttpUser.Id))
         {
-            throw new BadRequestException("禁止删除自己");
+            return OperateResult.Error("禁止删除自己");
         }
+
+        //验证角色等级
+        await _roleService.VerificationUserRoleLevelAsync(await _roleService.QueryUserRoleLevelAsync(ids));
+
 
         var users = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         foreach (var user in users)
@@ -176,7 +178,8 @@ public class UserService : BaseServices<User>, IUserService
             await ClearUserCache(user.Id);
         }
 
-        return await LogicDelete<User>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<User>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -194,7 +197,7 @@ public class UserService : BaseServices<User>, IUserService
             ConditionalModels = conditionalModels,
             IsIncludes = true
         };
-        var users = await SugarRepository.QueryPageListAsync(queryOptions);
+        var users = await TablePageAsync(queryOptions);
 
         return App.Mapper.MapTo<List<UserDto>>(users);
     }
@@ -230,7 +233,8 @@ public class UserService : BaseServices<User>, IUserService
     //[UseCache(Expiration = 60, KeyPrefix = GlobalConstants.CachePrefix.UserInfoById)]
     public async Task<UserDto> QueryByIdAsync(long userId)
     {
-        var user = await TableWhere(x => x.Id == userId, null, null, true).Includes(x => x.Dept).Includes(x => x.Roles)
+        var user = await TableWhere(x => x.Id == userId, null, null, null, true).Includes(x => x.Dept)
+            .Includes(x => x.Roles)
             .Includes(x => x.Jobs).FirstAsync();
 
         return App.Mapper.MapTo<UserDto>(user);
@@ -246,11 +250,11 @@ public class UserService : BaseServices<User>, IUserService
         User user;
         if (userName.IsEmail())
         {
-            user = await TableWhere(s => s.Email == userName, null, null, true).FirstAsync();
+            user = await TableWhere(s => s.Email == userName, null, null, null, true).FirstAsync();
         }
         else
         {
-            user = await TableWhere(s => s.Username == userName, null, null, true).FirstAsync();
+            user = await TableWhere(s => s.Username == userName, null, null, null, true).FirstAsync();
         }
 
         return App.Mapper.MapTo<UserDto>(user);
@@ -264,7 +268,7 @@ public class UserService : BaseServices<User>, IUserService
     public async Task<List<UserDto>> QueryByDeptIdsAsync(List<long> deptIds)
     {
         return App.Mapper.MapTo<List<UserDto>>(
-            await SugarRepository.QueryListAsync(u => deptIds.Contains(u.DeptId)));
+            await TableWhere(u => deptIds.Contains(u.DeptId)).ToListAsync());
     }
 
     /// <summary>
@@ -273,26 +277,27 @@ public class UserService : BaseServices<User>, IUserService
     /// <param name="updateUserCenterDto"></param>
     /// <returns></returns>
     /// <exception cref="BadRequestException"></exception>
-    public async Task<bool> UpdateCenterAsync(UpdateUserCenterDto updateUserCenterDto)
+    public async Task<OperateResult> UpdateCenterAsync(UpdateUserCenterDto updateUserCenterDto)
     {
         var user = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (user.IsNull())
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         if (!updateUserCenterDto.Phone.IsPhone())
-            throw new BadRequestException("电话格式错误");
+            return OperateResult.Error("电话格式错误");
 
-        var checkUser = await SugarRepository.QueryFirstAsync(x =>
-            x.Phone == updateUserCenterDto.Phone && x.Id != App.HttpUser.Id);
+        var checkUser = await TableWhere(x =>
+            x.Phone == updateUserCenterDto.Phone && x.Id != App.HttpUser.Id).FirstAsync();
         if (checkUser.IsNotNull())
-            throw new BadRequestException($"电话=>{checkUser.Phone}=>已存在!");
+            return OperateResult.Error($"电话=>{checkUser.Phone}=>已存在!");
 
         user.NickName = updateUserCenterDto.NickName;
         user.Gender = updateUserCenterDto.Gender;
         user.Phone = updateUserCenterDto.Phone;
-        return await UpdateEntityAsync(user);
+        var result = await UpdateAsync(user);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdatePasswordAsync(UpdateUserPassDto userPassDto)
+    public async Task<OperateResult> UpdatePasswordAsync(UpdateUserPassDto userPassDto)
     {
         var rsaHelper = new RsaHelper(App.GetOptions<RsaOptions>());
         string oldPassword = rsaHelper.Decrypt(userPassDto.OldPassword);
@@ -300,25 +305,25 @@ public class UserService : BaseServices<User>, IUserService
         string confirmPassword = rsaHelper.Decrypt(userPassDto.ConfirmPassword);
 
         if (oldPassword == newPassword)
-            throw new BadRequestException("新密码不能与旧密码相同");
+            return OperateResult.Error("新密码不能与旧密码相同");
 
         if (!newPassword.Equals(confirmPassword))
         {
-            throw new BadRequestException("两次输入不匹配");
+            return OperateResult.Error("两次输入不匹配");
         }
 
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         if (!BCryptHelper.Verify(oldPassword, curUser.Password))
         {
-            throw new BadRequestException("旧密码错误");
+            return OperateResult.Error("旧密码错误");
         }
 
         //设置用户密码
         curUser.Password = BCryptHelper.Hash(newPassword);
         curUser.PasswordReSetTime = DateTime.Now;
-        var isTrue = await UpdateEntityAsync(curUser);
+        var isTrue = await UpdateAsync(curUser);
         if (isTrue)
         {
             //清理缓存
@@ -330,7 +335,7 @@ public class UserService : BaseServices<User>, IUserService
                                         App.HttpUser.JwtToken.ToMd5String16());
         }
 
-        return true;
+        return OperateResult.Success();
     }
 
     /// <summary>
@@ -338,37 +343,38 @@ public class UserService : BaseServices<User>, IUserService
     /// </summary>
     /// <param name="updateUserEmailDto"></param>
     /// <returns></returns>
-    public async Task<bool> UpdateEmailAsync(UpdateUserEmailDto updateUserEmailDto)
+    public async Task<OperateResult> UpdateEmailAsync(UpdateUserEmailDto updateUserEmailDto)
     {
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         var rsaHelper = new RsaHelper(App.GetOptions<RsaOptions>());
         string password = rsaHelper.Decrypt(updateUserEmailDto.Password);
         if (!BCryptHelper.Verify(password, curUser.Password))
         {
-            throw new BadRequestException("密码错误");
+            return OperateResult.Error("密码错误");
         }
 
         var code = await App.Cache.GetAsync<string>(
             GlobalConstants.CachePrefix.EmailCaptcha + updateUserEmailDto.Email.ToMd5String16());
         if (code.IsNullOrEmpty() || !code.Equals(updateUserEmailDto.Code))
         {
-            throw new BadRequestException("验证码错误");
+            return OperateResult.Error("验证码错误");
         }
 
         curUser.Email = updateUserEmailDto.Email;
-        return await UpdateEntityAsync(curUser);
+        var result = await UpdateAsync(curUser);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAvatarAsync(IFormFile file)
+    public async Task<OperateResult> UpdateAvatarAsync(IFormFile file)
     {
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
 
         var prefix = App.WebHostEnvironment.WebRootPath;
-        string avatarName = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + IdHelper.GetId() +
+        string avatarName = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + IdHelper.NextId() +
                             file.FileName.Substring(Math.Max(file.FileName.LastIndexOf('.'), 0));
         string avatarPath = Path.Combine(prefix, "uploads", "file", "avatar");
 
@@ -389,7 +395,8 @@ public class UserService : BaseServices<User>, IUserService
         curUser.AvatarPath = relativePath;
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.UserInfoById +
                                     curUser.Id.ToString().ToMd5String16());
-        return await UpdateEntityAsync(curUser);
+        var result = await UpdateAsync(curUser);
+        return OperateResult.Result(result);
     }
 
     #endregion

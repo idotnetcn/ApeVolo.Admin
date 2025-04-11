@@ -20,21 +20,21 @@ public interface ISettingService : IBaseServices<Setting>
     /// </summary>
     /// <param name="createUpdateSettingDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateSettingDto createUpdateSettingDto);
+    Task<OperateResult> CreateAsync(CreateUpdateSettingDto createUpdateSettingDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateSettingDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateSettingDto createUpdateSettingDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateSettingDto createUpdateSettingDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

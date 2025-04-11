@@ -33,7 +33,7 @@ public interface IQuartzNetService : IBaseServices<QuartzNet>
     /// </summary>
     /// <param name="createUpdateQuartzNetDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateQuartzNetDto createUpdateQuartzNetDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateQuartzNetDto createUpdateQuartzNetDto);
 
     /// <summary>
     /// 更新任务与日志
@@ -41,14 +41,14 @@ public interface IQuartzNetService : IBaseServices<QuartzNet>
     /// <param name="quartzNet"></param>
     /// <param name="quartzNetLog"></param>
     /// <returns></returns>
-    Task<bool> UpdateJobInfoAsync(QuartzNet quartzNet, QuartzNetLog quartzNetLog);
+    Task<OperateResult> UpdateJobInfoAsync(QuartzNet quartzNet, QuartzNetLog quartzNetLog);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="quartzNets"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(List<QuartzNet> quartzNets);
+    Task<OperateResult> DeleteAsync(List<QuartzNet> quartzNets);
 
     /// <summary>
     /// 查询

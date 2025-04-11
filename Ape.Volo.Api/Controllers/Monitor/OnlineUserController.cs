@@ -38,11 +38,7 @@ public class OnlineUserController : BaseApiController
     {
         var onlineUserList = await _onlineUserService.QueryAsync(pagination);
 
-        return JsonContent(new ActionResultVm<Common.WebApp.LoginUserInfo>
-        {
-            Content = onlineUserList,
-            TotalElements = onlineUserList.Count
-        });
+        return JsonContent(onlineUserList, pagination);
     }
 
     /// <summary>
@@ -63,7 +59,7 @@ public class OnlineUserController : BaseApiController
 
         await _onlineUserService.DropOutAsync(idCollection.IdArray);
 
-        return Success();
+        return Ok(OperateResult.Success());
     }
 
     /// <summary>

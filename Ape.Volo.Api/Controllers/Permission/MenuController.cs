@@ -9,7 +9,6 @@ using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
 using Ape.Volo.IBusiness.QueryModel;
 using Ape.Volo.IBusiness.RequestModel;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -55,8 +54,8 @@ public class MenusController : BaseApiController
             return Error(actionError);
         }
 
-        await _menuService.CreateAsync(createUpdateMenuDto);
-        return Create();
+        var result = await _menuService.CreateAsync(createUpdateMenuDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -76,8 +75,8 @@ public class MenusController : BaseApiController
             return Error(actionError);
         }
 
-        await _menuService.UpdateAsync(createUpdateMenuDto);
-        return NoContent();
+        var result = await _menuService.UpdateAsync(createUpdateMenuDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -96,8 +95,8 @@ public class MenusController : BaseApiController
             return Error(actionError);
         }
 
-        await _menuService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _menuService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -107,10 +106,10 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("构建菜单")]
     [Route("build")]
-    public async Task<ActionResult<object>> Build()
+    public async Task<ActionResult> Build()
     {
         var menuVos = await _menuService.BuildTreeAsync(App.HttpUser.Id);
-        return menuVos.ToJsonByIgnore();
+        return JsonContentIgnoreNullValue(menuVos);
     }
 
     /// <summary>
@@ -129,7 +128,7 @@ public class MenusController : BaseApiController
         }
 
         var menuList = await _menuService.FindByPIdAsync(pid);
-        return menuList.ToJsonByIgnore();
+        return JsonContentIgnoreNullValue(menuList);
     }
 
     /// <summary>
@@ -143,11 +142,7 @@ public class MenusController : BaseApiController
     public async Task<ActionResult> Query(MenuQueryCriteria menuQueryCriteria)
     {
         var menuList = await _menuService.QueryAsync(menuQueryCriteria);
-        return JsonContent(new ActionResultVm<MenuDto>
-        {
-            Content = menuList,
-            TotalElements = menuList.Count
-        });
+        return JsonContent(menuList, new Pagination() { TotalElements = menuList.Count });
     }
 
 
@@ -185,7 +180,7 @@ public class MenusController : BaseApiController
         }
 
         var menuVos = await _menuService.FindSuperiorAsync(id);
-        return menuVos.ToJsonByIgnore();
+        return JsonContentIgnoreNullValue(menuVos);
     }
 
     [HttpGet]

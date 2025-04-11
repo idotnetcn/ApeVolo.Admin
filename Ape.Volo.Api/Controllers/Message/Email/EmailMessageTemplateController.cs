@@ -52,8 +52,8 @@ public class EmailMessageTemplateController : BaseApiController
             return Error(actionError);
         }
 
-        await _emailMessageTemplateService.CreateAsync(createUpdateEmailMessageTemplateDto);
-        return Create();
+        var result = await _emailMessageTemplateService.CreateAsync(createUpdateEmailMessageTemplateDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -73,8 +73,8 @@ public class EmailMessageTemplateController : BaseApiController
             return Error(actionError);
         }
 
-        await _emailMessageTemplateService.UpdateAsync(createUpdateEmailMessageTemplateDto);
-        return NoContent();
+        var result = await _emailMessageTemplateService.UpdateAsync(createUpdateEmailMessageTemplateDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -93,8 +93,8 @@ public class EmailMessageTemplateController : BaseApiController
             return Error(actionError);
         }
 
-        await _emailMessageTemplateService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _emailMessageTemplateService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -112,11 +112,7 @@ public class EmailMessageTemplateController : BaseApiController
         var emailMessageTemplateList =
             await _emailMessageTemplateService.QueryAsync(messageTemplateQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<EmailMessageTemplateDto>
-        {
-            Content = emailMessageTemplateList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(emailMessageTemplateList, pagination);
     }
 
     #endregion

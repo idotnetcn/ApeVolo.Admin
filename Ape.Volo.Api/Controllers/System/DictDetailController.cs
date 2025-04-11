@@ -53,8 +53,8 @@ public class DictDetailController : BaseApiController
             return Error(actionError);
         }
 
-        await _dictDetailService.CreateAsync(createUpdateDictDto);
-        return Success();
+        var result = await _dictDetailService.CreateAsync(createUpdateDictDto);
+        return Ok(result);
     }
 
 
@@ -75,8 +75,8 @@ public class DictDetailController : BaseApiController
             return Error(actionError);
         }
 
-        await _dictDetailService.UpdateAsync(createUpdateDictDetailDto);
-        return NoContent();
+        var result = await _dictDetailService.UpdateAsync(createUpdateDictDetailDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,26 +94,23 @@ public class DictDetailController : BaseApiController
             return Error("id cannot be empty");
         }
 
-        await _dictDetailService.DeleteAsync(id);
-        return Success();
+        var result = await _dictDetailService.DeleteAsync(id);
+        return Ok(result);
     }
 
     /// <summary>
     /// 查看字典详情列表
     /// </summary>
     /// <param name="dictDetailQueryCriteria"></param>
+    /// <param name="pagination"></param>
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
     [Description("查询")]
-    public async Task<ActionResult> Query(DictDetailQueryCriteria dictDetailQueryCriteria)
+    public async Task<ActionResult> Query(DictDetailQueryCriteria dictDetailQueryCriteria, Pagination pagination)
     {
-        var list = await _dictDetailService.QueryAsync(dictDetailQueryCriteria);
-        return JsonContent(new ActionResultVm<DictDetailDto>
-        {
-            Content = list,
-            TotalElements = list.Count
-        });
+        var list = await _dictDetailService.QueryAsync(dictDetailQueryCriteria, pagination);
+        return JsonContent(list, pagination);
     }
 
     #endregion

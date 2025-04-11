@@ -9,7 +9,6 @@ public static class LoggerToDbSinkConfiguration
     public static LoggerConfiguration WriteToDb(this LoggerConfiguration loggerConfiguration)
     {
         var loggerToDbSink = new LoggerToDbSink();
-
         var batchingOptions = new PeriodicBatchingSinkOptions
         {
             BatchSizeLimit = 500,

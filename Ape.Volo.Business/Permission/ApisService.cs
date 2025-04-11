@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Permission;
@@ -18,45 +17,48 @@ public class ApisService : BaseServices<Apis>, IApisService
     {
     }
 
-    public async Task<bool> CreateAsync(CreateUpdateApisDto createUpdateApisDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateApisDto createUpdateApisDto)
     {
         if (await TableWhere(a => a.Url == createUpdateApisDto.Url).AnyAsync())
         {
-            throw new BadRequestException($"Url=>{createUpdateApisDto.Url}=>已存在!");
+            return OperateResult.Error($"Url=>{createUpdateApisDto.Url}=>已存在!");
         }
 
         var apis = App.Mapper.MapTo<Apis>(createUpdateApisDto);
-        return await AddEntityAsync(apis);
+        var result = await AddAsync(apis);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAsync(CreateUpdateApisDto createUpdateApisDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateApisDto createUpdateApisDto)
     {
         var oldApis =
             await TableWhere(x => x.Id == createUpdateApisDto.Id).FirstAsync();
         if (oldApis.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldApis.Url != createUpdateApisDto.Url &&
             await TableWhere(a => a.Url == createUpdateApisDto.Url).AnyAsync())
         {
-            throw new BadRequestException($"Url=>{createUpdateApisDto.Url}=>已存在!");
+            return OperateResult.Error($"Url=>{createUpdateApisDto.Url}=>已存在!");
         }
 
         var apis = App.Mapper.MapTo<Apis>(createUpdateApisDto);
-        return await UpdateEntityAsync(apis);
+        var result = await UpdateAsync(apis);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var apis = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (apis.Count < 1)
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
-        return await LogicDelete<Apis>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<Apis>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     public async Task<List<Apis>> QueryAsync(ApisQueryCriteria apisQueryCriteria, Pagination pagination)
@@ -66,7 +68,7 @@ public class ApisService : BaseServices<Apis>, IApisService
             Pagination = pagination,
             ConditionalModels = apisQueryCriteria.ApplyQueryConditionalModel()
         };
-        return await SugarRepository.QueryPageListAsync(queryOptions);
+        return await TablePageAsync(queryOptions);
     }
 
     public async Task<List<Apis>> QueryAllAsync()
@@ -74,8 +76,9 @@ public class ApisService : BaseServices<Apis>, IApisService
         return await Table.ToListAsync();
     }
 
-    public async Task<bool> CreateAsync(List<Apis> apis)
+    public async Task<OperateResult> CreateAsync(List<Apis> apis)
     {
-        return await AddEntityListAsync(apis);
+        var result = await AddAsync(apis);
+        return OperateResult.Result(result);
     }
 }

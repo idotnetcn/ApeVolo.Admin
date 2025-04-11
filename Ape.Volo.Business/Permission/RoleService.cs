@@ -38,26 +38,26 @@ public class RoleService : BaseServices<Role>, IRoleService
     #region 基础方法
 
     [UseTran]
-    public async Task<bool> CreateAsync(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateRoleDto createUpdateRoleDto)
     {
         await VerificationUserRoleLevelAsync(createUpdateRoleDto.Level);
         if (await TableWhere(r => r.Name == createUpdateRoleDto.Name).AnyAsync())
         {
-            throw new BadRequestException($"角色名称=>{createUpdateRoleDto.Name}=>已存在!");
+            return OperateResult.Error($"角色名称=>{createUpdateRoleDto.Name}=>已存在!");
         }
 
         if (await TableWhere(r => r.Permission == createUpdateRoleDto.Permission).AnyAsync())
         {
-            throw new BadRequestException($"权限标识=>{createUpdateRoleDto.Permission}=>已存在!");
+            return OperateResult.Error($"权限标识=>{createUpdateRoleDto.Permission}=>已存在!");
         }
 
         if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize && createUpdateRoleDto.Depts.Count == 0)
         {
-            throw new BadRequestException("数据权限为自定义,请至少选择一个部门!");
+            return OperateResult.Error("数据权限为自定义,请至少选择一个部门!");
         }
 
         var role = App.Mapper.MapTo<Role>(createUpdateRoleDto);
-        await AddEntityAsync(role);
+        await AddAsync(role);
 
         if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize && createUpdateRoleDto.Depts.Count != 0)
         {
@@ -67,34 +67,34 @@ public class RoleService : BaseServices<Role>, IRoleService
             await SugarClient.Insertable(roleDepts).ExecuteCommandAsync();
         }
 
-        return true;
+        return OperateResult.Success();
     }
 
     [UseTran]
-    public async Task<bool> UpdateAsync(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateRoleDto createUpdateRoleDto)
     {
         //取出待更新数据
         var oldRole = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
         if (oldRole.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldRole.Name != createUpdateRoleDto.Name &&
             await TableWhere(x => x.Name == createUpdateRoleDto.Name).AnyAsync())
         {
-            throw new BadRequestException($"角色名称=>{createUpdateRoleDto.Name}=>已存在!");
+            return OperateResult.Error($"角色名称=>{createUpdateRoleDto.Name}=>已存在!");
         }
 
         if (oldRole.Permission != createUpdateRoleDto.Permission &&
             await TableWhere(x => x.Permission == createUpdateRoleDto.Permission).AnyAsync())
         {
-            throw new BadRequestException($"权限标识=>{createUpdateRoleDto.Permission}=>已存在!");
+            return OperateResult.Error($"权限标识=>{createUpdateRoleDto.Permission}=>已存在!");
         }
 
         await VerificationUserRoleLevelAsync(createUpdateRoleDto.Level);
         var role = App.Mapper.MapTo<Role>(createUpdateRoleDto);
-        await UpdateEntityAsync(role);
+        await UpdateAsync(role);
 
         //删除部门权限关联
         await SugarClient.Deleteable<RoleDepartment>().Where(x => x.RoleId == role.Id).ExecuteCommandAsync();
@@ -112,11 +112,11 @@ public class RoleService : BaseServices<Role>, IRoleService
                                         user.Id.ToString().ToMd5String16());
         }
 
-        return true;
+        return OperateResult.Success();
     }
 
     [UseTran]
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         //返回用户列表的最大角色等级
         var roles = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
@@ -128,7 +128,7 @@ public class RoleService : BaseServices<Role>, IRoleService
 
         if (userCount > 0)
         {
-            throw new BadRequestException("存在用户关联，请解除后再试！");
+            return OperateResult.Error("存在用户关联，请解除后再试！");
         }
 
 
@@ -139,7 +139,8 @@ public class RoleService : BaseServices<Role>, IRoleService
         await VerificationUserRoleLevelAsync(minLevel);
 
         //删除角色 角色部门 角色菜单
-        return await LogicDelete<Role>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<Role>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     public async Task<List<RoleDto>> QueryAsync(RoleQueryCriteria roleQueryCriteria, Pagination pagination)
@@ -152,7 +153,7 @@ public class RoleService : BaseServices<Role>, IRoleService
             IgnorePropertyNameList = new[] { "Users" }
         };
         var roleList =
-            await SugarRepository.QueryPageListAsync(queryOptions);
+            await TablePageAsync(queryOptions);
 
         return App.Mapper.MapTo<List<RoleDto>>(roleList);
     }
@@ -192,37 +193,34 @@ public class RoleService : BaseServices<Role>, IRoleService
         return App.Mapper.MapTo<List<RoleDto>>(roleList);
     }
 
-    public async Task<int> QueryUserRoleLevelAsync(HashSet<long> ids)
+    public async Task<int?> QueryUserRoleLevelAsync(HashSet<long> ids)
     {
-        List<int> levels = new List<int>();
-        var roles =
-            await SugarRepository.QueryMuchAsync<Role, UserRole, Role>(
-                (r, ur) => new object[]
-                {
-                    JoinType.Left, r.Id == ur.RoleId
-                },
-                (r, ur) => r,
-                (r, ur) => ids.Contains(ur.UserId)
-            );
-        levels.AddRange(roles.Select(x => x.Level).ToList());
-        int minLevel = levels.Min();
-        return minLevel;
+        var levels = await SugarClient.Queryable<Role, UserRole>((r, ur) => new JoinQueryInfos(
+                JoinType.Left, r.Id == ur.RoleId
+            )).Where((r, ur) => ids.Contains(ur.UserId))
+            .Select((r) => r.Level).ToListAsync();
+        if (levels.Any())
+        {
+            var minLevel = levels.Min();
+            return minLevel;
+        }
+
+        return null;
     }
 
     public async Task<int> VerificationUserRoleLevelAsync(int? level)
     {
-        List<int> levels = new List<int>();
-        var roles =
-            await SugarRepository.QueryMuchAsync<Role, UserRole, Role>(
-                (r, ur) => new object[]
-                {
-                    JoinType.Left, r.Id == ur.RoleId
-                },
-                (r, ur) => r,
-                (r, ur) => ur.UserId == App.HttpUser.Id
-            );
-        levels.AddRange(roles.Select(x => x.Level).ToList());
-        int minLevel = levels.Min();
+        var minLevel = 999;
+        var levels = await SugarClient.Queryable<Role, UserRole>((r, ur) => new JoinQueryInfos(
+                JoinType.Left, r.Id == ur.RoleId
+            )).Where((r, ur) => ur.UserId == App.HttpUser.Id)
+            .Select((r) => r.Level).ToListAsync();
+
+        if (levels.Any())
+        {
+            minLevel = levels.Min();
+        }
+
         if (level != null && level < minLevel)
         {
             throw new BadRequestException("您无权修改或删除比你角色等级更高的数据！");
@@ -233,7 +231,7 @@ public class RoleService : BaseServices<Role>, IRoleService
 
 
     [UseTran]
-    public async Task<bool> UpdateRolesMenusAsync(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<OperateResult> UpdateRolesMenusAsync(CreateUpdateRoleDto createUpdateRoleDto)
     {
         var role = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
         await VerificationUserRoleLevelAsync(role.Level);
@@ -259,12 +257,12 @@ public class RoleService : BaseServices<Role>, IRoleService
                                         user.Id.ToString().ToMd5String16());
         }
 
-        return true;
+        return OperateResult.Success();
     }
 
 
     [UseTran]
-    public async Task<bool> UpdateRolesApisAsync(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<OperateResult> UpdateRolesApisAsync(CreateUpdateRoleDto createUpdateRoleDto)
     {
         var role = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
         await VerificationUserRoleLevelAsync(role.Level);
@@ -293,7 +291,7 @@ public class RoleService : BaseServices<Role>, IRoleService
             }
         }
 
-        return true;
+        return OperateResult.Success();
     }
 
     #endregion

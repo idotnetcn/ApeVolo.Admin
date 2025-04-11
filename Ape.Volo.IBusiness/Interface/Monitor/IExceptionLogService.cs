@@ -20,7 +20,7 @@ public interface IExceptionLogService : IBaseServices<ExceptionLog>
     /// </summary>
     /// <param name="exceptionLog"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(ExceptionLog exceptionLog);
+    Task<OperateResult> CreateAsync(ExceptionLog exceptionLog);
 
     /// <summary>
     /// 查询

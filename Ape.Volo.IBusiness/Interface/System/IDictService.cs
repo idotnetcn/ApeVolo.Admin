@@ -20,21 +20,21 @@ public interface IDictService : IBaseServices<Dict>
     /// </summary>
     /// <param name="createUpdateDictDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateDictDto createUpdateDictDto);
+    Task<OperateResult> CreateAsync(CreateUpdateDictDto createUpdateDictDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateDictDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateDictDto createUpdateDictDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateDictDto createUpdateDictDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

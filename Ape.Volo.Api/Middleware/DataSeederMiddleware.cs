@@ -26,8 +26,8 @@ public static class DataSeederMiddleware
                 var dataContext = app.ApplicationServices.GetRequiredService<DataContext>();
                 DataSeeder.InitMasterDataAsync(dataContext, systemOptions.IsInitData,
                     systemOptions.IsQuickDebug).Wait();
-                Thread.Sleep(500); 
-                DataSeeder.InitLogData(dataContext);
+                Thread.Sleep(500);
+                DataSeeder.InitLogData(dataContext).Wait();
                 Thread.Sleep(500);
                 DataSeeder.InitTenantDataAsync(dataContext).Wait();
             }

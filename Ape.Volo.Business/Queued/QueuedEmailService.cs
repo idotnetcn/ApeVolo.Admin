@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Enums;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
@@ -52,10 +51,11 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// </summary>
     /// <param name="createUpdateQueuedEmailDto"></param>
     /// <returns></returns>
-    public async Task<bool> CreateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
         var queuedEmail = App.Mapper.MapTo<QueuedEmail>(createUpdateQueuedEmailDto);
-        return await AddEntityAsync(queuedEmail);
+        var result = await AddAsync(queuedEmail);
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -63,10 +63,11 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// </summary>
     /// <param name="queuedEmailDto"></param>
     /// <returns></returns>
-    public async Task<bool> UpdateTriesAsync(QueuedEmailDto queuedEmailDto)
+    public async Task<OperateResult> UpdateTriesAsync(QueuedEmailDto queuedEmailDto)
     {
         var queuedEmail = App.Mapper.MapTo<QueuedEmail>(queuedEmailDto);
-        return await SugarRepository.UpdateAsync(queuedEmail) > 0;
+        var result = await UpdateAsync(queuedEmail);
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -74,15 +75,16 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// </summary>
     /// <param name="createUpdateQueuedEmailDto"></param>
     /// <returns></returns>
-    public async Task<bool> UpdateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
         if (!await TableWhere(x => x.Id == createUpdateQueuedEmailDto.Id).AnyAsync())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         var queuedEmail = App.Mapper.MapTo<QueuedEmail>(createUpdateQueuedEmailDto);
-        return await UpdateEntityAsync(queuedEmail);
+        var result = await UpdateAsync(queuedEmail);
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -90,13 +92,14 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var emailAccounts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (emailAccounts.Count < 1)
-            throw new BadRequestException("无可删除数据!");
+            return OperateResult.Error("无可删除数据!");
 
-        return await LogicDelete<QueuedEmail>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<QueuedEmail>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -114,7 +117,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             ConditionalModels = queuedEmailQueryCriteria.ApplyQueryConditionalModel(),
         };
         return App.Mapper.MapTo<List<QueuedEmailDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     #endregion
@@ -127,12 +130,12 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// <param name="emailAddress"></param>
     /// <param name="messageTemplateName"></param>
     /// <returns></returns>
-    public async Task<bool> ResetEmail(string emailAddress, string messageTemplateName)
+    public async Task<OperateResult> ResetEmail(string emailAddress, string messageTemplateName)
     {
         var emailMessageTemplate =
             await _emailMessageTemplateService.TableWhere(x => x.Name == messageTemplateName).FirstAsync();
         if (emailMessageTemplate.IsNull())
-            throw new BadRequestException($"{messageTemplateName} 获取邮件模板失败！");
+            return OperateResult.Error($"{messageTemplateName} 获取邮件模板失败！");
         var emailAccount = await _emailAccountService.TableWhere(x => x.Id == emailMessageTemplate.EmailAccountId)
             .SingleAsync();
 
@@ -196,7 +199,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             {
                 try
                 {
-                    await AddEntityAsync(queuedEmail);
+                    await AddAsync(queuedEmail);
                 }
                 catch
                 {
@@ -205,7 +208,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             }
         }
 
-        return isTrue;
+        return OperateResult.Success();
     }
 
     #endregion

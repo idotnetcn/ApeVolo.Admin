@@ -20,21 +20,21 @@ public interface IEmailMessageTemplateService : IBaseServices<EmailMessageTempla
     /// </summary>
     /// <param name="createUpdateEmailMessageTemplateDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto);
+    Task<OperateResult> CreateAsync(CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateEmailMessageTemplateDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

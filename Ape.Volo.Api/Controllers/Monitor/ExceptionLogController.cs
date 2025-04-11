@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.Monitor;
 using Ape.Volo.IBusiness.Interface.Monitor;
 using Ape.Volo.IBusiness.QueryModel;
 using Microsoft.AspNetCore.Mvc;
@@ -49,11 +48,7 @@ public class ExceptionLogController : BaseApiController
     {
         var exceptionLogs = await _exceptionLogService.QueryAsync(logQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<ExceptionLogDto>
-        {
-            Content = exceptionLogs,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(exceptionLogs, pagination);
     }
 
     #endregion

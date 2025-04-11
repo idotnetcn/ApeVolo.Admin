@@ -9,7 +9,6 @@ using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
 using Ape.Volo.IBusiness.QueryModel;
 using Ape.Volo.IBusiness.RequestModel;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -55,8 +54,8 @@ public class DeptController : BaseApiController
             return Error(actionError);
         }
 
-        await _departmentService.CreateAsync(createUpdateDepartmentDto);
-        return Create();
+        var result = await _departmentService.CreateAsync(createUpdateDepartmentDto);
+        return Ok(result);
     }
 
 
@@ -77,8 +76,8 @@ public class DeptController : BaseApiController
             return Error(actionError);
         }
 
-        await _departmentService.UpdateAsync(createUpdateDepartmentDto);
-        return NoContent();
+        var result = await _departmentService.UpdateAsync(createUpdateDepartmentDto);
+        return Ok(result);
     }
 
 
@@ -99,8 +98,8 @@ public class DeptController : BaseApiController
         }
 
         List<long> ids = new List<long>(idCollection.IdArray);
-        await _departmentService.DeleteAsync(ids);
-        return Success();
+        var result = await _departmentService.DeleteAsync(ids);
+        return Ok(result);
     }
 
     /// <summary>
@@ -118,11 +117,7 @@ public class DeptController : BaseApiController
         var deptList = await _departmentService.QueryAsync(deptQueryCriteria, pagination);
 
 
-        return JsonContent(new ActionResultVm<DepartmentDto>
-        {
-            Content = deptList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(deptList, pagination);
     }
 
 
@@ -133,8 +128,8 @@ public class DeptController : BaseApiController
     {
         var deptList = await _departmentService.QueryAllAsync();
 
-        var menuTree = TreeHelper<DepartmentDto>.ListToTrees(deptList, "Id", "ParentId", 0);
-        return Ok(menuTree);
+        var departmentDtos = TreeHelper<DepartmentDto>.ListToTrees(deptList, "Id", "ParentId", 0);
+        return JsonContent(departmentDtos);
     }
 
 
@@ -174,11 +169,7 @@ public class DeptController : BaseApiController
 
         var deptList = await _departmentService.QuerySuperiorDeptAsync(id);
 
-        return JsonContent(new ActionResultVm<DepartmentDto>
-        {
-            Content = deptList,
-            TotalElements = deptList.Count
-        });
+        return JsonContent(deptList);
     }
 
     #endregion

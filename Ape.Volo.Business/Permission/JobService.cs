@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
@@ -30,50 +29,53 @@ public class JobService : BaseServices<Job>, IJobService
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(CreateUpdateJobDto createUpdateJobDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateJobDto createUpdateJobDto)
     {
         if (await TableWhere(j => j.Name == createUpdateJobDto.Name).AnyAsync())
         {
-            throw new BadRequestException($"岗位名称=>{createUpdateJobDto.Name}=>已存在!");
+            return OperateResult.Error($"岗位名称=>{createUpdateJobDto.Name}=>已存在!");
         }
 
         var job = App.Mapper.MapTo<Job>(createUpdateJobDto);
-        return await AddEntityAsync(job);
+        var result = await AddAsync(job);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAsync(CreateUpdateJobDto createUpdateJobDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateJobDto createUpdateJobDto)
     {
         var oldJob =
             await TableWhere(x => x.Id == createUpdateJobDto.Id).FirstAsync();
         if (oldJob.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldJob.Name != createUpdateJobDto.Name &&
             await TableWhere(j => j.Name == createUpdateJobDto.Name).AnyAsync())
         {
-            throw new BadRequestException($"岗位名称=>{createUpdateJobDto.Name}=>已存在!");
+            return OperateResult.Error($"岗位名称=>{createUpdateJobDto.Name}=>已存在!");
         }
 
         var job = App.Mapper.MapTo<Job>(createUpdateJobDto);
-        return await UpdateEntityAsync(job);
+        var result = await UpdateAsync(job);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var jobs = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
         if (jobs.Count < 1)
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (jobs.Any(job => job.Users != null && job.Users.Count != 0))
         {
-            throw new BadRequestException("存在用户关联，请解除后再试！");
+            return OperateResult.Error("存在用户关联，请解除后再试！");
         }
 
-        return await LogicDelete<Job>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<Job>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
 
@@ -86,8 +88,7 @@ public class JobService : BaseServices<Job>, IJobService
         };
 
 
-        return App.Mapper.MapTo<List<JobDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+        return App.Mapper.MapTo<List<JobDto>>(await TablePageAsync(queryOptions));
     }
 
     public async Task<List<ExportBase>> DownloadAsync(JobQueryCriteria jobQueryCriteria)
@@ -115,8 +116,8 @@ public class JobService : BaseServices<Job>, IJobService
         Expression<Func<Job, bool>> whereExpression = x => x.Enabled;
 
 
-        return App.Mapper.MapTo<List<JobDto>>(await SugarRepository.QueryListAsync(whereExpression, x => x.Sort,
-            OrderByType.Asc));
+        return App.Mapper.MapTo<List<JobDto>>(await TableWhere(whereExpression, null, x => x.Sort, OrderByType.Asc)
+            .ToListAsync());
     }
 
     #endregion

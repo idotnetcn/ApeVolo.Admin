@@ -20,21 +20,21 @@ public interface IJobService : IBaseServices<Job>
     /// </summary>
     /// <param name="createUpdateJobDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateJobDto createUpdateJobDto);
+    Task<OperateResult> CreateAsync(CreateUpdateJobDto createUpdateJobDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateJobDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateJobDto createUpdateJobDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateJobDto createUpdateJobDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

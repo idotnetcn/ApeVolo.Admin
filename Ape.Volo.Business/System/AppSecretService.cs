@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.ConfigOptions;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
 using Ape.Volo.IBusiness.ExportModel.System;
@@ -32,46 +31,49 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto)
     {
         if (await TableWhere(r => r.AppName == createUpdateAppSecretDto.AppName).AnyAsync())
         {
-            throw new BadRequestException($"应用名称=>{createUpdateAppSecretDto.AppName}=>已存在!");
+            return OperateResult.Error($"应用名称=>{createUpdateAppSecretDto.AppName}=>已存在!");
         }
 
-        var id = IdHelper.GetId();
+        var id = IdHelper.NextId().ToString();
         createUpdateAppSecretDto.AppId = DateTime.Now.ToString("yyyyMMdd") + id[..8];
         createUpdateAppSecretDto.AppSecretKey =
             (createUpdateAppSecretDto.AppId + id).ToHmacsha256String(App.GetOptions<SystemOptions>().HmacSecret);
         var appSecret = App.Mapper.MapTo<AppSecret>(createUpdateAppSecretDto);
-        return await AddEntityAsync(appSecret);
+        var result = await AddAsync(appSecret);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto)
     {
         //取出待更新数据
         var oldAppSecret = await TableWhere(x => x.Id == createUpdateAppSecretDto.Id).FirstAsync();
         if (oldAppSecret.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldAppSecret.AppName != createUpdateAppSecretDto.AppName &&
             await TableWhere(x => x.AppName == createUpdateAppSecretDto.AppName).AnyAsync())
         {
-            throw new BadRequestException($"应用名称=>{createUpdateAppSecretDto.AppName}=>已存在!");
+            return OperateResult.Error($"应用名称=>{createUpdateAppSecretDto.AppName}=>已存在!");
         }
 
         var appSecret = App.Mapper.MapTo<AppSecret>(createUpdateAppSecretDto);
-        return await UpdateEntityAsync(appSecret);
+        var result = await UpdateAsync(appSecret);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var appSecrets = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (appSecrets.Count <= 0)
-            throw new BadRequestException("数据不存在！");
-        return await LogicDelete<AppSecret>(x => ids.Contains(x.Id)) > 0;
+            return OperateResult.Error("数据不存在！");
+        var result = await LogicDelete<AppSecret>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     public async Task<List<AppSecretDto>> QueryAsync(AppsecretQueryCriteria appsecretQueryCriteria,
@@ -83,7 +85,7 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
             ConditionalModels = appsecretQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<AppSecretDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     public async Task<List<ExportBase>> DownloadAsync(AppsecretQueryCriteria appsecretQueryCriteria)

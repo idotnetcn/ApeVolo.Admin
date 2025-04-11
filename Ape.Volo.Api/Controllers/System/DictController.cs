@@ -52,8 +52,8 @@ public class DictController : BaseApiController
             return Error(actionError);
         }
 
-        await _dictService.CreateAsync(createUpdateDictDto);
-        return Success();
+        var result = await _dictService.CreateAsync(createUpdateDictDto);
+        return Ok(result);
     }
 
 
@@ -73,8 +73,8 @@ public class DictController : BaseApiController
             return Error(actionError);
         }
 
-        await _dictService.UpdateAsync(createUpdateDictDto);
-        return NoContent();
+        var result = await _dictService.UpdateAsync(createUpdateDictDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -93,8 +93,8 @@ public class DictController : BaseApiController
             return Error(actionError);
         }
 
-        await _dictService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _dictService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -111,11 +111,7 @@ public class DictController : BaseApiController
     {
         var list = await _dictService.QueryAsync(dictQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<DictDto>
-        {
-            Content = list,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(list, pagination);
     }
 
     /// <summary>

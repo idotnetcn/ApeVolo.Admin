@@ -1,6 +1,6 @@
 [
   {
-    "Id": "1378942344006471680",
+    "Id": 163519427764310,
     "TaskName": "Console_Write",
     "TaskGroup": "TestConsole",
     "Cron": "*/5 * * * * ?",
@@ -18,14 +18,10 @@
     "CycleRunTimes": 0,
     "IsEnable": false,
     "RunParams": null,
-    "CreateBy": "apevolo",
-    "CreateTime": "/Date(1609430400000+0800)/",
-    "UpdateBy": null,
-    "UpdateTime": null,
-    "IsDeleted": false
+    "CreateBy": "apevolo"
   },
   {
-    "Id": "1380932818854481920",
+    "Id": 163519427764311,
     "TaskName": "Email_Send",
     "TaskGroup": "邮件作业",
     "Cron": "*/5 * * * * ?",
@@ -43,10 +39,6 @@
     "CycleRunTimes": 0,
     "IsEnable": false,
     "RunParams": null,
-    "CreateBy": "apevolo",
-    "CreateTime": "/Date(1609430400000+0800)/",
-    "UpdateBy": null,
-    "UpdateTime": null,
-    "IsDeleted": false
+    "CreateBy": "apevolo"
   }
 ]

@@ -26,10 +26,11 @@ public class ExceptionLogService : BaseServices<ExceptionLog>, IExceptionLogServ
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(ExceptionLog exceptionLog)
+    public async Task<OperateResult> CreateAsync(ExceptionLog exceptionLog)
     {
         //return await AddEntityAsync(exceptionLog);
-        return await SugarRepository.SugarClient.Insertable(exceptionLog).SplitTable().ExecuteCommandAsync() > 0;
+        var result = await SugarRepository.SugarClient.Insertable(exceptionLog).SplitTable().ExecuteCommandAsync() > 0;
+        return OperateResult.Result(result);
     }
 
     public async Task<List<ExceptionLogDto>> QueryAsync(LogQueryCriteria logQueryCriteria, Pagination pagination)
@@ -40,7 +41,7 @@ public class ExceptionLogService : BaseServices<ExceptionLog>, IExceptionLogServ
             ConditionalModels = logQueryCriteria.ApplyQueryConditionalModel(),
             IsSplitTable = true
         };
-        var logs = await SugarRepository.QueryPageListAsync(queryOptions);
+        var logs = await TablePageAsync(queryOptions);
         return App.Mapper.MapTo<List<ExceptionLogDto>>(logs);
     }
 

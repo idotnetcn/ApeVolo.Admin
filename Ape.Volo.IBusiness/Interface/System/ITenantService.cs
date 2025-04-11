@@ -20,21 +20,21 @@ public interface ITenantService : IBaseServices<Tenant>
     /// </summary>
     /// <param name="createUpdateTenantDtoDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto);
+    Task<OperateResult> CreateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateTenantDtoDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

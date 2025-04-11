@@ -47,4 +47,14 @@ public class QueryOptions<T>
     /// 忽略的查询导航属性 IncludesAll为true才有用
     /// </summary>
     public string[] IgnorePropertyNameList { get; set; }
+
+    /// <summary>
+    /// 锁 分页查询默认NoLock
+    /// </summary>
+    public string LockString { get; set; } = SqlWith.NoLock;
+
+    /// <summary>
+    /// 缓存时间(秒)
+    /// </summary>
+    public int CacheDurationInSeconds { get; set; } = 0;
 }

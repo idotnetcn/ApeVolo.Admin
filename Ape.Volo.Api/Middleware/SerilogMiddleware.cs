@@ -2,6 +2,8 @@
 using Ape.Volo.Api.Serilog;
 using Ape.Volo.Common;
 using Ape.Volo.Common.ConfigOptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -15,7 +17,7 @@ public static class SerilogMiddleware
 {
     public static IHostBuilder UseSerilogMiddleware(this IHostBuilder builder)
     {
-        return builder.UseSerilog((context, logger) => //注册Serilog
+        return builder.UseSerilog((context, services, logger) => //注册Serilog
         {
             //如要想使用setting配置方式，打开下面行注释。注释后面代码即可
             //logger.ReadFrom.Configuration(context.Configuration);

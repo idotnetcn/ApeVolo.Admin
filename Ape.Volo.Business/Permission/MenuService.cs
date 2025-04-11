@@ -7,7 +7,6 @@ using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Enums;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
@@ -18,7 +17,6 @@ using Ape.Volo.IBusiness.ExportModel.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
 using Ape.Volo.IBusiness.QueryModel;
 using Ape.Volo.IBusiness.Vo;
-using SqlSugar;
 
 namespace Ape.Volo.Business.Permission;
 
@@ -47,31 +45,31 @@ public class MenuService : BaseServices<Menu>, IMenuService
     /// <param name="createUpdateMenuDto"></param>
     /// <returns></returns>
     [UseTran]
-    public async Task<bool> CreateAsync(CreateUpdateMenuDto createUpdateMenuDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateMenuDto createUpdateMenuDto)
     {
         if (await TableWhere(m => m.Title == createUpdateMenuDto.Title).AnyAsync())
         {
-            throw new BadRequestException($"菜单标题=>{createUpdateMenuDto.Title}=>已存在!");
+            return OperateResult.Error($"菜单标题=>{createUpdateMenuDto.Title}=>已存在!");
         }
 
         if (createUpdateMenuDto.Type != MenuType.Catalog &&
             await TableWhere(x => x.Permission == createUpdateMenuDto.Permission)
                 .AnyAsync())
         {
-            throw new BadRequestException($"权限标识=>{createUpdateMenuDto.Permission}=>已存在!");
+            return OperateResult.Error($"权限标识=>{createUpdateMenuDto.Permission}=>已存在!");
         }
 
         if (!createUpdateMenuDto.ComponentName.IsNullOrEmpty() && await TableWhere(m =>
                 m.ComponentName == createUpdateMenuDto.ComponentName).AnyAsync())
         {
-            throw new BadRequestException($"组件名称=>{createUpdateMenuDto.ComponentName}=>已存在!");
+            return OperateResult.Error($"组件名称=>{createUpdateMenuDto.ComponentName}=>已存在!");
         }
 
         if (createUpdateMenuDto.Type != MenuType.Catalog)
         {
             if (createUpdateMenuDto.Permission.IsNullOrEmpty())
             {
-                throw new BadRequestException("权限标识为必填");
+                return OperateResult.Error("权限标识为必填");
             }
         }
 
@@ -81,14 +79,14 @@ public class MenuService : BaseServices<Menu>, IMenuService
             if (!(createUpdateMenuDto.Path.ToLower().StartsWith(http) ||
                   createUpdateMenuDto.Path.ToLower().StartsWith(https)))
             {
-                throw new BadRequestException("外链菜单必须以http://或者https://开头");
+                return OperateResult.Error("外链菜单必须以http://或者https://开头");
             }
         }
 
 
         var menu = App.Mapper.MapTo<Menu>(createUpdateMenuDto);
 
-        await AddEntityAsync(menu);
+        await AddAsync(menu);
         if (menu.ParentId > 0)
         {
             //清理缓存
@@ -99,34 +97,34 @@ public class MenuService : BaseServices<Menu>, IMenuService
             {
                 var count = await TableWhere(x => x.ParentId == tempMenu.Id).CountAsync();
                 tempMenu.SubCount = count;
-                await UpdateEntityAsync(tempMenu);
+                await UpdateAsync(tempMenu);
             }
         }
 
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadAllMenu);
-        return true;
+        return OperateResult.Success();
     }
 
     [UseTran]
-    public async Task<bool> UpdateAsync(CreateUpdateMenuDto createUpdateMenuDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateMenuDto createUpdateMenuDto)
     {
         //取出待更新数据
         var oldMenu = await TableWhere(x => x.Id == createUpdateMenuDto.Id).FirstAsync();
         if (oldMenu.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldMenu.Title != createUpdateMenuDto.Title &&
             await TableWhere(x => x.Title == createUpdateMenuDto.Title).AnyAsync())
         {
-            throw new BadRequestException($"菜单标题名称=>{createUpdateMenuDto.Title}=>已存在!");
+            return OperateResult.Error($"菜单标题名称=>{createUpdateMenuDto.Title}=>已存在!");
         }
 
         if (createUpdateMenuDto.Type != MenuType.Catalog && oldMenu.Permission != createUpdateMenuDto.Permission &&
             await TableWhere(x => x.Permission == createUpdateMenuDto.Permission).AnyAsync())
         {
-            throw new BadRequestException($"权限标识=>{createUpdateMenuDto.Permission}=>已存在!");
+            return OperateResult.Error($"权限标识=>{createUpdateMenuDto.Permission}=>已存在!");
         }
 
 
@@ -136,7 +134,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
             if (!(createUpdateMenuDto.Path.ToLower().StartsWith(http) ||
                   createUpdateMenuDto.Path.ToLower().StartsWith(https)))
             {
-                throw new BadRequestException("外链菜单必须以http://或者https://开头");
+                return OperateResult.Error("外链菜单必须以http://或者https://开头");
             }
         }
 
@@ -145,13 +143,13 @@ public class MenuService : BaseServices<Menu>, IMenuService
             if (oldMenu.ComponentName != createUpdateMenuDto.ComponentName &&
                 await TableWhere(m => m.ComponentName.Equals(createUpdateMenuDto.ComponentName)).AnyAsync())
             {
-                throw new BadRequestException($"组件名称=>{createUpdateMenuDto.ComponentName}=>已存在!");
+                return OperateResult.Error($"组件名称=>{createUpdateMenuDto.ComponentName}=>已存在!");
             }
         }
 
 
         var createUpdateMenu = App.Mapper.MapTo<Menu>(createUpdateMenuDto);
-        await UpdateEntityAsync(createUpdateMenu);
+        await UpdateAsync(createUpdateMenu);
         //清理缓存
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadMenusById +
                                     createUpdateMenu.Id.ToString().ToMd5String16());
@@ -171,7 +169,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
                 {
                     var count = await TableWhere(x => x.ParentId == tmpMenu.Id).CountAsync();
                     tmpMenu.SubCount = count;
-                    await UpdateEntityAsync(tmpMenu);
+                    await UpdateAsync(tmpMenu, x => x.SubCount);
                 }
 
                 if (oldMenu.ParentId > 0)
@@ -181,17 +179,18 @@ public class MenuService : BaseServices<Menu>, IMenuService
                     {
                         var count = await TableWhere(x => x.ParentId == tmpMenu2.Id).CountAsync();
                         tmpMenu2.SubCount = count;
-                        await UpdateEntityAsync(tmpMenu2);
+                        await UpdateAsync(tmpMenu2, x => x.SubCount);
                     }
                 }
             }
         }
 
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadAllMenu);
-        return true;
+        return OperateResult.Success();
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    [UseTran]
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var idList = new List<long>();
         foreach (var id in ids)
@@ -205,26 +204,48 @@ public class MenuService : BaseServices<Menu>, IMenuService
             await FindChildIdsAsync(menus, idList);
         }
 
-        var isTrue = await LogicDelete<Menu>(x => ids.Contains(x.Id)) > 0;
+
+        var menuList = await TableWhere(x => idList.Contains(x.Id)).ToListAsync();
+        var pIds = menuList.Select(x => x.ParentId);
+
+        var updateMenuList = await TableWhere(x => pIds.Contains(x.Id)).ToListAsync();
+
+        var isTrue = await LogicDelete<Menu>(x => idList.Contains(x.Id));
+
         if (isTrue)
         {
-            //清除缓存
-            foreach (var id in idList)
+            if (updateMenuList.Any())
             {
-                await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadMenusById +
-                                            id.ToString().ToMd5String16());
-                await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadMenusByPId +
-                                            id.ToString().ToMd5String16());
+                foreach (var m in updateMenuList)
+                {
+                    var count = await SugarClient.Queryable<Menu>().Where(x => x.ParentId == m.Id)
+                        .CountAsync();
+                    m.SubCount = count;
+                }
+
+                isTrue = await UpdateAsync(updateMenuList, x => x.SubCount);
+            }
+
+            if (isTrue)
+            {
+                //清除缓存
+                foreach (var id in idList)
+                {
+                    await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadMenusById +
+                                                id.ToString().ToMd5String16());
+                    await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadMenusByPId +
+                                                id.ToString().ToMd5String16());
+                }
             }
         }
 
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadAllMenu);
-        return isTrue;
+        return OperateResult.Result(isTrue);
     }
 
     public async Task<List<MenuDto>> QueryAsync(MenuQueryCriteria menuQueryCriteria)
     {
-        var menus = await TableWhere(menuQueryCriteria.ApplyQueryConditionalModel(), x => x.Sort, OrderByType.Asc)
+        var menus = await TableWhere(menuQueryCriteria.ApplyQueryConditionalModel(), null, x => x.Sort)
             .ToListAsync();
         var menuDtos = App.Mapper.MapTo<List<MenuDto>>(menus);
         return menuDtos;
@@ -322,7 +343,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
         List<MenuDto> menuDtoList;
         if (menu.ParentId == 0)
         {
-            var menus = await TableWhere(x => x.ParentId == 0, x => x.Sort, OrderByType.Asc).ToListAsync();
+            var menus = await TableWhere(x => x.ParentId == 0, null, x => x.Sort).ToListAsync();
             menuDtoList = App.Mapper.MapTo<List<MenuDto>>(menus);
             menuDtoList.ForEach(x => x.Children = null);
         }
@@ -336,7 +357,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
                 whereLambda.AndAlso(m => parentIds.Contains(Convert.ToInt64(m.ParentId)) || m.ParentId == 0);
 
             //可以优化语句
-            var menus = await TableWhere(whereLambda, x => x.Sort, OrderByType.Asc).ToListAsync();
+            var menus = await TableWhere(whereLambda, null, x => x.Sort).ToListAsync();
             var allMenu = await Table.ToListAsync();
             foreach (var m in menus)
             {
@@ -404,8 +425,8 @@ public class MenuService : BaseServices<Menu>, IMenuService
     [UseCache(Expiration = 30, KeyPrefix = GlobalConstants.CachePrefix.LoadMenusByPId)]
     public async Task<List<MenuDto>> FindByPIdAsync(long pid = 0)
     {
-        List<MenuDto> menuDtos = App.Mapper.MapTo<List<MenuDto>>(await TableWhere(x => x.ParentId == pid,
-            o => o.Sort, OrderByType.Asc).ToListAsync());
+        List<MenuDto> menuDtos = App.Mapper.MapTo<List<MenuDto>>(await TableWhere(x => x.ParentId == pid, null,
+            o => o.Sort).ToListAsync());
         foreach (var item in menuDtos)
         {
             item.Children = null;

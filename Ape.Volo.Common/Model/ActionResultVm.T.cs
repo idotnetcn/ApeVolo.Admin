@@ -14,7 +14,12 @@ public class ActionResultVm<T> //: ActionResultVM
     public List<T> Content { get; set; }
 
     /// <summary>
-    /// 总数据量
+    /// 总条数
     /// </summary>
     public int TotalElements { get; set; }
+
+    /// <summary>
+    /// 总页数
+    /// </summary>
+    public int TotalPages { get; set; }
 }

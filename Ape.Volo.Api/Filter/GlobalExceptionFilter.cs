@@ -8,8 +8,8 @@ using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Ape.Volo.Entity.Monitor;
 using Ape.Volo.IBusiness.Interface.Monitor;
 using Ape.Volo.IBusiness.Interface.System;
@@ -142,7 +142,7 @@ public class GlobalExceptionFilter : IAsyncExceptionFilter
                 .FirstOrDefault();
             log = new ExceptionLog
             {
-                Id = IdHelper.GetLongId(),
+                Id = IdHelper.NextId(),
                 CreateBy = App.HttpUser.Account,
                 CreateTime = DateTime.Now,
                 Area = routeValues["area"],

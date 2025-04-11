@@ -12,11 +12,13 @@ public class DeptQueryCriteria : DateRange, IConditionalModel
     /// <summary>
     /// 部门名称
     /// </summary>
-    public string DeptName { get; set; }
+    [QueryCondition(ConditionType = ConditionalType.Like)]
+    public string Name { get; set; }
 
     /// <summary>
     /// 是否启用
     /// </summary>
+    [QueryCondition(ConditionType = ConditionalType.Equal)]
     public bool? Enabled { get; set; }
 
     /// <summary>

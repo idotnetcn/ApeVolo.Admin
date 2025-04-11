@@ -21,21 +21,21 @@ public interface IUserService : IBaseServices<User>
     /// </summary>
     /// <param name="createUpdateUserDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateUserDto createUpdateUserDto);
+    Task<OperateResult> CreateAsync(CreateUpdateUserDto createUpdateUserDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateUserDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateUserDto createUpdateUserDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateUserDto createUpdateUserDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询
@@ -83,14 +83,14 @@ public interface IUserService : IBaseServices<User>
     /// </summary>
     /// <param name="updateUserCenterDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateCenterAsync(UpdateUserCenterDto updateUserCenterDto);
+    Task<OperateResult> UpdateCenterAsync(UpdateUserCenterDto updateUserCenterDto);
 
     /// <summary>
     /// 修改密码
     /// </summary>
     /// <param name="userPassDto"></param>
     /// <returns></returns>
-    Task<bool> UpdatePasswordAsync(UpdateUserPassDto userPassDto);
+    Task<OperateResult> UpdatePasswordAsync(UpdateUserPassDto userPassDto);
 
 
     /// <summary>
@@ -98,14 +98,14 @@ public interface IUserService : IBaseServices<User>
     /// </summary>
     /// <param name="updateUserEmailDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateEmailAsync(UpdateUserEmailDto updateUserEmailDto);
+    Task<OperateResult> UpdateEmailAsync(UpdateUserEmailDto updateUserEmailDto);
 
     /// <summary>
     /// 修改头像
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>
-    Task<bool> UpdateAvatarAsync(IFormFile file);
+    Task<OperateResult> UpdateAvatarAsync(IFormFile file);
 
     #endregion
 }

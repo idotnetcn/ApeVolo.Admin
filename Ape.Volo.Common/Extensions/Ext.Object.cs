@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using Ape.Volo.Common.ClassLibrary;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Ape.Volo.Common.Extensions;
 
@@ -56,10 +56,11 @@ public static partial class ExtObject
         var serializerSettings = new JsonSerializerSettings
         {
             // 设置为驼峰命名
-            //ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            ContractResolver = new CustomContractResolver(),
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            //ContractResolver = new CustomContractResolver(),
             DateFormatString = "yyyy-MM-dd HH:mm:ss",
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            NullValueHandling = NullValueHandling.Include
         };
         //serializerSettings.Converters.Add(new UnixDateTimeConvertor());
 
@@ -76,8 +77,10 @@ public static partial class ExtObject
         var serializerSettings = new JsonSerializerSettings
         {
             // 设置为驼峰命名
-            //ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            ContractResolver = new CustomContractResolver(),
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            //ContractResolver = new CustomContractResolver(),
+            DateFormatString = "yyyy-MM-dd HH:mm:ss",
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             NullValueHandling = NullValueHandling.Ignore
         };
 

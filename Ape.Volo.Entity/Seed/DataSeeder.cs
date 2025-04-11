@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
+using Ape.Volo.Common.ClassLibrary;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
@@ -120,6 +121,7 @@ public class DataSeeder
                     setting.DateFormatHandling = DateFormatHandling.MicrosoftDateFormat;
                     setting.DateFormatString = "yyyy-MM-dd HH:mm:ss";
                     setting.NullValueHandling = NullValueHandling.Ignore;
+                    setting.Converters = new List<JsonConverter> { new CurrentDateTimeConverter() };
                     return setting;
                 };
                 string seedDataFolder = "resources/db/{0}.tsv";
@@ -466,7 +468,7 @@ public class DataSeeder
     /// </summary>
     /// <param name="dataContext"></param>
     /// <exception cref="Exception"></exception>
-    public static void InitLogData(DataContext dataContext)
+    public static Task InitLogData(DataContext dataContext)
     {
         if (!dataContext.Db.IsAnyConnection(SqlSugarConfig.LogId))
         {
@@ -530,6 +532,7 @@ public class DataSeeder
         });
         ConsoleHelper.WriteLine("初始化日志库数据表成功！", ConsoleColor.Green);
         ConsoleHelper.WriteLine();
+        return Task.FromResult(Task.CompletedTask);
     }
 
 

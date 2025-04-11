@@ -53,8 +53,8 @@ public class TenantController : BaseApiController
             return Error(actionError);
         }
 
-        await _tenantService.CreateAsync(createUpdateTenantDto);
-        return Create();
+        var result = await _tenantService.CreateAsync(createUpdateTenantDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public class TenantController : BaseApiController
             return Error(actionError);
         }
 
-        await _tenantService.UpdateAsync(createUpdateTenantDto);
-        return NoContent();
+        var result = await _tenantService.UpdateAsync(createUpdateTenantDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,8 +94,8 @@ public class TenantController : BaseApiController
             return Error(actionError);
         }
 
-        await _tenantService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _tenantService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -111,11 +111,7 @@ public class TenantController : BaseApiController
     {
         var tenantList = await _tenantService.QueryAsync(tenantQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<TenantDto>
-        {
-            Content = tenantList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(tenantList, pagination);
     }
 
     /// <summary>
@@ -129,11 +125,7 @@ public class TenantController : BaseApiController
     {
         var tenantList = await _tenantService.QueryAllAsync();
 
-        return JsonContent(new ActionResultVm<TenantDto>
-        {
-            Content = tenantList,
-            TotalElements = tenantList.Count
-        });
+        return JsonContent(tenantList);
     }
 
 

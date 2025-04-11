@@ -20,21 +20,21 @@ public interface IRoleService : IBaseServices<Role>
     /// </summary>
     /// <param name="createUpdateRoleDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateRoleDto createUpdateRoleDto);
+    Task<OperateResult> CreateAsync(CreateUpdateRoleDto createUpdateRoleDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateRoleDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateRoleDto createUpdateRoleDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateRoleDto createUpdateRoleDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询
@@ -66,7 +66,7 @@ public interface IRoleService : IBaseServices<Role>
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<int> QueryUserRoleLevelAsync(HashSet<long> ids);
+    Task<int?> QueryUserRoleLevelAsync(HashSet<long> ids);
 
     /// <summary>
     /// 验证角色等级
@@ -80,14 +80,14 @@ public interface IRoleService : IBaseServices<Role>
     /// </summary>
     /// <param name="createUpdateRoleDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateRolesMenusAsync(CreateUpdateRoleDto createUpdateRoleDto);
+    Task<OperateResult> UpdateRolesMenusAsync(CreateUpdateRoleDto createUpdateRoleDto);
 
     /// <summary>
     /// 更新角色Apis
     /// </summary>
     /// <param name="createUpdateRoleDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateRolesApisAsync(CreateUpdateRoleDto createUpdateRoleDto);
+    Task<OperateResult> UpdateRolesApisAsync(CreateUpdateRoleDto createUpdateRoleDto);
 
     #endregion
 }

@@ -29,20 +29,20 @@ public static partial class ExtObject
     }
 
     /// <summary>
-    /// 判断是否为Nullable<>类型
+    /// 判断是否为Nullable类型
     /// </summary>
-    /// <param name="self">Type类</param>
-    /// <returns>判断结果</returns>
+    /// <param name="self"></param>
+    /// <returns></returns>
     public static bool IsNullable(this Type self)
     {
         return self.IsGeneric(typeof(Nullable<>));
     }
 
     /// <summary>
-    /// 判断是否为List<>类型
+    /// 判断是否为List类型
     /// </summary>
-    /// <param name="self">Type类</param>
-    /// <returns>判断结果</returns>
+    /// <param name="self"></param>
+    /// <returns></returns>
     public static bool IsList(this Type self)
     {
         return self.IsGeneric(typeof(List<>));

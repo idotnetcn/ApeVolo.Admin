@@ -53,8 +53,8 @@ public class JobController : BaseApiController
             return Error(actionError);
         }
 
-        await _jobService.CreateAsync(createUpdateJobDto);
-        return Create();
+        var result = await _jobService.CreateAsync(createUpdateJobDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public class JobController : BaseApiController
             return Error(actionError);
         }
 
-        await _jobService.UpdateAsync(createUpdateJobDto);
-        return NoContent();
+        var result = await _jobService.UpdateAsync(createUpdateJobDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,8 +94,8 @@ public class JobController : BaseApiController
             return Error(actionError);
         }
 
-        await _jobService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _jobService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -110,11 +110,14 @@ public class JobController : BaseApiController
     public async Task<ActionResult> Query(JobQueryCriteria jobQueryCriteria, Pagination pagination)
     {
         var jobList = await _jobService.QueryAsync(jobQueryCriteria, pagination);
-        return JsonContent(new ActionResultVm<JobDto>
-        {
-            Content = jobList,
-            TotalElements = pagination.TotalElements
-        });
+
+        return JsonContent(jobList, pagination);
+        // return JsonContent(new ActionResultVm<JobDto>
+        // {
+        //     Content = jobList,
+        //     TotalElements = pagination.TotalElements,
+        //     TotalPages = pagination.TotalPages
+        // });
     }
 
     /// <summary>
@@ -128,11 +131,7 @@ public class JobController : BaseApiController
     {
         var jobList = await _jobService.QueryAllAsync();
 
-        return JsonContent(new ActionResultVm<JobDto>
-        {
-            Content = jobList,
-            TotalElements = jobList.Count
-        });
+        return JsonContent(jobList);
     }
 
     /// <summary>

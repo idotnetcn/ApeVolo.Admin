@@ -37,8 +37,8 @@ public class QueuedEmailController : BaseApiController
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
-        await _queuedEmailService.CreateAsync(createUpdateQueuedEmailDto);
-        return Create();
+        var result = await _queuedEmailService.CreateAsync(createUpdateQueuedEmailDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -52,8 +52,8 @@ public class QueuedEmailController : BaseApiController
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
-        await _queuedEmailService.UpdateAsync(createUpdateQueuedEmailDto);
-        return NoContent();
+        var result = await _queuedEmailService.UpdateAsync(createUpdateQueuedEmailDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -72,8 +72,8 @@ public class QueuedEmailController : BaseApiController
             return Error(actionError);
         }
 
-        await _queuedEmailService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _queuedEmailService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -91,10 +91,6 @@ public class QueuedEmailController : BaseApiController
         var queuedEmailDtoList = await _queuedEmailService.QueryAsync(queuedEmailQueryCriteria, pagination);
 
 
-        return JsonContent(new ActionResultVm<QueuedEmailDto>
-        {
-            Content = queuedEmailDtoList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(queuedEmailDtoList, pagination);
     }
 }

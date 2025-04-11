@@ -91,11 +91,9 @@ public class QuartzNetController : BaseApiController
                 //开启作业任务
                 await _schedulerCenterService.AddScheduleJobAsync(quartzNet);
             }
-
-            return Create();
         }
 
-        return Error();
+        return Ok(OperateResult.Result(quartzNet.IsNotNull()));
     }
 
     /// <summary>
@@ -135,28 +133,19 @@ public class QuartzNetController : BaseApiController
             }
         }
 
-
-        if (await _quartzNetService.UpdateAsync(createUpdateQuartzNetDto))
+        var result = await _quartzNetService.UpdateAsync(createUpdateQuartzNetDto);
+        if (result.IsSuccess)
         {
             var quartzNet = App.Mapper.MapTo<QuartzNet>(createUpdateQuartzNetDto);
-            var flag = await _schedulerCenterService.DeleteScheduleJobAsync(quartzNet);
-            if (flag)
+            await _schedulerCenterService.DeleteScheduleJobAsync(quartzNet);
+
+            if (quartzNet.IsEnable)
             {
-                if (quartzNet.IsEnable)
-                {
-                    if (await _schedulerCenterService.AddScheduleJobAsync(quartzNet))
-                    {
-                        return NoContent();
-                    }
-                }
-                else
-                {
-                    return NoContent();
-                }
+                await _schedulerCenterService.AddScheduleJobAsync(quartzNet);
             }
         }
 
-        return Error();
+        return Ok(result);
     }
 
     /// <summary>
@@ -176,14 +165,18 @@ public class QuartzNetController : BaseApiController
         }
 
         var quartzList = await _quartzNetService.TableWhere(x => idCollection.IdArray.Contains(x.Id)).ToListAsync();
-        if (quartzList.Count > 0 && await _quartzNetService.DeleteAsync(quartzList))
+        if (quartzList.Count > 0)
         {
-            foreach (var item in quartzList)
+            var result = await _quartzNetService.DeleteAsync(quartzList);
+            if (result.IsSuccess)
             {
-                await _schedulerCenterService.DeleteScheduleJobAsync(item);
+                foreach (var item in quartzList)
+                {
+                    await _schedulerCenterService.DeleteScheduleJobAsync(item);
+                }
             }
 
-            return Success();
+            return Ok(result);
         }
 
         return Error();
@@ -208,11 +201,7 @@ public class QuartzNetController : BaseApiController
             quartzNet.TriggerStatus = await _schedulerCenterService.GetTriggerStatus(quartzNet);
         }
 
-        return JsonContent(new ActionResultVm<QuartzNetDto>
-        {
-            Content = quartzNetList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(quartzNetList, pagination);
     }
 
     /// <summary>
@@ -257,7 +246,7 @@ public class QuartzNetController : BaseApiController
 
         //开启作业任务
         quartzNet.IsEnable = true;
-        if (await _quartzNetService.UpdateEntityAsync(quartzNet))
+        if (await _quartzNetService.UpdateAsync(quartzNet))
         {
             //检查任务在内存状态
             var isTrue = await _schedulerCenterService.IsExistScheduleJobAsync(quartzNet);
@@ -265,16 +254,16 @@ public class QuartzNetController : BaseApiController
             {
                 if (await _schedulerCenterService.AddScheduleJobAsync(quartzNet))
                 {
-                    return NoContent();
+                    return Ok(OperateResult.Success());
                 }
 
-                return Error("执行失败,请重试！");
+                return Ok(OperateResult.Error("执行失败,请重试！"));
             }
 
-            return Error("已在运行,请勿重复开启！");
+            return Ok(OperateResult.Error("已在运行,请勿重复开启！"));
         }
 
-        return Error();
+        return Ok(OperateResult.Error(""));
     }
 
     /// <summary>
@@ -305,7 +294,7 @@ public class QuartzNetController : BaseApiController
             var isTrue = await _schedulerCenterService.IsExistScheduleJobAsync(quartzNet);
             if (isTrue && await _schedulerCenterService.PauseJob(quartzNet))
             {
-                return NoContent();
+                return Ok(OperateResult.Success());
             }
         }
 
@@ -340,7 +329,7 @@ public class QuartzNetController : BaseApiController
             var isTrue = await _schedulerCenterService.IsExistScheduleJobAsync(quartzNet);
             if (isTrue && await _schedulerCenterService.ResumeJob(quartzNet))
             {
-                return NoContent();
+                return Ok(OperateResult.Success());
             }
         }
 
@@ -362,11 +351,7 @@ public class QuartzNetController : BaseApiController
     {
         var quartzNetLogList = await _quartzNetLogService.QueryAsync(quartzNetLogQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<QuartzNetLogDto>
-        {
-            Content = quartzNetLogList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(quartzNetLogList, pagination);
     }
 
     /// <summary>

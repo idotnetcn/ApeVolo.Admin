@@ -53,8 +53,8 @@ public class SettingController : BaseApiController
             return Error(actionError);
         }
 
-        await _settingService.CreateAsync(createUpdateSettingDto);
-        return Create();
+        var result = await _settingService.CreateAsync(createUpdateSettingDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public class SettingController : BaseApiController
             return Error(actionError);
         }
 
-        await _settingService.UpdateAsync(createUpdateSettingDto);
-        return NoContent();
+        var result = await _settingService.UpdateAsync(createUpdateSettingDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,8 +94,8 @@ public class SettingController : BaseApiController
             return Error(actionError);
         }
 
-        await _settingService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _settingService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -111,11 +111,7 @@ public class SettingController : BaseApiController
     {
         var settingList = await _settingService.QueryAsync(settingQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<SettingDto>
-        {
-            Content = settingList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(settingList, pagination);
     }
 
 

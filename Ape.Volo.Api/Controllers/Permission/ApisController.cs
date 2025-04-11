@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Ape.Volo.Entity.Permission;
 using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
@@ -60,8 +60,8 @@ public class ApisController : BaseApiController
             return Error(actionError);
         }
 
-        await _apisService.CreateAsync(createUpdateApisDto);
-        return Create();
+        var result = await _apisService.CreateAsync(createUpdateApisDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -81,8 +81,8 @@ public class ApisController : BaseApiController
             return Error(actionError);
         }
 
-        await _apisService.UpdateAsync(createUpdateApisDto);
-        return NoContent();
+        var result = await _apisService.UpdateAsync(createUpdateApisDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -101,8 +101,8 @@ public class ApisController : BaseApiController
             return Error(actionError);
         }
 
-        await _apisService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _apisService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -117,11 +117,8 @@ public class ApisController : BaseApiController
     public async Task<ActionResult> Query(ApisQueryCriteria apisQueryCriteria, Pagination pagination)
     {
         var apisList = await _apisService.QueryAsync(apisQueryCriteria, pagination);
-        return JsonContent(new ActionResultVm<Apis>
-        {
-            Content = apisList,
-            TotalElements = pagination.TotalElements
-        });
+
+        return JsonContent(apisList, pagination);
     }
 
 
@@ -161,14 +158,14 @@ public class ApisController : BaseApiController
                 var methodRouteAttr = methodInfo.GetCustomAttributes(typeof(RouteAttribute), true)
                     .OfType<RouteAttribute>()
                     .FirstOrDefault();
-                var url = ($"{routeAttr?.Template}/{methodRouteAttr?.Template}").ToLower();
+                var url = $"{routeAttr?.Template}/{methodRouteAttr?.Template}".ToLower();
                 var method = methodAttr?.HttpMethods.FirstOrDefault()?.Trim();
                 if (!allApis.Any(
                         x => x.Url.Equals(url, StringComparison.CurrentCultureIgnoreCase) && x.Method == method))
                 {
                     apis.Add(new Apis()
                     {
-                        Id = IdHelper.GetLongId(),
+                        Id = IdHelper.NextId(),
                         Group = areaAttr != null ? areaAttr.RouteValue : type.Name,
                         Url = url,
                         Description = methodInfo.GetCustomAttributes(typeof(DescriptionAttribute), true)
@@ -180,14 +177,18 @@ public class ApisController : BaseApiController
             }
         }
 
-        if (apis.Count == 0) return Success("无新增Api数据！");
-
-        if (await _apisService.CreateAsync(apis))
+        if (apis.Count == 0)
         {
-            return Success("刷新Api成功！");
+            return Ok(OperateResult.Success("无新增Api数据"));
         }
 
-        return Error("刷新Api失败！");
+        var result = await _apisService.CreateAsync(apis);
+        if (result.IsSuccess)
+        {
+            return Ok(OperateResult.Success("刷新Api成功"));
+        }
+
+        return Ok(OperateResult.Error("刷新Api成功"));
     }
 
     #endregion

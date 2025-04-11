@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.SnowflakeIdHelper;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Entity.Monitor;
 using Serilog.Events;
 using Serilog.Sinks.PeriodicBatching;
@@ -70,7 +70,7 @@ public class LoggerToDbSink : IBatchedLogEventSink
         {
             var log = new InformationLog
             {
-                Id = IdHelper.GetLongId(),
+                Id = IdHelper.NextId(),
                 CreateTime = logEvent.Timestamp.DateTime,
                 Level = logEvent.Level.ToString(),
                 Message = logEvent.RenderMessage(),
@@ -102,7 +102,7 @@ public class LoggerToDbSink : IBatchedLogEventSink
         {
             var log = new WarningLog
             {
-                Id = IdHelper.GetLongId(),
+                Id = IdHelper.NextId(),
                 CreateTime = logEvent.Timestamp.DateTime,
                 Level = logEvent.Level.ToString(),
                 Message = logEvent.RenderMessage(),
@@ -134,7 +134,7 @@ public class LoggerToDbSink : IBatchedLogEventSink
         {
             var log = new ErrorLog
             {
-                Id = IdHelper.GetLongId(),
+                Id = IdHelper.NextId(),
                 CreateTime = logEvent.Timestamp.DateTime,
                 Level = logEvent.Level.ToString(),
                 Message = logEvent.RenderMessage(),
@@ -166,7 +166,7 @@ public class LoggerToDbSink : IBatchedLogEventSink
         {
             var log = new FatalLog
             {
-                Id = IdHelper.GetLongId(),
+                Id = IdHelper.NextId(),
                 CreateTime = logEvent.Timestamp.DateTime,
                 Level = logEvent.Level.ToString(),
                 Message = logEvent.RenderMessage(),
@@ -199,7 +199,7 @@ public class LoggerToDbSink : IBatchedLogEventSink
         {
             var log = new AopSqlLog
             {
-                Id = IdHelper.GetLongId(),
+                Id = IdHelper.NextId(),
                 CreateTime = logEvent.Timestamp.DateTime,
                 Level = logEvent.Level.ToString(),
                 Message = logEvent.RenderMessage(),

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
@@ -11,7 +10,6 @@ using Ape.Volo.IBusiness.Dto.Permission;
 using Ape.Volo.IBusiness.Interface.Permission;
 using Ape.Volo.IBusiness.QueryModel;
 using Ape.Volo.IBusiness.RequestModel;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -60,8 +58,8 @@ public class RoleController : BaseApiController
             return Error(actionError);
         }
 
-        await _roleService.CreateAsync(createUpdateRoleDto);
-        return Create();
+        var result = await _roleService.CreateAsync(createUpdateRoleDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -80,8 +78,8 @@ public class RoleController : BaseApiController
             return Error(actionError);
         }
 
-        await _roleService.UpdateAsync(createUpdateRoleDto);
-        return NoContent();
+        var result = await _roleService.UpdateAsync(createUpdateRoleDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -100,8 +98,8 @@ public class RoleController : BaseApiController
             return Error(actionError);
         }
 
-        await _roleService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _roleService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -122,7 +120,7 @@ public class RoleController : BaseApiController
         var newId = Convert.ToInt64(id);
         var role = await _roleService.TableWhere(x => x.Id == newId).Includes(x => x.MenuList).Includes(x => x.Apis)
             .Includes(x => x.DepartmentList).SingleAsync();
-        return Ok(App.Mapper.MapTo<RoleDto>(role));
+        return JsonContent(App.Mapper.MapTo<RoleDto>(role));
     }
 
     /// <summary>
@@ -139,11 +137,7 @@ public class RoleController : BaseApiController
     {
         var roleList = await _roleService.QueryAsync(roleQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<RoleDto>
-        {
-            Content = roleList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(roleList, pagination);
     }
 
     /// <summary>
@@ -175,7 +169,7 @@ public class RoleController : BaseApiController
     {
         var allRoles = await _roleService.QueryAllAsync();
 
-        return Ok(allRoles);
+        return JsonContent(allRoles);
     }
 
     /// <summary>
@@ -195,7 +189,7 @@ public class RoleController : BaseApiController
             level = curLevel
         };
 
-        return Ok(response);
+        return JsonContent(response);
     }
 
     #endregion

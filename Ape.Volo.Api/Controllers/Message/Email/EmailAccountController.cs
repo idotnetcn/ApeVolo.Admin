@@ -44,8 +44,8 @@ public class EmailAccountController : BaseApiController
             return Error(actionError);
         }
 
-        await _emailAccountService.CreateAsync(createUpdateEmailAccountDto);
-        return Create();
+        var result = await _emailAccountService.CreateAsync(createUpdateEmailAccountDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -65,8 +65,8 @@ public class EmailAccountController : BaseApiController
             return Error(actionError);
         }
 
-        await _emailAccountService.UpdateAsync(createUpdateEmailAccountDto);
-        return NoContent();
+        var result = await _emailAccountService.UpdateAsync(createUpdateEmailAccountDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -85,8 +85,8 @@ public class EmailAccountController : BaseApiController
             return Error(actionError);
         }
 
-        await _emailAccountService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _emailAccountService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -104,11 +104,7 @@ public class EmailAccountController : BaseApiController
         var emailAccountList = await _emailAccountService.QueryAsync(emailAccountQueryCriteria, pagination);
 
 
-        return JsonContent(new ActionResultVm<EmailAccountDto>
-        {
-            Content = emailAccountList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(emailAccountList, pagination);
     }
 
     /// <summary>

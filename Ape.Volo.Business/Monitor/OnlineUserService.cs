@@ -55,7 +55,7 @@ public class OnlineUserService : IOnlineUserService
     {
         var list = new List<TokenBlacklist>();
         list.AddRange(ids.Select(x => new TokenBlacklist() { AccessToken = x }));
-        if (await _tokenBlacklistService.AddEntityListAsync(list))
+        if (await _tokenBlacklistService.AddAsync(list))
         {
             foreach (var item in ids)
             {

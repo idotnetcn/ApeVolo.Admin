@@ -53,8 +53,8 @@ public class AppSecretController : BaseApiController
             return Error(actionError);
         }
 
-        await _appSecretService.CreateAsync(createUpdateAppSecretDto);
-        return Create();
+        var result = await _appSecretService.CreateAsync(createUpdateAppSecretDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public class AppSecretController : BaseApiController
             return Error(actionError);
         }
 
-        await _appSecretService.UpdateAsync(createUpdateAppSecretDto);
-        return NoContent();
+        var result = await _appSecretService.UpdateAsync(createUpdateAppSecretDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,8 +94,8 @@ public class AppSecretController : BaseApiController
             return Error(actionError);
         }
 
-        await _appSecretService.DeleteAsync(idCollection.IdArray);
-        return Success();
+        var result = await _appSecretService.DeleteAsync(idCollection.IdArray);
+        return Ok(result);
     }
 
     /// <summary>
@@ -112,11 +112,7 @@ public class AppSecretController : BaseApiController
     {
         var appSecretList = await _appSecretService.QueryAsync(appsecretQueryCriteria, pagination);
 
-        return JsonContent(new ActionResultVm<AppSecretDto>
-        {
-            Content = appSecretList,
-            TotalElements = pagination.TotalElements
-        });
+        return JsonContent(appSecretList, pagination);
     }
 
 

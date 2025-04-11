@@ -52,13 +52,13 @@ public class AuditLog : BaseEntity
     /// <summary>
     /// 请求参数
     /// </summary>
-    [SugarColumn(ColumnDataType = "longtext,text,clob", IsNullable = true)]
+    [SugarColumn(ColumnDataType = "varcharmax,longtext,text,clob", IsNullable = true)]
     public string RequestParameters { get; set; }
 
     /// <summary>
     /// 响应数据
     /// </summary>
-    [SugarColumn(ColumnDataType = "longtext,text,clob", IsNullable = true)]
+    [SugarColumn(ColumnDataType = "varcharmax,longtext,text,clob", IsNullable = true)]
     public string ResponseData { get; set; }
 
     /// <summary>

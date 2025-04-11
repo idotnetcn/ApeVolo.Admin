@@ -20,21 +20,21 @@ public interface IAppSecretService : IBaseServices<AppSecret>
     /// </summary>
     /// <param name="createUpdateAppSecretDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto);
+    Task<OperateResult> CreateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateAppSecretDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

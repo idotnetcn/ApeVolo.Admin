@@ -14,7 +14,7 @@ public class DictDetailDto : BaseEntityDto<long>
     /// <summary>
     /// 字典ID
     /// </summary>
-    [JsonIgnore]
+    //[JsonIgnore]
     //[JsonProperty]
     public long DictId { get; set; }
 

@@ -5,11 +5,11 @@ using Ape.Volo.Api.Filter;
 using Ape.Volo.Api.Mapster;
 using Ape.Volo.Api.Middleware;
 using Ape.Volo.Common;
-using Ape.Volo.Common.ClassLibrary;
 using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.IdGenerator;
+using Ape.Volo.Common.IdGenerator.Contract;
 using Ape.Volo.Common.Internal;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Mapster;
@@ -21,11 +21,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-new IdHelperBootstrapper().SetWorkderId(1).Boot();
+//配置雪花ID方法参数
+IdHelper.SetIdGeneratorOptions(new IdGeneratorOptions(1));
 
 // 配置容器
 builder.Host
@@ -38,8 +40,9 @@ builder.Host
                 optional: true, reloadOnChange: false)
             .AddJsonFile("IpRateLimit.json", optional: true, reloadOnChange: false);
     }).UseSerilogMiddleware()
-    .ConfigureContainer<ContainerBuilder>(builder => { builder.RegisterModule(new AutofacRegister()); });
+    .ConfigureContainer<ContainerBuilder>(b => { b.RegisterModule(new AutofacRegister()); });
 builder.ConfigureApplication();
+
 
 // 配置服务
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -66,8 +69,8 @@ builder.Services.AddRedisInitMqSetup();
 builder.Services.AddIpStrategyRateLimitSetup();
 builder.Services.AddRabbitMqSetup();
 builder.Services.AddEventBusSetup();
-//services.AddLocalization(options => options.ResourcesPath = "Resources");
-//services.AddMultiLanguages(op => op.LocalizationType = typeof(Common.Language));
+//builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+//builder.Services.AddMultiLanguages(op => op.LocalizationType = typeof(Common.Language));
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // 设置会话过期时间
@@ -88,9 +91,11 @@ builder.Services.AddControllers(options =>
         {
             //全局忽略循环引用
             options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            // options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
             options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
-            options.SerializerSettings.ContractResolver = new CustomContractResolver();
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            //options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            //options.SerializerSettings.ContractResolver = new CustomContractResolver();
         }
     );
 builder.Services.AddIpSearcherSetup();

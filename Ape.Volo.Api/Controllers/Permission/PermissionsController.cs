@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
-using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Dto.Permission;
@@ -53,7 +52,7 @@ public class PermissionsController : BaseApiController
         var menus = await _menuService.QueryAllAsync();
 
         var menuTree = TreeHelper<MenuDto>.ListToTrees(menus, "Id", "ParentId", 0);
-        return Ok(menuTree);
+        return JsonContent(menuTree);
     }
 
 
@@ -97,7 +96,7 @@ public class PermissionsController : BaseApiController
             });
         }
 
-        return Ok(apisTree);
+        return JsonContent(apisTree);
     }
 
 
@@ -109,10 +108,10 @@ public class PermissionsController : BaseApiController
     [HttpPut]
     [Route("menus/edit")]
     [Description("编辑角色菜单")]
-    public async Task<ActionResult> UpdateRolesMenus(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<ActionResult> UpdateRolesMenus([FromBody] CreateUpdateRoleDto createUpdateRoleDto)
     {
-        await _roleService.UpdateRolesMenusAsync(createUpdateRoleDto);
-        return NoContent();
+        var result = await _roleService.UpdateRolesMenusAsync(createUpdateRoleDto);
+        return Ok(result);
     }
 
     /// <summary>
@@ -125,8 +124,8 @@ public class PermissionsController : BaseApiController
     [Description("编辑角色Apis")]
     public async Task<ActionResult> UpdateRolesApis([FromBody] CreateUpdateRoleDto createUpdateRoleDto)
     {
-        await _roleService.UpdateRolesApisAsync(createUpdateRoleDto);
-        return NoContent();
+        var result = await _roleService.UpdateRolesApisAsync(createUpdateRoleDto);
+        return Ok(result);
     }
 
     #endregion

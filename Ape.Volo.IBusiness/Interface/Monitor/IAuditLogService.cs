@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Monitor;
@@ -20,7 +20,7 @@ public interface IAuditLogService : IBaseServices<AuditLog>
     /// </summary>
     /// <param name="auditLog"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(AuditLog auditLog);
+    Task<OperateResult> CreateAsync(AuditLog auditLog);
 
 
     /// <summary>
@@ -28,7 +28,7 @@ public interface IAuditLogService : IBaseServices<AuditLog>
     /// </summary>
     /// <param name="auditLogs"></param>
     /// <returns></returns>
-    Task<bool> CreateListAsync(List<AuditLog> auditLogs);
+    Task<OperateResult> CreateListAsync(List<AuditLog> auditLogs);
 
 
     /// <summary>

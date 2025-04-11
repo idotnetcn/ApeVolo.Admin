@@ -1,8 +1,10 @@
 ﻿namespace Ape.Volo.Common.ConfigOptions;
 
+#pragma warning disable CS1587 // XML 注释没有放在有效语言元素上
 /// <summary>
 /// 全局配置类
 /// </summary>
+#pragma warning restore CS1587 // XML 注释没有放在有效语言元素上
 // public class Configs
 // {
 //     #region 是否开发模式

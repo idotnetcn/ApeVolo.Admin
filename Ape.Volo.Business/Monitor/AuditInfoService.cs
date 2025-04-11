@@ -28,17 +28,19 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
 
     #region 基础方法
 
-    public async Task<bool> CreateAsync(AuditLog auditLog)
+    public async Task<OperateResult> CreateAsync(AuditLog auditLog)
     {
         //return await SugarRepository.AddReturnBoolAsync(auditInfo);
-        return await SugarRepository.SugarClient.Insertable(auditLog).SplitTable().ExecuteCommandAsync() > 0;
+        var result = await SugarRepository.SugarClient.Insertable(auditLog).SplitTable().ExecuteCommandAsync() > 0;
+        return OperateResult.Result(result);
     }
 
 
-    public async Task<bool> CreateListAsync(List<AuditLog> auditLogs)
+    public async Task<OperateResult> CreateListAsync(List<AuditLog> auditLogs)
     {
         //return await SugarRepository.AddReturnBoolAsync(auditInfo);
-        return await SugarRepository.SugarClient.Insertable(auditLogs).SplitTable().ExecuteCommandAsync() > 0;
+        var result = await SugarRepository.SugarClient.Insertable(auditLogs).SplitTable().ExecuteCommandAsync() > 0;
+        return OperateResult.Result(result);
     }
 
 
@@ -52,7 +54,7 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
             IsSplitTable = true
         };
 
-        var auditInfos = await SugarRepository.QueryPageListAsync(queryOptions);
+        var auditInfos = await TablePageAsync(queryOptions);
         return App.Mapper.MapTo<List<AuditLogDto>>(auditInfos);
     }
 
@@ -74,7 +76,7 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
             SelectExpression = selectExpression,
             IsSplitTable = true
         };
-        var auditInfos = await SugarRepository.QueryPageListAsync(queryOptions);
+        var auditInfos = await TablePageAsync(queryOptions);
         return App.Mapper.MapTo<List<AuditLogDto>>(auditInfos);
     }
 

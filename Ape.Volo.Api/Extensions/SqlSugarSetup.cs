@@ -9,8 +9,8 @@ using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Helper.Serilog;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Common.SnowflakeIdHelper;
 using Ape.Volo.Entity.Base;
 using Ape.Volo.IBusiness.Interface.Permission;
 using Microsoft.Extensions.DependencyInjection;
@@ -198,7 +198,7 @@ public static class SqlSugarSetup
     {
         if (entityInfo.EntityValue is RootKey<long> { Id: 0 } rootEntity)
         {
-            rootEntity.Id = IdHelper.GetLongId();
+            rootEntity.Id = IdHelper.NextId();
         }
 
         #region BaseEntity

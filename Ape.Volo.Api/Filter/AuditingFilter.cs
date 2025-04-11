@@ -10,7 +10,7 @@ using Ape.Volo.Common.Caches.Redis.MessageQueue;
 using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.SnowflakeIdHelper;
+using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Entity.Monitor;
 using Ape.Volo.IBusiness.Interface.Monitor;
 using Ape.Volo.IBusiness.Interface.System;
@@ -81,6 +81,7 @@ public class AuditingFilter : IAsyncActionFilter
                 auditInfo.ResponseData = resultContext.Result switch
                 {
                     ContentResult contentResult => contentResult.Content,
+                    NoContentResult okResult => okResult.ToJson(),
                     OkObjectResult okResult => okResult.Value?.ToJson(),
                     FileContentResult fileContentResult => GetFileContentResult(fileContentResult),
                     ObjectResult objectResult => objectResult.Value?.ToJson(),
@@ -139,7 +140,7 @@ public class AuditingFilter : IAsyncActionFilter
             .FirstOrDefault();
         var auditLog = new AuditLog
         {
-            Id = IdHelper.GetLongId(),
+            Id = IdHelper.NextId(),
             CreateBy = App.HttpUser.Account,
             CreateTime = DateTime.Now,
             Area = routeValues["area"],

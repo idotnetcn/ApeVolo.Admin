@@ -22,21 +22,21 @@ public interface IFileRecordService : IBaseServices<FileRecord>
     /// <param name="description"></param>
     /// <param name="file"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(string description, IFormFile file);
+    Task<OperateResult> CreateAsync(string description, IFormFile file);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateFileRecordDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateFileRecordDto createUpdateFileRecordDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateFileRecordDto createUpdateFileRecordDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(HashSet<long> ids);
+    Task<OperateResult> DeleteAsync(HashSet<long> ids);
 
     /// <summary>
     /// 查询

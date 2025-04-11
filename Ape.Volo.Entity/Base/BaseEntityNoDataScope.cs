@@ -14,25 +14,25 @@ public class BaseEntityNoDataScope : RootKey<long>, ISoftDeletedEntity
     /// <summary>
     /// 创建者名称
     /// </summary>
-    [SugarColumn(IsNullable = true)]
+    [SugarColumn(IsNullable = true, IsOnlyIgnoreUpdate = true)]
     public string CreateBy { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = true)]
+    [SugarColumn(IsNullable = true, IsOnlyIgnoreUpdate = true)]
     public DateTime CreateTime { get; set; }
 
     /// <summary>
     /// 更新者名称
     /// </summary>
-    [SugarColumn(IsNullable = true)]
+    [SugarColumn(IsNullable = true, IsOnlyIgnoreInsert = true)]
     public string UpdateBy { get; set; }
 
     /// <summary>
     /// 最后更新时间
     /// </summary>
-    [SugarColumn(IsNullable = true)]
+    [SugarColumn(IsNullable = true, IsOnlyIgnoreInsert = true)]
     public DateTime? UpdateTime { get; set; }
 
     /// <summary>

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Enums;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
@@ -28,92 +27,95 @@ public class TenantService : BaseServices<Tenant>, ITenantService
 
     #endregion
 
-    public async Task<bool> CreateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto)
     {
         if (await TableWhere(r => r.TenantId == createUpdateTenantDtoDto.TenantId).AnyAsync())
         {
-            throw new BadRequestException($"租户Id=>{createUpdateTenantDtoDto.TenantId}=>已存在!");
+            return OperateResult.Error($"租户Id=>{createUpdateTenantDtoDto.TenantId}=>已存在!");
         }
 
         if (createUpdateTenantDtoDto.TenantType == TenantType.Db)
         {
             if (createUpdateTenantDtoDto.DbType.IsNull())
             {
-                throw new BadRequestException($"数据库类型不能为空");
+                return OperateResult.Error($"数据库类型不能为空");
             }
 
             if (createUpdateTenantDtoDto.ConfigId.IsNullOrEmpty())
             {
-                throw new BadRequestException($"数据库标识ID不能为空");
+                return OperateResult.Error($"数据库标识ID不能为空");
             }
 
             if (createUpdateTenantDtoDto.Connection.IsNullOrEmpty())
             {
-                throw new BadRequestException($"数据库连接不能为空");
+                return OperateResult.Error($"数据库连接不能为空");
             }
 
             if (await TableWhere(r => r.ConfigId == createUpdateTenantDtoDto.ConfigId).AnyAsync())
             {
-                throw new BadRequestException($"标识Id=>{createUpdateTenantDtoDto.ConfigId}=>已存在!");
+                return OperateResult.Error($"标识Id=>{createUpdateTenantDtoDto.ConfigId}=>已存在!");
             }
         }
 
         var tenant = App.Mapper.MapTo<Tenant>(createUpdateTenantDtoDto);
-        return await AddEntityAsync(tenant);
+        var result = await AddAsync(tenant);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> UpdateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto)
     {
         //取出待更新数据
         var oldTenant = await TableWhere(x => x.Id == createUpdateTenantDtoDto.Id).FirstAsync();
         if (oldTenant.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldTenant.TenantId != createUpdateTenantDtoDto.TenantId &&
             await TableWhere(x => x.TenantId == createUpdateTenantDtoDto.TenantId).AnyAsync())
         {
-            throw new BadRequestException($"租户Id=>{createUpdateTenantDtoDto.TenantId}=>已存在!");
+            return OperateResult.Error($"租户Id=>{createUpdateTenantDtoDto.TenantId}=>已存在!");
         }
 
         if (createUpdateTenantDtoDto.TenantType == TenantType.Db)
         {
             if (createUpdateTenantDtoDto.DbType.IsNull())
             {
-                throw new BadRequestException($"数据库类型不能为空");
+                return OperateResult.Error($"数据库类型不能为空");
             }
 
             if (createUpdateTenantDtoDto.ConfigId.IsNullOrEmpty())
             {
-                throw new BadRequestException($"数据库标识ID不能为空");
+                return OperateResult.Error($"数据库标识ID不能为空");
             }
 
             if (createUpdateTenantDtoDto.Connection.IsNullOrEmpty())
             {
-                throw new BadRequestException($"数据库连接不能为空");
+                return OperateResult.Error($"数据库连接不能为空");
             }
 
             if (oldTenant.ConfigId != createUpdateTenantDtoDto.ConfigId &&
                 await TableWhere(x => x.ConfigId == createUpdateTenantDtoDto.ConfigId).AnyAsync())
             {
-                throw new BadRequestException($"标识Id=>{createUpdateTenantDtoDto.ConfigId}=>已存在!");
+                return OperateResult.Error($"标识Id=>{createUpdateTenantDtoDto.ConfigId}=>已存在!");
             }
         }
 
         var tenant = App.Mapper.MapTo<Tenant>(createUpdateTenantDtoDto);
-        return await UpdateEntityAsync(tenant, [nameof(Tenant.TenantId)]);
+        var result = await UpdateAsync(tenant, null, x => x.TenantId);
+        return OperateResult.Result(result);
     }
 
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var tenants = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
         if (tenants.Any(x => x.Users != null && x.Users.Count != 0))
         {
-            throw new BadRequestException("存在用户关联，请解除后再试！");
+            return OperateResult.Error("存在用户关联，请解除后再试！");
         }
 
-        return await LogicDelete<Tenant>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<Tenant>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     public async Task<List<TenantDto>> QueryAsync(TenantQueryCriteria tenantQueryCriteria, Pagination pagination)
@@ -124,7 +126,7 @@ public class TenantService : BaseServices<Tenant>, ITenantService
             ConditionalModels = tenantQueryCriteria.ApplyQueryConditionalModel()
         };
         return App.Mapper.MapTo<List<TenantDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     public async Task<List<TenantDto>> QueryAllAsync()

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
-using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
@@ -32,15 +31,16 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     /// </summary>
     /// <param name="createUpdateEmailAccountDto"></param>
     /// <returns></returns>
-    public async Task<bool> CreateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
+    public async Task<OperateResult> CreateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
     {
         if (await TableWhere(x => x.Email == createUpdateEmailAccountDto.Email).AnyAsync())
         {
-            throw new BadRequestException($"邮箱账户=>{createUpdateEmailAccountDto.Email}=>已存在!");
+            return OperateResult.Error($"邮箱账户=>{createUpdateEmailAccountDto.Email}=>已存在!");
         }
 
         var emailAccount = App.Mapper.MapTo<EmailAccount>(createUpdateEmailAccountDto);
-        return await AddEntityAsync(emailAccount);
+        var result = await AddAsync(emailAccount);
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -48,22 +48,23 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     /// </summary>
     /// <param name="createUpdateEmailAccountDto"></param>
     /// <returns></returns>
-    public async Task<bool> UpdateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
+    public async Task<OperateResult> UpdateAsync(CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
     {
         var oldEmailAccount = await TableWhere(x => x.Id == createUpdateEmailAccountDto.Id).FirstAsync();
         if (oldEmailAccount.IsNull())
         {
-            throw new BadRequestException("数据不存在！");
+            return OperateResult.Error("数据不存在！");
         }
 
         if (oldEmailAccount.Email != createUpdateEmailAccountDto.Email &&
             await TableWhere(j => j.Email == createUpdateEmailAccountDto.Email).AnyAsync())
         {
-            throw new BadRequestException($"邮箱账户=>{createUpdateEmailAccountDto.Email}=>已存在!");
+            return OperateResult.Error($"邮箱账户=>{createUpdateEmailAccountDto.Email}=>已存在!");
         }
 
         var emailAccount = App.Mapper.MapTo<EmailAccount>(createUpdateEmailAccountDto);
-        return await UpdateEntityAsync(emailAccount);
+        var result = await UpdateAsync(emailAccount);
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -71,13 +72,14 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    public async Task<bool> DeleteAsync(HashSet<long> ids)
+    public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var emailAccounts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (emailAccounts.Count < 1)
-            throw new BadRequestException("无可删除数据!");
+            return OperateResult.Error("无可删除数据!");
 
-        return await LogicDelete<EmailAccount>(x => ids.Contains(x.Id)) > 0;
+        var result = await LogicDelete<EmailAccount>(x => ids.Contains(x.Id));
+        return OperateResult.Result(result);
     }
 
     /// <summary>
@@ -95,7 +97,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
             ConditionalModels = emailAccountQueryCriteria.ApplyQueryConditionalModel(),
         };
         return App.Mapper.MapTo<List<EmailAccountDto>>(
-            await SugarRepository.QueryPageListAsync(queryOptions));
+            await TablePageAsync(queryOptions));
     }
 
     public async Task<List<ExportBase>> DownloadAsync(EmailAccountQueryCriteria emailAccountQueryCriteria)

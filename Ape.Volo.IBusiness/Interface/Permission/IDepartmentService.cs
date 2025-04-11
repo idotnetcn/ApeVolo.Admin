@@ -20,21 +20,21 @@ public interface IDepartmentService : IBaseServices<Department>
     /// </summary>
     /// <param name="createUpdateDepartmentDto"></param>
     /// <returns></returns>
-    Task<bool> CreateAsync(CreateUpdateDepartmentDto createUpdateDepartmentDto);
+    Task<OperateResult> CreateAsync(CreateUpdateDepartmentDto createUpdateDepartmentDto);
 
     /// <summary>
     /// 更新
     /// </summary>
     /// <param name="createUpdateDepartmentDto"></param>
     /// <returns></returns>
-    Task<bool> UpdateAsync(CreateUpdateDepartmentDto createUpdateDepartmentDto);
+    Task<OperateResult> UpdateAsync(CreateUpdateDepartmentDto createUpdateDepartmentDto);
 
     /// <summary>
     /// 删除
     /// </summary>
     /// <param name="ids"></param>
     /// <returns></returns>
-    Task<bool> DeleteAsync(List<long> ids);
+    Task<OperateResult> DeleteAsync(List<long> ids);
 
     /// <summary>
     /// 查询

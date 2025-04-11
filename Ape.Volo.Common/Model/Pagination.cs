@@ -34,7 +34,12 @@ public class Pagination
     public List<string> SortFields { get; set; }
 
     /// <summary>
-    /// 总记录数
+    /// 总条数
     /// </summary>
     public int TotalElements { get; set; }
+
+    /// <summary>
+    /// 总页数
+    /// </summary>
+    public int TotalPages { get; set; }
 }

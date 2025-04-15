@@ -38,7 +38,7 @@ jobs:
               run: docker build -t apevolo-api:latest -f Ape.Volo.Api/Dockerfile .
 
             - name: Add SSH key
-              uses: webfactory/ssh-agent
+              uses: webfactory/ssh-agent@v0.9.1
               with:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 

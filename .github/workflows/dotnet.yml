@@ -39,6 +39,17 @@ jobs:
             - name: Test
               run: dotnet test --no-build --verbosity normal --configuration Release
 
-            - name: Publish build artifacts
-              if: success()
-              run: dotnet publish --no-build --configuration Release --output ./publish
+            - name: Publish Ape.Volo.Api
+              run: dotnet publish Ape.Volo.Api/Ape.Volo.Api.csproj --no-build --configuration Release --output ./publish/Ape.Volo.Api
+
+            - name: Publish Ape.Volo.Business
+              run: dotnet publish Ape.Volo.Business/Ape.Volo.Business.csproj --no-build --configuration Release --output ./publish/Ape.Volo.Business
+
+            - name: Publish Ape.Volo.Common
+              run: dotnet publish Ape.Volo.Common/Ape.Volo.Common.csproj --no-build --configuration Release --output ./publish/Ape.Volo.Common
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: published-files
+                  path: ./publish

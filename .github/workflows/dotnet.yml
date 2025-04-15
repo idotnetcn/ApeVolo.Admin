@@ -42,12 +42,6 @@ jobs:
             - name: Publish Ape.Volo.Api
               run: dotnet publish Ape.Volo.Api/Ape.Volo.Api.csproj --no-build --configuration Release --output ./publish/Ape.Volo.Api
 
-            - name: Publish Ape.Volo.Business
-              run: dotnet publish Ape.Volo.Business/Ape.Volo.Business.csproj --no-build --configuration Release --output ./publish/Ape.Volo.Business
-
-            - name: Publish Ape.Volo.Common
-              run: dotnet publish Ape.Volo.Common/Ape.Volo.Common.csproj --no-build --configuration Release --output ./publish/Ape.Volo.Common
-
             - name: Upload build artifacts
               uses: actions/upload-artifact@v4
               with:

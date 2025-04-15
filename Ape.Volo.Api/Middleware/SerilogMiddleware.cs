@@ -2,8 +2,6 @@
 using Ape.Volo.Api.Serilog;
 using Ape.Volo.Common;
 using Ape.Volo.Common.ConfigOptions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -30,7 +28,7 @@ public static class SerilogMiddleware
 
 
             var serilogOptions = App.GetOptions<SerilogOptions>();
-            if (serilogOptions.ToConsole.Enabled)
+            if (serilogOptions.ToFile.Enabled)
             {
                 foreach (LogEventLevel logEvent in Enum.GetValues(typeof(LogEventLevel)))
                 {

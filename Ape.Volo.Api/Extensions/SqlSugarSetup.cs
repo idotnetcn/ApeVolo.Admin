@@ -66,10 +66,9 @@ public static class SqlSugarSetup
                     connectionItem.ConnectionString ?? string.Empty);
             }
 
-            List<ConnectionItem> connectionSlaves = new List<ConnectionItem>();
             if (systemOptions.IsCqrs)
             {
-                connectionSlaves = options.ConnectionItem
+                var connectionSlaves = options.ConnectionItem
                     .Where(x => x.DbType == connectionItem.DbType && x.ConnId != connectionItem.ConnId && x.Enabled)
                     .ToList();
                 if (!connectionSlaves.Any())
@@ -103,9 +102,11 @@ public static class SqlSugarSetup
                 },
                 ConfigureExternalServices = new ConfigureExternalServices
                 {
-                    DataInfoCacheService = systemOptions.UseRedisCache
-                        ? new SqlSugarRedisCache()
-                        : new SqlSugarDistributedCache(),
+                    DataInfoCacheService = connectionItem.ConnId != systemOptions.DefaultDataBase
+                        ? null
+                        : systemOptions.UseRedisCache
+                            ? new SqlSugarRedisCache()
+                            : new SqlSugarDistributedCache(),
                     EntityService = (c, p) =>
                     {
                         p.DbColumnName = UtilMethods.ToUnderLine(p.DbColumnName); //字段使用驼峰转下划线，不需要请注释

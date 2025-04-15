@@ -481,6 +481,7 @@ public class DataSeeder
         ConsoleHelper.WriteLine($"Log Db Id: {logDb.CurrentConnectionConfig.ConfigId}");
         ConsoleHelper.WriteLine($"Log Db Type: {logDb.CurrentConnectionConfig.DbType}");
         ConsoleHelper.WriteLine($"Log Db ConnectString: {logDb.CurrentConnectionConfig.ConnectionString}");
+        //var list = logDb.DbMaintenance.GetDataBaseList();
         if (logDb.CurrentConnectionConfig.DbType != DbType.Oracle)
         {
             logDb.DbMaintenance.CreateDatabase();
@@ -511,8 +512,12 @@ public class DataSeeder
                 throw new Exception($"类{entityInfo.EntityName}缺少SugarTable表名");
             }
 
-            int lastUnderscoreIndex = entityInfo.DbTableName.LastIndexOf('_');
-            var tableName = entityInfo.DbTableName.Substring(0, lastUnderscoreIndex);
+            // int lastUnderscoreIndex = entityInfo.DbTableName.LastIndexOf('_');
+            // var tableName = entityInfo.DbTableName.Substring(0, lastUnderscoreIndex);
+            DateTime now = DateTime.Now;
+            var tableName = entityInfo.DbTableName.Replace("{year}", now.Year.ToString())
+                .Replace("{month}", now.Month.ToString("D2"))
+                .Replace("{day}", "01");
 
             if (!logTables.Any(x => x.Name.Equals(tableName, StringComparison.OrdinalIgnoreCase)))
             {

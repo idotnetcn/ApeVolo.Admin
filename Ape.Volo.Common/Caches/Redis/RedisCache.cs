@@ -18,7 +18,7 @@ public class RedisCache : ICache
     {
         if (!App.GetOptions<SystemOptions>().UseRedisCache)
         {
-            throw new System.Exception("RedisCacheSwitch未开启,请检查！");
+            throw new System.Exception("UseRedisCache未设置为True,请检查！");
         }
 
         var redisOptions = App.GetOptions<RedisOptions>();
@@ -27,12 +27,12 @@ public class RedisCache : ICache
         {
             AbortOnConnectFail = redisOptions.AbortOnConnectFail,
             AllowAdmin = redisOptions.AllowAdmin,
-            ConnectRetry = redisOptions.ConnectRetry, //10,
+            ConnectRetry = redisOptions.ConnectRetry,
             ConnectTimeout = redisOptions.ConnectTimeout,
             KeepAlive = redisOptions.KeepAlive,
             SyncTimeout = redisOptions.SyncTimeout,
             EndPoints = { redisOptions.Host + ":" + redisOptions.Port },
-            ServiceName = redisOptions.Name
+            ServiceName = redisOptions.Name.IsNullOrEmpty() ? null : redisOptions.Name
         };
         if (!string.IsNullOrWhiteSpace(redisOptions.Password))
         {

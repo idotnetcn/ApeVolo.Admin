@@ -22,7 +22,16 @@ public static class IpRateLimitSetup
             var redisOptions = App.GetOptions<RedisOptions>();
             services.AddStackExchangeRedisCache(option =>
             {
-                option.Configuration = redisOptions.Host + ":" + redisOptions.Port;
+                if (!string.IsNullOrWhiteSpace(redisOptions.Password))
+                {
+                    option.Configuration =
+                        $"{redisOptions.Host}:{redisOptions.Port},password={redisOptions.Password},defaultDatabase={redisOptions.Index + 2}";
+                }
+                else
+                {
+                    option.Configuration = redisOptions.Host + ":" + redisOptions.Port;
+                }
+
                 option.InstanceName = "rateLimit:";
             });
             services.AddSingleton<IIpPolicyStore, DistributedCacheIpPolicyStore>();

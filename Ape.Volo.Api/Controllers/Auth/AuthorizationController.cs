@@ -50,7 +50,6 @@ public class AuthorizationController : BaseApiController
 
     #endregion
 
-
     #region 字段
 
     private readonly IUserService _userService;
@@ -79,7 +78,8 @@ public class AuthorizationController : BaseApiController
         var captchaOptions = App.GetOptions<CaptchaOptions>();
         if (captchaOptions.Threshold > 0)
         {
-            var thresholdCacheKey = GlobalConstants.CachePrefix.Threshold + App.HttpContext.Connection.RemoteIpAddress;
+            var thresholdCacheKey =
+                GlobalConstants.CachePrefix.Threshold + App.HttpContext.Connection.RemoteIpAddress;
             var failedThreshold = await App.Cache.GetAsync<int>(thresholdCacheKey);
             if (failedThreshold <= 0)
             {
@@ -92,7 +92,8 @@ public class AuthorizationController : BaseApiController
         }
 
 
-        var (imgBytes, code) = SixLaborsImageHelper.BuildVerifyCode(captchaOptions.ImgWidth, captchaOptions.ImgHeight,
+        var (imgBytes, code) = SixLaborsImageHelper.BuildVerifyCode(captchaOptions.ImgWidth,
+            captchaOptions.ImgHeight,
             captchaOptions.FontSize, captchaOptions.KeyLength);
         var img = ImgHelper.ToBase64StringUrl(imgBytes);
         var captchaId = GlobalConstants.CachePrefix.CaptchaId +
@@ -171,10 +172,13 @@ public class AuthorizationController : BaseApiController
         }
 
 
-        await App.Cache.RemoveAsync(authUser.CaptchaId);
         if (!App.GetOptions<SystemOptions>().IsQuickDebug && showCaptcha)
         {
             var code = await App.Cache.GetAsync<string>(authUser.CaptchaId);
+            if (code.IsNullOrEmpty())
+            {
+                return Error("验证码已过期!");
+            }
 
             if (!code.Equals(authUser.Captcha))
             {
@@ -245,6 +249,7 @@ public class AuthorizationController : BaseApiController
             return Error("用户未激活");
         }
 
+        await App.Cache.RemoveAsync(authUser.CaptchaId);
         await App.Cache.RemoveAsync(thresholdCacheKey);
         await App.Cache.RemoveAsync(attempsCacheKey);
         var netUser = await _userService.QueryByIdAsync(userDto.Id);

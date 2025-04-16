@@ -1,0 +1,55 @@
+name: .NET CI/CD with Docker Deployment
+
+on:
+    push:
+        branches: ['main', 'master']
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.0.x
+
+            - name: Cache NuGet packages
+              uses: actions/cache@v3
+              with:
+                  path: ~/.nuget/packages
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+                  restore-keys: |
+                      ${{ runner.os }}-nuget-
+
+            - name: Restore dependencies
+              run: dotnet restore
+
+            - name: Build
+              run: dotnet build --no-restore --configuration Release
+
+            - name: Test
+              run: dotnet test --no-build --verbosity normal --configuration Release
+
+            - name: Build Docker image
+              run: docker build -t apevolo-api:latest -f Ape.Volo.Api/Dockerfile .
+
+            - name: Add SSH key
+              uses: webfactory/ssh-agent@v0.9.1
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+            - name: Add server to known_hosts
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+                  chmod 600 ~/.ssh/known_hosts
+
+            - name: Deploy to server
+              run: |
+                  docker save apevolo-api:latest | ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker load"
+                  ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker stop apevolo-api || true && docker rm apevolo-api || true"
+                  ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "docker run -d -p 80:8002 --name apevolo-api apevolo-api:latest"

@@ -165,7 +165,7 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
     public async Task<bool> LogicDelete<T>(Expression<Func<T, bool>> exp) where T : class, ISoftDeletedEntity, new()
     {
         return await SugarClient.Updateable<T>()
-            .SetColumns(it => new T() { IsDeleted = true },
+            .SetColumns(it => new T { IsDeleted = true },
                 true) //true 支持更新数据过滤器赋值字段一起更新
             .Where(exp).ExecuteCommandAsync() > 0;
     }
@@ -196,11 +196,6 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
         Expression<Func<TEntity, object>> orderExpression = null, OrderByType? orderByType = null,
         bool isClearCreateByFilter = false, string lockString = "", int cacheDurationInSeconds = 0)
     {
-        if (whereExpression == null)
-        {
-            throw new Exception("条件表达式不能为空");
-        }
-
         var table = Table.Where(whereExpression).WithCacheIF(cacheDurationInSeconds > 0, cacheDurationInSeconds);
 
         if (!lockString.IsNullOrEmpty())
@@ -243,11 +238,6 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
         Expression<Func<TEntity, object>> orderExpression = null, OrderByType? orderByType = null,
         bool isClearCreateByFilter = false, string lockString = "", int cacheDurationInSeconds = 0)
     {
-        if (conditionalModels == null || conditionalModels.Count == 0)
-        {
-            throw new Exception("条件模型不能为空");
-        }
-
         var table = Table.Where(conditionalModels).WithCacheIF(cacheDurationInSeconds > 0, cacheDurationInSeconds);
         if (!lockString.IsNullOrEmpty())
         {

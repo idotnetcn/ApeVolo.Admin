@@ -21,7 +21,8 @@ public class SwaggerAuthorizeMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.Request.Path.Value != null && context.Request.Path.Value.ToLower().Contains("index.html"))
+        if (context.Request.Path.Value != null &&
+            context.Request.Path.Value.ToLower().Contains("index.html"))
         {
             // 判断权限是否正确
             if (IsAuthorized(context))
@@ -42,13 +43,14 @@ public class SwaggerAuthorizeMiddleware
 
     public bool IsAuthorized(HttpContext context)
     {
-        var swaggerKey = context.Session.GetInt32("swagger-key");
-        if (swaggerKey is 1)
+        if (App.GetOptions<SystemOptions>().IsQuickDebug)
         {
+            //开发环境免登录
             return true;
         }
 
-        return false;
+        var swaggerKey = context.Session.GetInt32("swagger-key");
+        return swaggerKey is 1;
     }
 }
 

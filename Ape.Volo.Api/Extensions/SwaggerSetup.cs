@@ -45,7 +45,7 @@ public static class SwaggerSetup
             }
             catch (Exception ex)
             {
-                Logger.Error("swaggerSetup启动失败\n" + ex.Message);
+                Logger.Error("swagger startup failed\n" + ex.Message);
             }
 
             // 开启加权小锁

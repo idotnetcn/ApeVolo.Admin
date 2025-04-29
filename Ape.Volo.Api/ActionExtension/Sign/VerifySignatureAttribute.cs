@@ -1,7 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using Ape.Volo.Common.Caches;
+using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
+using Ape.Volo.IBusiness.Dto.System;
 using Ape.Volo.IBusiness.Interface.System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -29,14 +32,14 @@ public class VerifySignatureAttribute : BaseActionFilter
         var appId = request.Headers["appId"].ToString();
         if (appId.IsNullOrEmpty())
         {
-            filterContext.Result = Error("缺少header:appId");
+            filterContext.Result = Error(App.L.R("{0}required", "appId"));
             return;
         }
 
         var time = request.Headers["time"].ToString();
         if (time.IsNullOrEmpty())
         {
-            filterContext.Result = Error("缺少header:time");
+            filterContext.Result = Error(App.L.R("{0}required", "time"));
             return;
         }
 
@@ -49,19 +52,18 @@ public class VerifySignatureAttribute : BaseActionFilter
         var guid = request.Headers["guid"].ToString();
         if (guid.IsNullOrEmpty())
         {
-            filterContext.Result = Error("缺少header:guid");
+            filterContext.Result = Error(App.L.R("{0}required", "guid"));
             return;
         }
 
         var guidKey = $"ApiGuid_{guid}";
-        var cache = filterContext.HttpContext.RequestServices.GetRequiredService<ICache>();
-        if (!cache.GetAsync<string>(guidKey).IsNullOrEmpty())
+        if (!App.Cache.GetAsync<string>(guidKey).IsNullOrEmpty())
         {
-            await cache.SetAsync(guidKey, "1", null, null);
+            await App.Cache.SetAsync(guidKey, "1", null, null);
         }
         else
         {
-            filterContext.Result = Error("禁止重复调用!");
+            filterContext.Result = Error(App.L.R("Error.DuplicateCallNotAllowed"));
             return;
         }
 
@@ -71,7 +73,7 @@ public class VerifySignatureAttribute : BaseActionFilter
         var sign = request.Headers["sign"].ToString();
         if (sign.IsNullOrEmpty())
         {
-            filterContext.Result = Error("缺少header:sign");
+            filterContext.Result = Error(App.L.R("{0}required", "sign"));
             return;
         }
 
@@ -79,7 +81,13 @@ public class VerifySignatureAttribute : BaseActionFilter
             .TableWhere(x => x.AppId == appId).FirstAsync();
         if (appSecretModel.IsNull())
         {
-            filterContext.Result = Error("header:appId无效");
+            CreateUpdateAppSecretDto createUpdateAppSecretDto = new CreateUpdateAppSecretDto
+            {
+                AppId = appId
+            };
+            filterContext.Result =
+                Error(DataErrorHelper.NotExist(createUpdateAppSecretDto, LanguageKeyConstants.AppSecret,
+                    nameof(createUpdateAppSecretDto.AppId)));
             return;
         }
 
@@ -87,11 +95,11 @@ public class VerifySignatureAttribute : BaseActionFilter
         if (sign != newSign)
         {
             var msg =
-                $@"sign签名错误!
+                $@"Signature error!
                         headers:{request.Headers.ToJson()}
                         body:{body}
-                        传入sign{sign}
-                        正确sign:{newSign}";
+                        Pass in sign{sign}
+                        Correct sign:{newSign}";
             filterContext.Result = Error(msg);
         }
     }

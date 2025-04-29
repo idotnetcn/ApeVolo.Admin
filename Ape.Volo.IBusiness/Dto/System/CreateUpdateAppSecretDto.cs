@@ -24,7 +24,8 @@ public class CreateUpdateAppSecretDto : BaseEntityDto<long>
     /// <summary>
     /// 应用名称
     /// </summary>
-    [Required]
+    [Display(Name = "App.AppName")]
+    [Required(ErrorMessage = "{0}required")]
     public string AppName { get; set; }
 
     /// <summary>

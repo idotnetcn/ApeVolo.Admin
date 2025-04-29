@@ -7,6 +7,7 @@ using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Permission;
 using Ape.Volo.IBusiness.Dto.Permission;
@@ -19,21 +20,14 @@ namespace Ape.Volo.Business.Permission;
 
 public class JobService : BaseServices<Job>, IJobService
 {
-    #region 构造函数
-
-    public JobService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(CreateUpdateJobDto createUpdateJobDto)
     {
         if (await TableWhere(j => j.Name == createUpdateJobDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"岗位名称=>{createUpdateJobDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateJobDto,
+                nameof(createUpdateJobDto.Name)));
         }
 
         var job = App.Mapper.MapTo<Job>(createUpdateJobDto);
@@ -47,13 +41,15 @@ public class JobService : BaseServices<Job>, IJobService
             await TableWhere(x => x.Id == createUpdateJobDto.Id).FirstAsync();
         if (oldJob.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateJobDto, LanguageKeyConstants.Job,
+                nameof(createUpdateJobDto.Id)));
         }
 
         if (oldJob.Name != createUpdateJobDto.Name &&
             await TableWhere(j => j.Name == createUpdateJobDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"岗位名称=>{createUpdateJobDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateJobDto,
+                nameof(createUpdateJobDto.Name)));
         }
 
         var job = App.Mapper.MapTo<Job>(createUpdateJobDto);
@@ -66,12 +62,12 @@ public class JobService : BaseServices<Job>, IJobService
         var jobs = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
         if (jobs.Count < 1)
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist());
         }
 
         if (jobs.Any(job => job.Users != null && job.Users.Count != 0))
         {
-            return OperateResult.Error("存在用户关联，请解除后再试！");
+            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
         }
 
         var result = await LogicDelete<Job>(x => ids.Contains(x.Id));
@@ -96,12 +92,12 @@ public class JobService : BaseServices<Job>, IJobService
         var conditionalModels = jobQueryCriteria.ApplyQueryConditionalModel();
         var jbos = await TableWhere(conditionalModels).ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
-        roleExports.AddRange(jbos.Select(x => new JobExport()
+        roleExports.AddRange(jbos.Select(x => new JobExport
         {
             Id = x.Id,
             Name = x.Name,
             Sort = x.Sort,
-            EnabledState = x.Enabled ? EnabledState.Enabled : EnabledState.Disabled,
+            Enabled = x.Enabled,
             CreateTime = x.CreateTime
         }));
         return roleExports;

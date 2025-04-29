@@ -7,36 +7,36 @@ public enum DataScopeType
     /// <summary>
     /// 无
     /// </summary>
-    [Display(Name = "无")]
+    [Display(Name = "None")]
     None = 0,
 
     /// <summary>
     /// 全部
     /// </summary>
-    [Display(Name = "全部")]
+    [Display(Name = "Enum.DataScope.All")]
     All = 1,
 
     /// <summary>
     /// 本人
     /// </summary>
-    [Display(Name = "本人")]
+    [Display(Name = "Enum.DataScope.MySelf")]
     MySelf = 2,
 
     /// <summary>
     /// 本部门
     /// </summary>
-    [Display(Name = "本部门")]
+    [Display(Name = "Enum.DataScope.MyDept")]
     MyDept = 3,
 
     /// <summary>
     /// 本部门及以下
     /// </summary>
-    [Display(Name = "本部门及以下")]
+    [Display(Name = "Enum.DataScope.MyDeptAndBelow")]
     MyDeptAndBelow = 4,
 
     /// <summary>
     /// 自定义
     /// </summary>
-    [Display(Name = "自定义")]
+    [Display(Name = "Enum.DataScope.Customize")]
     Customize = 5
 }

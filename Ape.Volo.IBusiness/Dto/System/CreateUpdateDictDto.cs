@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Enums;
@@ -14,25 +13,23 @@ namespace Ape.Volo.IBusiness.Dto.System;
 public class CreateUpdateDictDto : BaseEntityDto<long>
 {
     /// <summary>
-    /// 名称
+    /// 字典类型
     /// </summary>
-    public DictType DictType { get; set; } = DictType.System;
+    [Display(Name = "Dict.Type")]
+    [Range(1, 2, ErrorMessage = "{0}range{1}{2}")]
+    public DictType DictType { get; set; }
 
     /// <summary>
     /// 名称
     /// </summary>
-    [Required]
-
+    [Display(Name = "Dict.Name")]
+    [Required(ErrorMessage = "{0}required")]
     public string Name { get; set; }
 
     /// <summary>
     /// 描述
     /// </summary>
-    [Required]
+    [Display(Name = "Dict.Description")]
+    [Required(ErrorMessage = "{0}required")]
     public string Description { get; set; }
-
-    /// <summary>
-    /// 字典详情
-    /// </summary>
-    public List<CreateUpdateDictDetailDto> DictDetails { get; set; }
 }

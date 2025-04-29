@@ -10,6 +10,7 @@ using Ape.Volo.Common.Global;
 using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.IdGenerator.Contract;
 using Ape.Volo.Common.Internal;
+using Ape.Volo.Common.MultiLanguage.Resources;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Mapster;
@@ -51,6 +52,7 @@ builder.Services.AddSingleton<IRegister, MapsterCustomMapper>();
 builder.Services.AddSingleton<IMapper, Mapper>();
 builder.Services.AddSingleton(new AppSettings(builder.Configuration));
 builder.Services.AddOptionRegister();
+builder.Services.AddCustomMultiLanguages();
 // builder.Services.Configure<Configs>(configuration);
 // var configs = configuration.Get<Configs>();
 builder.Services.AddSerilogSetup();
@@ -69,8 +71,6 @@ builder.Services.AddRedisInitMqSetup();
 builder.Services.AddIpStrategyRateLimitSetup();
 builder.Services.AddRabbitMqSetup();
 builder.Services.AddEventBusSetup();
-//builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-//builder.Services.AddMultiLanguages(op => op.LocalizationType = typeof(Common.Language));
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // 设置会话过期时间
@@ -85,7 +85,7 @@ builder.Services.AddControllers(options =>
         options.Filters.Add<AuditingFilter>();
     })
     //.AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
-    //.AddDataAnnotationsLocalization(typeof(Common.Language))
+    .AddDataAnnotationsLocalization(typeof(Language))
     .AddControllersAsServices()
     .AddNewtonsoftJson(options =>
         {
@@ -102,6 +102,7 @@ builder.Services.AddIpSearcherSetup();
 
 // 配置中间件
 var app = builder.Build();
+
 app.ConfigureApplication();
 app.ApplicationStartedNotifier();
 
@@ -109,10 +110,13 @@ app.ApplicationStartedNotifier();
 var mapper = app.Services.GetRequiredService<IRegister>();
 TypeAdapterConfig.GlobalSettings.Apply(mapper);
 
+//多语言请求扩展
+app.UseCustomRequestLocalization();
+
 //IP限流
 app.UseIpLimitMiddleware();
-//var locOptions = app.Services.GetService<IOptions<RequestLocalizationOptions>>();
-//if (locOptions != null) app.UseRequestLocalization(locOptions.Value);
+
+
 //获取远程真实ip,如果不是nginx代理部署可以不要
 app.UseMiddleware<RealIpMiddleware>();
 //处理访问不存在的接口

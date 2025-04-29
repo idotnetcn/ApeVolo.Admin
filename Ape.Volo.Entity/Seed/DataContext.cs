@@ -20,7 +20,7 @@ public class DataContext
     public DataContext(ISqlSugarClient sqlSugarClient)
     {
         if (string.IsNullOrEmpty(ConnectionString))
-            throw new ArgumentNullException(nameof(sqlSugarClient), "数据库连接字符串为空");
+            throw new ArgumentNullException(nameof(sqlSugarClient), "The database connection string is empty");
         _db = sqlSugarClient as SqlSugarScope;
     }
 
@@ -71,7 +71,7 @@ public class DataContext
                 .FirstOrDefault(x => x.ConnId == App.GetOptions<SystemOptions>().DefaultDataBase);
         if (defaultConnectionItem.IsNull())
         {
-            throw new Exception("数据库配置出错，请检查！");
+            throw new Exception("Database configuration error, please check！");
         }
 
         return defaultConnectionItem;

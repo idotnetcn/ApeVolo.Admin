@@ -15,8 +15,8 @@ public static class ExceptionLogFormat
     /// 自定义返回格式
     /// </summary>
     /// <param name="httpContext">http上下文</param>
-    ///  <param name="remoteIp">http上下文</param>
-    ///  <param name="ipAddress">http上下文</param>
+    ///  <param name="remoteIp">远程IP</param>
+    ///  <param name="ipAddress">IP地址</param>
     /// <param name="exception">异常类</param>
     /// <param name="currentUserName">当前用户名</param>
     /// <param name="operatingSystem">操作系统</param>

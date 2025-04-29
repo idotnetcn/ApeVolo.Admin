@@ -16,7 +16,7 @@ namespace Ape.Volo.Api.Controllers.Permission;
 /// <summary>
 /// 菜单管理
 /// </summary>
-[Area("菜单管理")]
+[Area("Area.MenuManagement")]
 [Route("/api/menu", Order = 4)]
 public class MenusController : BaseApiController
 {
@@ -44,7 +44,7 @@ public class MenusController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateMenuDto createUpdateMenuDto)
     {
@@ -65,7 +65,7 @@ public class MenusController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateMenuDto createUpdateMenuDto)
     {
@@ -86,7 +86,7 @@ public class MenusController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -104,7 +104,7 @@ public class MenusController : BaseApiController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Description("构建菜单")]
+    [Description("Action.BuildLoginMenu")]
     [Route("build")]
     public async Task<ActionResult> Build()
     {
@@ -118,7 +118,7 @@ public class MenusController : BaseApiController
     /// <param name="pid">父级ID</param>
     /// <returns></returns>
     [HttpGet]
-    [Description("子菜单")]
+    [Description("Action.GetSubMenu")]
     [Route("lazy")]
     public async Task<ActionResult<object>> GetMenuLazy(long pid)
     {
@@ -137,12 +137,12 @@ public class MenusController : BaseApiController
     /// <param name="menuQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("查询")]
+    [Description("Sys.Query")]
     [Route("query")]
     public async Task<ActionResult> Query(MenuQueryCriteria menuQueryCriteria)
     {
         var menuList = await _menuService.QueryAsync(menuQueryCriteria);
-        return JsonContent(menuList, new Pagination() { TotalElements = menuList.Count });
+        return JsonContent(menuList, new Pagination { TotalElements = menuList.Count });
     }
 
 
@@ -152,7 +152,7 @@ public class MenusController : BaseApiController
     /// <param name="menuQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(MenuQueryCriteria menuQueryCriteria)
     {
@@ -170,7 +170,7 @@ public class MenusController : BaseApiController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("获取同级、父级菜单")]
+    [Description("Action.GetSiblingAndParentMenus")]
     [Route("superior")]
     public async Task<ActionResult<object>> GetSuperior(long id)
     {
@@ -184,7 +184,7 @@ public class MenusController : BaseApiController
     }
 
     [HttpGet]
-    [Description("获取所有子级菜单ID")]
+    [Description("Action.GetAllSubMenu")]
     [Route("child")]
     public async Task<ActionResult> GetChild(long id)
     {

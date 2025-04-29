@@ -34,12 +34,12 @@ public class ExcelHelper
     public virtual byte[] GenerateExcel(List<ExportBase> exportRows, out string mimeType, out string fileName)
     {
         mimeType = MimeTypes.TextXlsx; //默认xlsx
-        ExportMaxCount = ExportMaxCount == 0 ? 10000 : (ExportMaxCount > 10000 ? 10000 : ExportMaxCount);
+        ExportMaxCount = ExportMaxCount == 0 ? 10000 : ExportMaxCount > 10000 ? 10000 : ExportMaxCount;
         ExportExcelCount = exportRows.Count < ExportMaxCount
             ? 1
-            : ((exportRows.Count % ExportMaxCount) == 0
-                ? (exportRows.Count / ExportMaxCount)
-                : (exportRows.Count / ExportMaxCount + 1));
+            : exportRows.Count % ExportMaxCount == 0
+                ? exportRows.Count / ExportMaxCount
+                : exportRows.Count / ExportMaxCount + 1;
 
         //如果是1，直接下载Excel，如果是多个，下载ZIP包
         if (ExportExcelCount == 1)
@@ -179,18 +179,31 @@ public class ExcelHelper
             var row = sheet.CreateRow(i + 1);
             foreach (var pi in props)
             {
-                if (pi.Name.ToUpper().Equals("ID"))
-                {
-                    continue;
-                }
+                // if (pi.Name.ToUpper().Equals("ID"))
+                // {
+                //     continue;
+                // }
 
                 var propertyValue = exportBases[i].GetPropertyValue(pi.Name);
                 var text = Regex.Replace(
                     propertyValue == null ? string.Empty : propertyValue.ToString() ?? string.Empty,
                     @"<[^>]*>", string.Empty);
-
                 var piType = pi.PropertyType;
-                if (piType.IsEnum())
+                //建立excel单元格
+                ICell cell;
+                if (piType.IsNumber())
+                {
+                    cell = row.CreateCell(colIndex, CellType.Numeric);
+                    try
+                    {
+                        cell.SetCellValue(Convert.ToDouble(text));
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                }
+                else if (piType.IsEnum)
                 {
                     if (int.TryParse(text, out var enumValue))
                     {
@@ -213,21 +226,14 @@ public class ExcelHelper
                             }
                         }
                     }
-                }
 
-                //建立excel单元格
-                ICell cell;
-                if (piType.IsNumber())
+                    cell = row.CreateCell(colIndex);
+                    cell.SetCellValue(text);
+                }
+                else if (piType.IsBool())
                 {
-                    cell = row.CreateCell(colIndex, CellType.Numeric);
-                    try
-                    {
-                        cell.SetCellValue(Convert.ToDouble(text));
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
+                    cell = row.CreateCell(colIndex);
+                    cell.SetCellValue(text.ToBool() ? App.L.R("Enum.True") : App.L.R("Enum.False"));
                 }
                 else
                 {
@@ -243,7 +249,7 @@ public class ExcelHelper
         return book;
     }
 
-    private void MakeExcelHeader(ISheet sheet, PropertyInfo[] propertyInfos, int rowIndex, int colIndex,
+    private static void MakeExcelHeader(ISheet sheet, PropertyInfo[] propertyInfos, int rowIndex, int colIndex,
         ICellStyle style)
     {
         var row = sheet.GetRow(rowIndex) ?? sheet.CreateRow(rowIndex);
@@ -251,10 +257,10 @@ public class ExcelHelper
         //循环所有属性
         foreach (var p in propertyInfos)
         {
-            if (p.Name.ToUpper().Equals("ID"))
-            {
-                continue;
-            }
+            // if (p.Name.ToUpper().Equals("ID"))
+            // {
+            //     continue;
+            // }
 
             //添加新单元格
             var cell = row.CreateCell(colIndex);
@@ -265,7 +271,7 @@ public class ExcelHelper
                 .GetCustomAttributes(typeof(DisplayAttribute), true)
                 .OfType<DisplayAttribute>()
                 .FirstOrDefault();
-            cell.SetCellValue(display == null ? p.Name : display.Name);
+            cell.SetCellValue(display == null ? p.Name : App.L.R(display.Name));
 
             var cellRangeAddress = new CellRangeAddress(rowIndex, rowIndex, colIndex, colIndex);
             sheet.AddMergedRegion(cellRangeAddress);

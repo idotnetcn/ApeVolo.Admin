@@ -10,24 +10,26 @@ public class LoginAuthUser
     /// <summary>
     /// 用户名
     /// </summary>
-    [Required]
+    [Display(Name = "User.Username")]
+    [Required(ErrorMessage = "{0}required")]
     public string Username { get; set; }
 
     /// <summary>
     /// 密码
     /// </summary>
-    [Required]
+    [Display(Name = "User.Password")]
+    [Required(ErrorMessage = "{0}required")]
     public string Password { get; set; }
 
     /// <summary>
     /// 验证码
     /// </summary>
-    //[Required]
+    [Display(Name = "Sys.Captcha")]
     public string Captcha { get; set; }
 
     /// <summary>
-    /// 唯一ID
+    /// 验证码ID
     /// </summary>
-    [Required]
+    [Display(Name = "Sys.CaptchaId")]
     public string CaptchaId { get; set; }
 }

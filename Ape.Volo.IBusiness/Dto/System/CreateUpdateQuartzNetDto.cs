@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Ape.Volo.Common.Attributes;
+using Ape.Volo.Common.Enums;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Base;
 
@@ -15,30 +16,35 @@ public class CreateUpdateQuartzNetDto : BaseEntityDto<long>
     /// <summary>
     /// 任务名称
     /// </summary>
-    [Required]
+    [Display(Name = "Task.TaskName")]
+    [Required(ErrorMessage = "{0}required")]
     public string TaskName { get; set; }
 
     /// <summary>
     /// 任务分组
     /// </summary>
-    [Required]
+    [Display(Name = "Task.TaskGroup")]
+    [Required(ErrorMessage = "{0}required")]
     public string TaskGroup { get; set; }
 
     /// <summary>
     /// cron 表达式
     /// </summary>
+    [Display(Name = "Task.Cron")]
     public string Cron { get; set; }
 
     /// <summary>
     /// 程序集名称
     /// </summary>
-    [Required]
+    [Display(Name = "Task.AssemblyName")]
+    [Required(ErrorMessage = "{0}required")]
     public string AssemblyName { get; set; }
 
     /// <summary>
     /// 任务所在类
     /// </summary>
-    [Required]
+    [Display(Name = "Task.ClassName")]
+    [Required(ErrorMessage = "{0}required")]
     public string ClassName { get; set; }
 
     /// <summary>
@@ -79,7 +85,9 @@ public class CreateUpdateQuartzNetDto : BaseEntityDto<long>
     /// <summary>
     /// 触发器类型（0、simple 1、cron）
     /// </summary>
-    public int TriggerType { get; set; }
+    [Display(Name = "Task.TriggerType")]
+    [Range(0, 1, ErrorMessage = "{0}range{1}{2}")]
+    public TriggerType TriggerType { get; set; }
 
     /// <summary>
     /// 执行间隔时间, 秒为单位

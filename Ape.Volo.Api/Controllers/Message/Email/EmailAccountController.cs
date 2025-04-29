@@ -15,7 +15,7 @@ namespace Ape.Volo.Api.Controllers.Message.Email;
 /// <summary>
 /// 邮箱账户管理
 /// </summary>
-[Area("邮箱账户管理")]
+[Area("Area.EmailAccountManagement")]
 [Route("/api/email/account", Order = 17)]
 public class EmailAccountController : BaseApiController
 {
@@ -34,7 +34,7 @@ public class EmailAccountController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("增加")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
     {
@@ -55,7 +55,7 @@ public class EmailAccountController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
     {
@@ -76,7 +76,7 @@ public class EmailAccountController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -97,7 +97,7 @@ public class EmailAccountController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("列表")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(EmailAccountQueryCriteria emailAccountQueryCriteria,
         Pagination pagination)
     {
@@ -113,7 +113,7 @@ public class EmailAccountController : BaseApiController
     /// <param name="emailAccountQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(EmailAccountQueryCriteria emailAccountQueryCriteria)
     {

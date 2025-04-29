@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
-using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
@@ -19,14 +18,6 @@ namespace Ape.Volo.Business.System;
 /// </summary>
 public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogService
 {
-    #region 构造函数
-
-    public QuartzNetLogService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(QuartzNetLog quartzNetLog)
@@ -51,8 +42,9 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
     {
         var quartzNetLogs = await TableWhere(quartzNetLogQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> quartzNetLogExports = new List<ExportBase>();
-        quartzNetLogExports.AddRange(quartzNetLogs.Select(x => new QuartzNetLogExport()
+        quartzNetLogExports.AddRange(quartzNetLogs.Select(x => new QuartzNetLogExport
         {
+            Id = x.Id,
             TaskId = x.TaskId,
             TaskName = x.TaskName,
             TaskGroup = x.TaskGroup,
@@ -62,7 +54,7 @@ public class QuartzNetLogService : BaseServices<QuartzNetLog>, IQuartzNetLogServ
             ExceptionDetail = x.ExceptionDetail,
             ExecutionDuration = x.ExecutionDuration,
             RunParams = x.RunParams,
-            IsSuccess = x.IsSuccess ? BoolState.True : BoolState.False,
+            IsSuccess = x.IsSuccess,
             CreateTime = x.CreateTime
         }));
         return quartzNetLogExports;

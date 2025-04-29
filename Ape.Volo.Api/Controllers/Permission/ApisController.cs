@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
+using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.IdGenerator;
@@ -22,7 +23,7 @@ namespace Ape.Volo.Api.Controllers.Permission;
 /// <summary>
 /// Apis管理
 /// </summary>
-[Area("Apis管理")]
+[Area("Area.ApiManagement")]
 [Route("/api/apis", Order = 20)]
 public class ApisController : BaseApiController
 {
@@ -50,7 +51,7 @@ public class ApisController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateApisDto createUpdateApisDto)
     {
@@ -71,7 +72,7 @@ public class ApisController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateApisDto createUpdateApisDto)
     {
@@ -92,7 +93,7 @@ public class ApisController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -113,7 +114,7 @@ public class ApisController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(ApisQueryCriteria apisQueryCriteria, Pagination pagination)
     {
         var apisList = await _apisService.QueryAsync(apisQueryCriteria, pagination);
@@ -122,15 +123,13 @@ public class ApisController : BaseApiController
     }
 
 
-    #region 刷新api列表
-
     /// <summary>
     /// 刷新Api列表 只实现了新增的api添加
     /// </summary>
     /// <returns></returns>
     [HttpPost]
     [Route("refresh")]
-    [Description("刷新")]
+    [Description("Action.RefreshApi")]
     public async Task<ActionResult> RefreshApis()
     {
         List<Apis> apis = new List<Apis>();
@@ -160,10 +159,10 @@ public class ApisController : BaseApiController
                     .FirstOrDefault();
                 var url = $"{routeAttr?.Template}/{methodRouteAttr?.Template}".ToLower();
                 var method = methodAttr?.HttpMethods.FirstOrDefault()?.Trim();
-                if (!allApis.Any(
-                        x => x.Url.Equals(url, StringComparison.CurrentCultureIgnoreCase) && x.Method == method))
+                if (!allApis.Any(x =>
+                        x.Url.Equals(url, StringComparison.CurrentCultureIgnoreCase) && x.Method == method))
                 {
-                    apis.Add(new Apis()
+                    apis.Add(new Apis
                     {
                         Id = IdHelper.NextId(),
                         Group = areaAttr != null ? areaAttr.RouteValue : type.Name,
@@ -179,19 +178,17 @@ public class ApisController : BaseApiController
 
         if (apis.Count == 0)
         {
-            return Ok(OperateResult.Success("无新增Api数据"));
+            return Ok(OperateResult.Success(App.L.R("Action.ApiRefresh.Success")));
         }
 
         var result = await _apisService.CreateAsync(apis);
         if (result.IsSuccess)
         {
-            return Ok(OperateResult.Success("刷新Api成功"));
+            return Ok(OperateResult.Success(App.L.R("Action.ApiRefresh.Success")));
         }
 
-        return Ok(OperateResult.Error("刷新Api成功"));
+        return Ok(OperateResult.Success(App.L.R("Action.ApiRefresh.Fail")));
     }
-
-    #endregion
 
     #endregion
 }

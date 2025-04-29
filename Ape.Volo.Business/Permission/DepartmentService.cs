@@ -19,14 +19,6 @@ namespace Ape.Volo.Business.Permission;
 
 public class DepartmentService : BaseServices<Department>, IDepartmentService
 {
-    #region 构造函数
-
-    public DepartmentService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     [UseTran]
@@ -34,7 +26,8 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
     {
         if (await TableWhere(d => d.Name == createUpdateDepartmentDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"部门名称=>{createUpdateDepartmentDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDepartmentDto,
+                nameof(createUpdateDepartmentDto.Name)));
         }
 
         Department dept =
@@ -65,13 +58,16 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
             await TableWhere(x => x.Id == createUpdateDepartmentDto.Id).FirstAsync();
         if (oldUseDepartment.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateDepartmentDto,
+                LanguageKeyConstants.Department,
+                nameof(createUpdateDepartmentDto.Id)));
         }
 
         if (oldUseDepartment.Name != createUpdateDepartmentDto.Name &&
             await TableWhere(x => x.Name == createUpdateDepartmentDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"部门名称=>{createUpdateDepartmentDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDepartmentDto,
+                nameof(createUpdateDepartmentDto.Name)));
         }
 
         Department dept =
@@ -120,17 +116,17 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
             .ToListAsync();
         if (departmentList.Count < 1)
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist());
         }
 
         if (departmentList.Any(dept => dept.Users != null && dept.Users.Count != 0))
         {
-            return OperateResult.Error("存在用户关联，请解除后再试！");
+            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
         }
 
         if (departmentList.Any(dept => dept.Roles != null && dept.Roles.Count != 0))
         {
-            return OperateResult.Error("存在角色关联，请解除后再试！");
+            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
         }
 
 
@@ -194,13 +190,13 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
     {
         var depts = await TableWhere(deptQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
-        roleExports.AddRange(depts.Select(x => new DepartmentExport()
+        roleExports.AddRange(depts.Select(x => new DepartmentExport
         {
             Id = x.Id,
             Name = x.Name,
             ParentId = x.ParentId,
             Sort = x.Sort,
-            EnabledState = x.Enabled ? EnabledState.Enabled : EnabledState.Disabled,
+            Enabled = x.Enabled,
             SubCount = x.SubCount,
             CreateTime = x.CreateTime
         }));
@@ -268,8 +264,9 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
             }
 
             departmentDtoList.AddRange(await QueryByPIdAsync(Convert.ToInt64(departmentDto.ParentId)));
+            var dto = departmentDto;
             departmentDto =
-                App.Mapper.MapTo<DepartmentDto>(await TableWhere(x => x.Id == departmentDto.ParentId)
+                App.Mapper.MapTo<DepartmentDto>(await TableWhere(x => x.Id == dto.ParentId)
                     .FirstAsync());
         }
     }

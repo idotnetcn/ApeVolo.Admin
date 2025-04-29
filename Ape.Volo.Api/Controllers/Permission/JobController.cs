@@ -15,7 +15,7 @@ namespace Ape.Volo.Api.Controllers.Permission;
 /// <summary>
 /// 岗位管理
 /// </summary>
-[Area("岗位管理")]
+[Area("Area.JobManagement")]
 [Route("/api/job", Order = 6)]
 public class JobController : BaseApiController
 {
@@ -43,7 +43,7 @@ public class JobController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateJobDto createUpdateJobDto)
     {
@@ -64,7 +64,7 @@ public class JobController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateJobDto createUpdateJobDto)
     {
@@ -85,7 +85,7 @@ public class JobController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -106,18 +106,12 @@ public class JobController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(JobQueryCriteria jobQueryCriteria, Pagination pagination)
     {
         var jobList = await _jobService.QueryAsync(jobQueryCriteria, pagination);
 
         return JsonContent(jobList, pagination);
-        // return JsonContent(new ActionResultVm<JobDto>
-        // {
-        //     Content = jobList,
-        //     TotalElements = pagination.TotalElements,
-        //     TotalPages = pagination.TotalPages
-        // });
     }
 
     /// <summary>
@@ -126,7 +120,7 @@ public class JobController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("queryAll")]
-    [Description("查询全部")]
+    [Description("Action.GetAllJobs")]
     public async Task<ActionResult> QueryAll()
     {
         var jobList = await _jobService.QueryAllAsync();
@@ -140,7 +134,7 @@ public class JobController : BaseApiController
     /// <param name="jobQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(JobQueryCriteria jobQueryCriteria)
     {

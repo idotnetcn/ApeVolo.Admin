@@ -78,16 +78,16 @@ public interface IRoleService : IBaseServices<Role>
     /// <summary>
     /// 更新角色菜单
     /// </summary>
-    /// <param name="createUpdateRoleDto"></param>
+    /// <param name="updateRoleMenuDto"></param>
     /// <returns></returns>
-    Task<OperateResult> UpdateRolesMenusAsync(CreateUpdateRoleDto createUpdateRoleDto);
+    Task<OperateResult> UpdateRolesMenusAsync(UpdateRoleMenuDto updateRoleMenuDto);
 
     /// <summary>
     /// 更新角色Apis
     /// </summary>
-    /// <param name="createUpdateRoleDto"></param>
+    /// <param name="updateRoleApiDto"></param>
     /// <returns></returns>
-    Task<OperateResult> UpdateRolesApisAsync(CreateUpdateRoleDto createUpdateRoleDto);
+    Task<OperateResult> UpdateRolesApisAsync(UpdateRoleApiDto updateRoleApiDto);
 
     #endregion
 }

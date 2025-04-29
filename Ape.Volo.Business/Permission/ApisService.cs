@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Permission;
 using Ape.Volo.IBusiness.Dto.Permission;
@@ -13,15 +15,11 @@ namespace Ape.Volo.Business.Permission;
 
 public class ApisService : BaseServices<Apis>, IApisService
 {
-    public ApisService()
-    {
-    }
-
     public async Task<OperateResult> CreateAsync(CreateUpdateApisDto createUpdateApisDto)
     {
         if (await TableWhere(a => a.Url == createUpdateApisDto.Url).AnyAsync())
         {
-            return OperateResult.Error($"Url=>{createUpdateApisDto.Url}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateApisDto, nameof(createUpdateApisDto.Url)));
         }
 
         var apis = App.Mapper.MapTo<Apis>(createUpdateApisDto);
@@ -35,13 +33,14 @@ public class ApisService : BaseServices<Apis>, IApisService
             await TableWhere(x => x.Id == createUpdateApisDto.Id).FirstAsync();
         if (oldApis.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateApisDto, LanguageKeyConstants.Api,
+                nameof(createUpdateApisDto.Id)));
         }
 
         if (oldApis.Url != createUpdateApisDto.Url &&
             await TableWhere(a => a.Url == createUpdateApisDto.Url).AnyAsync())
         {
-            return OperateResult.Error($"Url=>{createUpdateApisDto.Url}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateApisDto, nameof(createUpdateApisDto.Url)));
         }
 
         var apis = App.Mapper.MapTo<Apis>(createUpdateApisDto);
@@ -54,7 +53,7 @@ public class ApisService : BaseServices<Apis>, IApisService
         var apis = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (apis.Count < 1)
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist());
         }
 
         var result = await LogicDelete<Apis>(x => ids.Contains(x.Id));

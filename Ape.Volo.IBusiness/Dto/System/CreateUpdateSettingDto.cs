@@ -14,13 +14,15 @@ public class CreateUpdateSettingDto : BaseEntityDto<long>
     /// <summary>
     /// 键
     /// </summary>
-    [Required]
+    [Display(Name = "Setting.Name")]
+    [Required(ErrorMessage = "{0}required")]
     public string Name { get; set; }
 
     /// <summary>
     /// 值
     /// </summary>
-    [Required]
+    [Display(Name = "Setting.Value")]
+    [Required(ErrorMessage = "{0}required")]
     public string Value { get; set; }
 
     /// <summary>
@@ -31,5 +33,6 @@ public class CreateUpdateSettingDto : BaseEntityDto<long>
     /// <summary>
     /// 描述
     /// </summary>
+    [Display(Name = "Sys.Description")]
     public string Description { get; set; }
 }

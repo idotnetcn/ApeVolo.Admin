@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Microsoft.AspNetCore.Http;
@@ -99,7 +100,7 @@ public class BaseController : Controller
     /// <returns></returns>
     protected ActionResult Ok(OperateResult operateResult)
     {
-        var msg = "请求成功";
+        var msg = App.L.R("Sys.HttpOK");
         if (!operateResult.IsSuccess)
         {
             return Error(operateResult.Message);
@@ -111,7 +112,7 @@ public class BaseController : Controller
             bool isMatch = Regex.IsMatch(Request.Path, pattern);
             if (isMatch)
             {
-                return Created();
+                return Created(msg);
             }
         }
 
@@ -131,7 +132,7 @@ public class BaseController : Controller
             bool isMatch = Regex.IsMatch(Request.Path, pattern);
             if (isMatch)
             {
-                msg = "删除成功";
+                msg = App.L.R("Sys.HttpDelete");
             }
         }
 
@@ -146,7 +147,7 @@ public class BaseController : Controller
     /// <returns></returns>
     private ContentResult Success(string msg = "")
     {
-        msg = msg.IsNullOrEmpty() ? "请求成功" : msg;
+        msg = msg.IsNullOrEmpty() ? App.L.R("Sys.HttpOK") : msg;
         var vm = new ActionResultVm
         {
             Status = StatusCodes.Status200OK,
@@ -162,7 +163,7 @@ public class BaseController : Controller
     /// <returns></returns>
     private ContentResult Created(string msg = "")
     {
-        msg = msg.IsNullOrEmpty() ? "创建成功" : msg;
+        msg = msg.IsNullOrEmpty() ? App.L.R("Sys.HttpCreated") : msg;
         var vm = new ActionResultVm
         {
             Status = StatusCodes.Status201Created,
@@ -179,7 +180,9 @@ public class BaseController : Controller
     /// <returns></returns>
     protected ContentResult Error(string msg = "")
     {
-        msg = msg.IsNullOrEmpty() ? "请求失败" : msg;
+        msg = msg.IsNullOrEmpty()
+            ? App.L.R("Sys.HttpBadRequest")
+            : msg;
         var vm = new ActionResultVm
         {
             Status = StatusCodes.Status400BadRequest,
@@ -201,7 +204,6 @@ public class BaseController : Controller
         {
             Status = StatusCodes.Status400BadRequest,
             ActionError = actionError,
-            //Message = Localized.Get("HttpBadRequest")
             Message = actionError.GetFirstError()
         };
 

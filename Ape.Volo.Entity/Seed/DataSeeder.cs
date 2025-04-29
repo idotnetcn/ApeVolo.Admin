@@ -54,7 +54,7 @@ public class DataSeeder
             else
             {
                 //已有库得情况下 把抛异常代码注释掉
-                throw new Exception("sqlSugar不支持Oracle使用代码建库,请先建库后注释该代码重新启动！");
+                throw new Exception("不支持Oracle使用代码建库,请先建库后注释该代码重新启动！");
             }
 
             ConsoleHelper.WriteLine("初始化主库成功。", ConsoleColor.Green);

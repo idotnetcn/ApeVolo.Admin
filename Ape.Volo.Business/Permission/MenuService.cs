@@ -22,21 +22,6 @@ namespace Ape.Volo.Business.Permission;
 
 public class MenuService : BaseServices<Menu>, IMenuService
 {
-    #region 字段
-
-    private readonly IUserService _userService;
-
-    #endregion
-
-    #region 构造函数
-
-    public MenuService(IUserService userService)
-    {
-        _userService = userService;
-    }
-
-    #endregion
-
     #region 基础方法
 
     /// <summary>
@@ -49,29 +34,34 @@ public class MenuService : BaseServices<Menu>, IMenuService
     {
         if (await TableWhere(m => m.Title == createUpdateMenuDto.Title).AnyAsync())
         {
-            return OperateResult.Error($"菜单标题=>{createUpdateMenuDto.Title}=>已存在!");
-        }
-
-        if (createUpdateMenuDto.Type != MenuType.Catalog &&
-            await TableWhere(x => x.Permission == createUpdateMenuDto.Permission)
-                .AnyAsync())
-        {
-            return OperateResult.Error($"权限标识=>{createUpdateMenuDto.Permission}=>已存在!");
-        }
-
-        if (!createUpdateMenuDto.ComponentName.IsNullOrEmpty() && await TableWhere(m =>
-                m.ComponentName == createUpdateMenuDto.ComponentName).AnyAsync())
-        {
-            return OperateResult.Error($"组件名称=>{createUpdateMenuDto.ComponentName}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateMenuDto,
+                nameof(createUpdateMenuDto.Title)));
         }
 
         if (createUpdateMenuDto.Type != MenuType.Catalog)
         {
             if (createUpdateMenuDto.Permission.IsNullOrEmpty())
             {
-                return OperateResult.Error("权限标识为必填");
+                return OperateResult.Error(DataErrorHelper.Required(createUpdateMenuDto,
+                    nameof(createUpdateMenuDto.Permission)));
             }
         }
+
+        if (createUpdateMenuDto.Type != MenuType.Catalog &&
+            await TableWhere(x => x.Permission == createUpdateMenuDto.Permission)
+                .AnyAsync())
+        {
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateMenuDto,
+                nameof(createUpdateMenuDto.Permission)));
+        }
+
+        if (!createUpdateMenuDto.ComponentName.IsNullOrEmpty() && await TableWhere(m =>
+                m.ComponentName == createUpdateMenuDto.ComponentName).AnyAsync())
+        {
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateMenuDto,
+                nameof(createUpdateMenuDto.ComponentName)));
+        }
+
 
         if (createUpdateMenuDto.IFrame)
         {
@@ -79,7 +69,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
             if (!(createUpdateMenuDto.Path.ToLower().StartsWith(http) ||
                   createUpdateMenuDto.Path.ToLower().StartsWith(https)))
             {
-                return OperateResult.Error("外链菜单必须以http://或者https://开头");
+                return OperateResult.Error("External link menus must start with http:// or https://");
             }
         }
 
@@ -112,19 +102,41 @@ public class MenuService : BaseServices<Menu>, IMenuService
         var oldMenu = await TableWhere(x => x.Id == createUpdateMenuDto.Id).FirstAsync();
         if (oldMenu.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateMenuDto, LanguageKeyConstants.Menu,
+                nameof(createUpdateMenuDto.Id)));
         }
 
         if (oldMenu.Title != createUpdateMenuDto.Title &&
             await TableWhere(x => x.Title == createUpdateMenuDto.Title).AnyAsync())
         {
-            return OperateResult.Error($"菜单标题名称=>{createUpdateMenuDto.Title}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateMenuDto,
+                nameof(createUpdateMenuDto.Title)));
+        }
+
+        if (createUpdateMenuDto.Type != MenuType.Catalog)
+        {
+            if (createUpdateMenuDto.Permission.IsNullOrEmpty())
+            {
+                return OperateResult.Error(DataErrorHelper.Required(createUpdateMenuDto,
+                    nameof(createUpdateMenuDto.Permission)));
+            }
         }
 
         if (createUpdateMenuDto.Type != MenuType.Catalog && oldMenu.Permission != createUpdateMenuDto.Permission &&
             await TableWhere(x => x.Permission == createUpdateMenuDto.Permission).AnyAsync())
         {
-            return OperateResult.Error($"权限标识=>{createUpdateMenuDto.Permission}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateMenuDto,
+                nameof(createUpdateMenuDto.Permission)));
+        }
+
+        if (!createUpdateMenuDto.ComponentName.IsNullOrEmpty())
+        {
+            if (oldMenu.ComponentName != createUpdateMenuDto.ComponentName &&
+                await TableWhere(m => m.ComponentName.Equals(createUpdateMenuDto.ComponentName)).AnyAsync())
+            {
+                return OperateResult.Error(DataErrorHelper.IsExist(createUpdateMenuDto,
+                    nameof(createUpdateMenuDto.ComponentName)));
+            }
         }
 
 
@@ -134,16 +146,7 @@ public class MenuService : BaseServices<Menu>, IMenuService
             if (!(createUpdateMenuDto.Path.ToLower().StartsWith(http) ||
                   createUpdateMenuDto.Path.ToLower().StartsWith(https)))
             {
-                return OperateResult.Error("外链菜单必须以http://或者https://开头");
-            }
-        }
-
-        if (!createUpdateMenuDto.ComponentName.IsNullOrEmpty())
-        {
-            if (oldMenu.ComponentName != createUpdateMenuDto.ComponentName &&
-                await TableWhere(m => m.ComponentName.Equals(createUpdateMenuDto.ComponentName)).AnyAsync())
-            {
-                return OperateResult.Error($"组件名称=>{createUpdateMenuDto.ComponentName}=>已存在!");
+                return OperateResult.Error("External link menus must start with http:// or https://");
             }
         }
 
@@ -192,6 +195,12 @@ public class MenuService : BaseServices<Menu>, IMenuService
     [UseTran]
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
+        var menuList = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
+        if (menuList.Count < 1)
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         var idList = new List<long>();
         foreach (var id in ids)
         {
@@ -205,7 +214,6 @@ public class MenuService : BaseServices<Menu>, IMenuService
         }
 
 
-        var menuList = await TableWhere(x => idList.Contains(x.Id)).ToListAsync();
         var pIds = menuList.Select(x => x.ParentId);
 
         var updateMenuList = await TableWhere(x => pIds.Contains(x.Id)).ToListAsync();
@@ -256,20 +264,21 @@ public class MenuService : BaseServices<Menu>, IMenuService
     {
         var menus = await TableWhere(menuQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
-        roleExports.AddRange(menus.Select(x => new MenuExport()
+        roleExports.AddRange(menus.Select(x => new MenuExport
         {
+            Id = x.Id,
             Title = x.Title,
             Path = x.Path,
             Permission = x.Permission,
-            IsFrame = x.IFrame ? BoolState.True : BoolState.False,
+            IsFrame = x.IFrame,
             Component = x.Component,
             ComponentName = x.ComponentName,
             PId = 0,
             Sort = x.Sort,
             Icon = x.Icon,
             MenuType = x.Type,
-            IsCache = x.Cache ? BoolState.True : BoolState.False,
-            IsHidden = x.Hidden ? BoolState.True : BoolState.False,
+            IsCache = x.Cache,
+            IsHidden = x.Hidden,
             SubCount = x.SubCount,
             CreateTime = x.CreateTime
         }));

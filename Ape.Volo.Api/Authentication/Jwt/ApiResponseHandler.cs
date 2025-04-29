@@ -34,7 +34,7 @@ public class ApiResponseHandler : AuthenticationHandler<AuthenticationSchemeOpti
         {
             Status = StatusCodes.Status401Unauthorized,
             ActionError = new ActionError(),
-            Message = "抱歉，您无权访问该接口",
+            Message = App.L.R("Sys.HttpUnauthorized"),
             Path = App.HttpContext?.Request.Path.Value?.ToLower()
         }.ToJson());
     }
@@ -52,7 +52,7 @@ public class ApiResponseHandler : AuthenticationHandler<AuthenticationSchemeOpti
             {
                 Status = StatusCodes.Status401Unauthorized,
                 ActionError = new ActionError(),
-                Message = "抱歉，您无权访问该接口",
+                Message = App.L.R("Sys.HttpUnauthorized"),
                 Path = App.HttpContext?.Request.Path.Value?.ToLower()
             }.ToJson());
         }
@@ -64,7 +64,7 @@ public class ApiResponseHandler : AuthenticationHandler<AuthenticationSchemeOpti
             {
                 Status = StatusCodes.Status403Forbidden,
                 ActionError = new ActionError(),
-                Message = "抱歉，您访问权限等级不够",
+                Message = App.L.R("Sys.HttpForbidden"),
                 Path = App.HttpContext?.Request.Path.Value?.ToLower()
             }.ToJson());
         }

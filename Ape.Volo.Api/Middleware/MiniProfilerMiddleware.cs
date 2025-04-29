@@ -29,7 +29,7 @@ public static class MiniProfilerMiddleware
         }
         catch (Exception e)
         {
-            Logger.Error($"MiniProfilerMiddleware启动失败.\n{e.Message}");
+            Logger.Error($"Performance monitoring startup error:\n{e.Message}");
             throw;
         }
     }

@@ -33,7 +33,7 @@ public class OnlineUserController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(Pagination pagination)
     {
         var onlineUserList = await _onlineUserService.QueryAsync(pagination);
@@ -67,7 +67,7 @@ public class OnlineUserController : BaseApiController
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download()
     {

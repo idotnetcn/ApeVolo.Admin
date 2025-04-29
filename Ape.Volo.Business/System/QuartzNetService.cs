@@ -7,6 +7,7 @@ using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
@@ -51,7 +52,7 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
                 q.ClassName == createUpdateQuartzNetDto.ClassName).AnyAsync())
         {
             throw new BadRequestException(
-                $"作业执行目录=>{createUpdateQuartzNetDto.AssemblyName + "_" + createUpdateQuartzNetDto.ClassName}=>已存在!");
+                DataErrorHelper.IsExist(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.ClassName)));
         }
 
         var quartzNet = App.Mapper.MapTo<QuartzNet>(createUpdateQuartzNetDto);
@@ -64,7 +65,9 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
             await TableWhere(x => x.Id == createUpdateQuartzNetDto.Id).FirstAsync();
         if (oldQuartzNet.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQuartzNetDto,
+                LanguageKeyConstants.QuartzNet,
+                nameof(createUpdateQuartzNetDto.Id)));
         }
 
         if ((oldQuartzNet.AssemblyName != createUpdateQuartzNetDto.AssemblyName ||
@@ -73,7 +76,7 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
                 q.ClassName == createUpdateQuartzNetDto.ClassName).AnyAsync())
         {
             return OperateResult.Error(
-                $"作业执行目录=>{createUpdateQuartzNetDto.AssemblyName + "_" + createUpdateQuartzNetDto.ClassName}=>已存在!");
+                DataErrorHelper.IsExist(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.ClassName)));
         }
 
         var quartzNet = App.Mapper.MapTo<QuartzNet>(createUpdateQuartzNetDto);
@@ -113,8 +116,9 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
     {
         var quartzNets = await TableWhere(quartzNetQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> quartzExports = new List<ExportBase>();
-        quartzExports.AddRange(quartzNets.Select(x => new QuartzNetExport()
+        quartzExports.AddRange(quartzNets.Select(x => new QuartzNetExport
         {
+            Id = x.Id,
             TaskName = x.TaskName,
             TaskGroup = x.TaskGroup,
             Cron = x.Cron,
@@ -130,10 +134,9 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
             TriggerType = x.TriggerType,
             IntervalSecond = x.IntervalSecond,
             CycleRunTimes = x.CycleRunTimes,
-            IsEnable = x.IsEnable ? BoolState.True : BoolState.False,
+            IsEnable = x.IsEnable,
             RunParams = x.RunParams,
             TriggerStatus = x.TriggerStatus,
-            TriggerTypeStr = x.TriggerType.GetDisplayName(),
             CreateTime = x.CreateTime
         }));
         return quartzExports;

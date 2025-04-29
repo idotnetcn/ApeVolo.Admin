@@ -11,14 +11,16 @@ public class RedisCache : ICache
 {
     private const int DefaultTimeout = 60 * 20;
 
-    private static IDatabase _database;
+    private IDatabase _database;
+
+    private ConnectionMultiplexer connectionMultiplexer;
     //private static ISubscriber _sub;
 
     public RedisCache()
     {
         if (!App.GetOptions<SystemOptions>().UseRedisCache)
         {
-            throw new System.Exception("UseRedisCache未设置为True,请检查！");
+            throw new System.Exception("UseRedisCache is not set to True, please check！");
         }
 
         var redisOptions = App.GetOptions<RedisOptions>();
@@ -39,14 +41,19 @@ public class RedisCache : ICache
             options.Password = redisOptions.Password;
         }
 
-        var connection = ConnectionMultiplexer.Connect(options);
-        _database = connection.GetDatabase(redisOptions.Index);
+        connectionMultiplexer = ConnectionMultiplexer.Connect(options);
+        _database = connectionMultiplexer.GetDatabase(redisOptions.Index);
     }
 
 
-    public IDatabase GetDatabase()
+    public IDatabase GetDatabase(int db = -1)
     {
-        return _database;
+        if (db == -1)
+        {
+            return _database;
+        }
+
+        return connectionMultiplexer.GetDatabase(db);
     }
 
     #region 获取缓存

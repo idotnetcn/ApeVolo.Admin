@@ -18,19 +18,10 @@ namespace Ape.Volo.Business.Monitor;
 /// </summary>
 public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
 {
-    #region 构造函数
-
-    public AuditInfoService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(AuditLog auditLog)
     {
-        //return await SugarRepository.AddReturnBoolAsync(auditInfo);
         var result = await SugarRepository.SugarClient.Insertable(auditLog).SplitTable().ExecuteCommandAsync() > 0;
         return OperateResult.Result(result);
     }
@@ -38,7 +29,6 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
 
     public async Task<OperateResult> CreateListAsync(List<AuditLog> auditLogs)
     {
-        //return await SugarRepository.AddReturnBoolAsync(auditInfo);
         var result = await SugarRepository.SugarClient.Insertable(auditLogs).SplitTable().ExecuteCommandAsync() > 0;
         return OperateResult.Result(result);
     }

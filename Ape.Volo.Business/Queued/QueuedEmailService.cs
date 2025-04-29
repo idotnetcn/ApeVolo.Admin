@@ -53,6 +53,17 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// <returns></returns>
     public async Task<OperateResult> CreateAsync(CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
+        var emailAccount = await _emailAccountService.TableWhere(x => x.Id == createUpdateQueuedEmailDto.EmailAccountId)
+            .SingleAsync();
+        if (emailAccount.IsNull())
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQueuedEmailDto,
+                LanguageKeyConstants.EmailAccount,
+                nameof(createUpdateQueuedEmailDto.Id)));
+        }
+
+        createUpdateQueuedEmailDto.From = emailAccount.Email;
+        createUpdateQueuedEmailDto.FromName = emailAccount.DisplayName;
         var queuedEmail = App.Mapper.MapTo<QueuedEmail>(createUpdateQueuedEmailDto);
         var result = await AddAsync(queuedEmail);
         return OperateResult.Result(result);
@@ -79,9 +90,22 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     {
         if (!await TableWhere(x => x.Id == createUpdateQueuedEmailDto.Id).AnyAsync())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQueuedEmailDto,
+                LanguageKeyConstants.QueuedEmail,
+                nameof(createUpdateQueuedEmailDto.Id)));
         }
 
+        var emailAccount = await _emailAccountService.TableWhere(x => x.Id == createUpdateQueuedEmailDto.EmailAccountId)
+            .SingleAsync();
+        if (emailAccount.IsNull())
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQueuedEmailDto,
+                LanguageKeyConstants.EmailAccount,
+                nameof(createUpdateQueuedEmailDto.EmailAccountId)));
+        }
+
+        createUpdateQueuedEmailDto.From = emailAccount.Email;
+        createUpdateQueuedEmailDto.FromName = emailAccount.DisplayName;
         var queuedEmail = App.Mapper.MapTo<QueuedEmail>(createUpdateQueuedEmailDto);
         var result = await UpdateAsync(queuedEmail);
         return OperateResult.Result(result);
@@ -96,7 +120,9 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     {
         var emailAccounts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (emailAccounts.Count < 1)
-            return OperateResult.Error("无可删除数据!");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
 
         var result = await LogicDelete<QueuedEmail>(x => ids.Contains(x.Id));
         return OperateResult.Result(result);
@@ -135,9 +161,16 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
         var emailMessageTemplate =
             await _emailMessageTemplateService.TableWhere(x => x.Name == messageTemplateName).FirstAsync();
         if (emailMessageTemplate.IsNull())
-            return OperateResult.Error($"{messageTemplateName} 获取邮件模板失败！");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         var emailAccount = await _emailAccountService.TableWhere(x => x.Id == emailMessageTemplate.EmailAccountId)
             .SingleAsync();
+        if (emailAccount.IsNull())
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
 
         //生成6位随机码
         var captcha = SixLaborsImageHelper.BuilEmailCaptcha(6);

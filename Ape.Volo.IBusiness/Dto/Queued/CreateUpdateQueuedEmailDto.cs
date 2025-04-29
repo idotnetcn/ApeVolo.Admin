@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Entity.Queued;
 using Ape.Volo.IBusiness.Base;
@@ -24,6 +25,8 @@ public class CreateUpdateQueuedEmailDto : BaseEntityDto<long>
     /// <summary>
     /// 收件邮箱
     /// </summary>
+    [Display(Name = "QueuedEmail.To")]
+    [Required(ErrorMessage = "{0}required")]
     public string To { get; set; }
 
     /// <summary>
@@ -44,6 +47,8 @@ public class CreateUpdateQueuedEmailDto : BaseEntityDto<long>
     /// <summary>
     /// 优先级
     /// </summary>
+    [Display(Name = "QueuedEmail.Priority")]
+    [Range(0, 1, ErrorMessage = "{0}range{1}{2}")]
     public int Priority { get; set; }
 
     /// <summary>
@@ -59,11 +64,15 @@ public class CreateUpdateQueuedEmailDto : BaseEntityDto<long>
     /// <summary>
     /// 标题
     /// </summary>
+    [Display(Name = "QueuedEmail.Subject")]
+    [Required(ErrorMessage = "{0}required")]
     public string Subject { get; set; }
 
     /// <summary>
     /// 内容
     /// </summary>
+    [Display(Name = "QueuedEmail.Body")]
+    [Required(ErrorMessage = "{0}required")]
     public string Body { get; set; }
 
     /// <summary>
@@ -79,5 +88,6 @@ public class CreateUpdateQueuedEmailDto : BaseEntityDto<long>
     /// <summary>
     /// 发件邮箱ID
     /// </summary>
-    public string EmailAccountId { get; set; }
+    [Display(Name = "QueuedEmail.EmailAccountId")]
+    public long EmailAccountId { get; set; }
 }

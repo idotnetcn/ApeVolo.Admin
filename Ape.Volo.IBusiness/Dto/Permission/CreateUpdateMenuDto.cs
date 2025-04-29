@@ -15,8 +15,9 @@ public class CreateUpdateMenuDto : BaseEntityDto<long>
     /// <summary>
     /// 标题
     /// </summary>
-    [Required]
-    public string Title { get; set; }
+    [Display(Name = "Menu.Title")]
+    [Required(ErrorMessage = "{0}required")]
+    public string Title { get; private set; }
 
     /// <summary>
     /// 路径
@@ -26,6 +27,7 @@ public class CreateUpdateMenuDto : BaseEntityDto<long>
     /// <summary>
     /// 权限标识
     /// </summary>
+    [Display(Name = "Menu.Permission")]
     public string Permission { get; set; }
 
     /// <summary>
@@ -41,6 +43,7 @@ public class CreateUpdateMenuDto : BaseEntityDto<long>
     /// <summary>
     /// 组件名称
     /// </summary>
+    [Display(Name = "Menu.ComponentName")]
     public string ComponentName { get; set; }
 
     /// <summary>
@@ -51,7 +54,8 @@ public class CreateUpdateMenuDto : BaseEntityDto<long>
     /// <summary>
     /// 排序
     /// </summary>
-    [Range(1, 999)]
+    [Display(Name = "Sys.Sort")]
+    [Range(1, 999, ErrorMessage = "{0}range{1}{2}")]
     public int Sort { get; set; }
 
     /// <summary>
@@ -62,7 +66,8 @@ public class CreateUpdateMenuDto : BaseEntityDto<long>
     /// <summary>
     /// 类型
     /// </summary>
-    [Range(1, 3)]
+    [Display(Name = "Menu.Type")]
+    [Range(1, 3, ErrorMessage = "{0}range{1}{2}")]
     public MenuType Type { get; set; }
 
     /// <summary>

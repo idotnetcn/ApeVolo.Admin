@@ -12,30 +12,30 @@ public class DictExport : ExportBase
     /// <summary>
     /// 字典类型
     /// </summary>
-    [Display(Name = "字典类型")]
+    [Display(Name = "Dict.Type")]
     public DictType DictType { get; set; }
 
     /// <summary>
     /// 字典名称
     /// </summary>
-    [Display(Name = "字典名称")]
+    [Display(Name = "Dict.Name")]
     public string Name { get; set; }
 
     /// <summary>
     /// 字典描述
     /// </summary>
-    [Display(Name = "字典描述")]
+    [Display(Name = "Sys.Description")]
     public string Description { get; set; }
 
     /// <summary>
     /// 字典标签
     /// </summary>
-    [Display(Name = "字典标签")]
+    [Display(Name = "Dict.Detail.Label")]
     public string Lable { get; set; }
 
     /// <summary>
     /// 字典值
     /// </summary>
-    [Display(Name = "字典值")]
+    [Display(Name = "Dict.Detail.Value")]
     public string Value { get; set; }
 }

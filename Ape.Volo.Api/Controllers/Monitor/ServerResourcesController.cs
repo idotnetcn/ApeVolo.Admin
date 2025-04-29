@@ -10,7 +10,7 @@ namespace Ape.Volo.Api.Controllers.Monitor;
 /// <summary>
 /// 服务器管理
 /// </summary>
-[Area("服务器管理")]
+[Area("Area.ServerResourceManagement")]
 [Route("/api/service", Order = 16)]
 public class ServerResourcesController : BaseApiController
 {
@@ -25,7 +25,7 @@ public class ServerResourcesController : BaseApiController
 
     [HttpGet]
     [Route("resources/info")]
-    [Description("服务器信息")]
+    [Description("Action.ServerResourceInfo")]
     [NotAudit]
     public async Task<ActionResult> Query()
     {

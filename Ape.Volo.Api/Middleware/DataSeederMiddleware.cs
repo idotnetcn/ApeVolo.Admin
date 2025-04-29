@@ -34,7 +34,7 @@ public static class DataSeederMiddleware
         }
         catch (Exception e)
         {
-            Logger.Error($"创建数据库初始化数据时错误.\n{e.Message}");
+            Logger.Error($"Error when creating database initialization data:\n{e.Message}");
             throw;
         }
     }

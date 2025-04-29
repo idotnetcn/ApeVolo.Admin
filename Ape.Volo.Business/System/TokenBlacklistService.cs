@@ -9,7 +9,4 @@ namespace Ape.Volo.Business.System;
 /// </summary>
 public class TokenBlacklistService : BaseServices<TokenBlacklist>, ITokenBlacklistService
 {
-    public TokenBlacklistService()
-    {
-    }
 }

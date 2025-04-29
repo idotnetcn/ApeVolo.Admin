@@ -21,12 +21,12 @@ public static class GlobalConstants
         /// 登录失败阈值
         /// </summary>
         public const string Threshold = "login:threshold:";
-        
+
         /// <summary>
         /// 登录失败次数
         /// </summary>
         public const string Attempts = "login:attempts:";
-        
+
         /// <summary>
         /// 邮箱验证码
         /// </summary>
@@ -76,5 +76,11 @@ public static class GlobalConstants
         /// 用户数据权限
         /// </summary>
         public const string UserDataScopeById = "user:dataScope:id:";
+
+
+        /// <summary>
+        /// 加载字典详情信息
+        /// </summary>
+        public const string LoadDictDetailByDictId = "dict:detail:dictid:";
     }
 }

@@ -17,7 +17,7 @@ public class DistributedCache : ICache
         _cache = cache;
     }
 
-    public IDatabase GetDatabase()
+    public IDatabase GetDatabase(int db = -1)
     {
         throw new NotImplementedException();
     }
@@ -36,7 +36,7 @@ public class DistributedCache : ICache
         if (valueEntry.ExpireType == CacheExpireType.Relative)
         {
             _cache.Remove(key);
-            var options = new DistributedCacheEntryOptions()
+            var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = valueEntry.ExpireTime
             };
@@ -61,7 +61,7 @@ public class DistributedCache : ICache
         if (valueEntry.ExpireType == CacheExpireType.Relative)
         {
             await _cache.RemoveAsync(key);
-            var options = new DistributedCacheEntryOptions()
+            var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = valueEntry.ExpireTime
             };
@@ -88,7 +88,7 @@ public class DistributedCache : ICache
             ExpireType = redisExpireType ?? CacheExpireType.Absolute
         };
         var theValue = entry.ToJson();
-        var options = new DistributedCacheEntryOptions()
+        var options = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = expireTime
         };
@@ -112,7 +112,7 @@ public class DistributedCache : ICache
             ExpireType = redisExpireType ?? CacheExpireType.Absolute
         };
         var theValue = entry.ToJson();
-        var options = new DistributedCacheEntryOptions()
+        var options = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = expireTime
         };

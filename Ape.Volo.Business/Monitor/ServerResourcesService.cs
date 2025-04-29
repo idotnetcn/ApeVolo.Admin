@@ -31,10 +31,10 @@ public class ServerResourcesService : IServerResourcesService
             Cpu = new Cpu
             {
                 Name = os.ProcessorName,
-                Package = os.PhysicalProcessorCount + "个物理CPU",
-                Core = os.NumberOfCores + "个物理核心",
+                Package = os.PhysicalProcessorCount + " physical CPUs",
+                Core = os.NumberOfCores + " physical cores",
                 CoreNumber = os.NumberOfCores,
-                Logic = os.LogicProcessorCount + "个逻辑CPU",
+                Logic = os.LogicProcessorCount + " logical CPUs",
                 Used = os.ProcessorUtilizationRate.ToString(),
                 Idle = (100 - os.ProcessorUtilizationRate).ToString()
             },

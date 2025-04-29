@@ -6,8 +6,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
+using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
@@ -21,24 +23,14 @@ namespace Ape.Volo.Business.System;
 
 public class SettingService : BaseServices<Setting>, ISettingService
 {
-    #region 构造函数
-
-    private readonly ILogger<SettingService> _logger;
-
-    public SettingService(ILogger<SettingService> logger)
-    {
-        _logger = logger;
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(CreateUpdateSettingDto createUpdateSettingDto)
     {
         if (await TableWhere(r => r.Name == createUpdateSettingDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"设置键=>{createUpdateSettingDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateSettingDto,
+                nameof(createUpdateSettingDto.Name)));
         }
 
         var setting = App.Mapper.MapTo<Setting>(createUpdateSettingDto);
@@ -52,13 +44,15 @@ public class SettingService : BaseServices<Setting>, ISettingService
         var oldSetting = await TableWhere(x => x.Id == createUpdateSettingDto.Id).FirstAsync();
         if (oldSetting.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateSettingDto, LanguageKeyConstants.Setting,
+                nameof(createUpdateSettingDto.Id)));
         }
 
         if (oldSetting.Name != createUpdateSettingDto.Name &&
             await TableWhere(x => x.Name == createUpdateSettingDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"设置键=>{createUpdateSettingDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateSettingDto,
+                nameof(createUpdateSettingDto.Name)));
         }
 
         await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadSettingByName +
@@ -71,6 +65,11 @@ public class SettingService : BaseServices<Setting>, ISettingService
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var settings = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
+        if (settings.Count == 0)
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         foreach (var setting in settings)
         {
             await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.LoadSettingByName +
@@ -80,7 +79,6 @@ public class SettingService : BaseServices<Setting>, ISettingService
         var result = await LogicDelete<Setting>(x => ids.Contains(x.Id));
 
         return OperateResult.Result(result);
-        ;
     }
 
     public async Task<List<SettingDto>> QueryAsync(SettingQueryCriteria settingQueryCriteria, Pagination pagination)
@@ -97,23 +95,23 @@ public class SettingService : BaseServices<Setting>, ISettingService
     {
         var settings = await TableWhere(settingQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> settingExports = new List<ExportBase>();
-        settingExports.AddRange(settings.Select(x => new SettingExport()
+        settingExports.AddRange(settings.Select(x => new SettingExport
         {
+            Id = x.Id,
             Name = x.Name,
             Value = x.Value,
-            EnabledState = x.Enabled ? EnabledState.Enabled : EnabledState.Disabled,
+            Enabled = x.Enabled,
             Description = x.Description,
             CreateTime = x.CreateTime
         }));
         return settingExports;
     }
 
-    //[UseCache(Expiration = 30, KeyPrefix = GlobalConstants.CachePrefix.LoadSettingByName)]
+    [UseCache(Expiration = 30, KeyPrefix = GlobalConstants.CachePrefix.LoadSettingByName)]
     public async Task<T> GetSettingValue<T>(string settingName)
     {
-        var settingList = await Table.WithCache(86400).ToListAsync();
+        var setting = await TableWhere(x => x.Name == settingName).FirstAsync();
 
-        var setting = settingList.FirstOrDefault(x => x.Name == settingName.Trim());
         if (setting == null) return default;
 
         try
@@ -122,7 +120,7 @@ public class SettingService : BaseServices<Setting>, ISettingService
         }
         catch (Exception e)
         {
-            _logger.LogError(GetExceptionAllMsg(e));
+            App.GetService<ILogger<Setting>>().LogError(GetExceptionAllMsg(e));
             return default;
         }
     }

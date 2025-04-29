@@ -52,48 +52,40 @@ public class UserService : BaseServices<User>, IUserService
     {
         if (await TableWhere(x => x.Username == createUpdateUserDto.Username).AnyAsync())
         {
-            return OperateResult.Error($"名称=>{createUpdateUserDto.Username}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+                nameof(createUpdateUserDto.Username)));
         }
 
         if (await TableWhere(x => x.Email == createUpdateUserDto.Email).AnyAsync())
         {
-            return OperateResult.Error($"邮箱=>{createUpdateUserDto.Email}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+                nameof(createUpdateUserDto.Email)));
         }
 
         if (await TableWhere(x => x.Phone == createUpdateUserDto.Phone).AnyAsync())
         {
-            return OperateResult.Error($"电话=>{createUpdateUserDto.Phone}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+                nameof(createUpdateUserDto.Phone)));
         }
 
         var user = App.Mapper.MapTo<User>(createUpdateUserDto);
 
         //设置用户密码
-        user.Password = BCryptHelper.Hash("123456");
+        user.Password = BCryptHelper.Hash(App.GetOptions<SystemOptions>().UserDefaultPassword);
         user.DeptId = user.Dept.Id;
         //用户
         await AddAsync(user);
 
-        //角色
-        if (user.Roles.Count < 1)
-        {
-            return OperateResult.Error("角色至少选择一个");
-        }
 
         await SugarClient.Deleteable<UserRole>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
         var userRoles = new List<UserRole>();
-        userRoles.AddRange(user.Roles.Select(x => new UserRole() { UserId = user.Id, RoleId = x.Id }));
+        userRoles.AddRange(user.Roles.Select(x => new UserRole { UserId = user.Id, RoleId = x.Id }));
         await SugarClient.Insertable(userRoles).ExecuteCommandAsync();
-
-        //岗位
-        if (user.Jobs.Count < 1)
-        {
-            return OperateResult.Error("岗位至少选择一个");
-        }
 
 
         await SugarClient.Deleteable<UserJob>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
         var userJobs = new List<UserJob>();
-        userJobs.AddRange(user.Jobs.Select(x => new UserJob() { UserId = user.Id, JobId = x.Id }));
+        userJobs.AddRange(user.Jobs.Select(x => new UserJob { UserId = user.Id, JobId = x.Id }));
         await SugarClient.Insertable(userJobs).ExecuteCommandAsync();
 
         return OperateResult.Success();
@@ -106,25 +98,29 @@ public class UserService : BaseServices<User>, IUserService
         var oldUser = await TableWhere(x => x.Id == createUpdateUserDto.Id).Includes(x => x.Roles).FirstAsync();
         if (oldUser.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateUserDto, LanguageKeyConstants.User,
+                nameof(createUpdateUserDto.Id)));
         }
 
         if (oldUser.Username != createUpdateUserDto.Username &&
             await TableWhere(x => x.Username == createUpdateUserDto.Username).AnyAsync())
         {
-            return OperateResult.Error($"名称=>{createUpdateUserDto.Username}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+                nameof(createUpdateUserDto.Username)));
         }
 
         if (oldUser.Email != createUpdateUserDto.Email &&
             await TableWhere(x => x.Email == createUpdateUserDto.Email).AnyAsync())
         {
-            return OperateResult.Error($"邮箱=>{createUpdateUserDto.Email}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+                nameof(createUpdateUserDto.Email)));
         }
 
         if (oldUser.Phone != createUpdateUserDto.Phone &&
             await TableWhere(x => x.Phone == createUpdateUserDto.Phone).AnyAsync())
         {
-            return OperateResult.Error($"电话=>{createUpdateUserDto.Phone}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+                nameof(createUpdateUserDto.Phone)));
         }
 
         //验证角色等级
@@ -134,26 +130,17 @@ public class UserService : BaseServices<User>, IUserService
         user.DeptId = user.Dept.Id;
         //更新用户
         await UpdateAsync(user, null, x => new { x.Password, x.AvatarPath, x.IsAdmin, x.PasswordReSetTime });
-        //角色
-        if (user.Roles.Count < 1)
-        {
-            return OperateResult.Error("角色至少选择一个！");
-        }
+
 
         await SugarClient.Deleteable<UserRole>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
         var userRoles = new List<UserRole>();
-        userRoles.AddRange(user.Roles.Select(x => new UserRole() { UserId = user.Id, RoleId = x.Id }));
+        userRoles.AddRange(user.Roles.Select(x => new UserRole { UserId = user.Id, RoleId = x.Id }));
         await SugarClient.Insertable(userRoles).ExecuteCommandAsync();
 
-        //岗位
-        if (user.Jobs.Count < 1)
-        {
-            return OperateResult.Error("岗位至少选择一个！");
-        }
 
         await SugarClient.Deleteable<UserJob>().Where(x => x.UserId == user.Id).ExecuteCommandAsync();
         var userJobs = new List<UserJob>();
-        userJobs.AddRange(user.Jobs.Select(x => new UserJob() { UserId = user.Id, JobId = x.Id }));
+        userJobs.AddRange(user.Jobs.Select(x => new UserJob { UserId = user.Id, JobId = x.Id }));
         await SugarClient.Insertable(userJobs).ExecuteCommandAsync();
 
         //清理缓存
@@ -165,7 +152,7 @@ public class UserService : BaseServices<User>, IUserService
     {
         if (ids.Contains(App.HttpUser.Id))
         {
-            return OperateResult.Error("禁止删除自己");
+            return OperateResult.Error(App.L.R("Error.ForbidToDeleteYourself"));
         }
 
         //验证角色等级
@@ -209,7 +196,7 @@ public class UserService : BaseServices<User>, IUserService
         var users = await Table.Includes(x => x.Dept).Includes(x => x.Roles)
             .Includes(x => x.Jobs).Where(conditionalModels).ToListAsync();
         List<ExportBase> userExports = new List<ExportBase>();
-        userExports.AddRange(users.Select(x => new UserExport()
+        userExports.AddRange(users.Select(x => new UserExport
         {
             Id = x.Id,
             Username = x.Username,
@@ -217,7 +204,7 @@ public class UserService : BaseServices<User>, IUserService
             NickName = x.NickName,
             Phone = x.Phone,
             Email = x.Email,
-            Enabled = x.Enabled ? EnabledState.Enabled : EnabledState.Disabled,
+            Enabled = x.Enabled,
             Dept = x.Dept.Name,
             Job = string.Join(",", x.Jobs.Select(j => j.Name).ToArray()),
             Gender = x.Gender,
@@ -281,14 +268,17 @@ public class UserService : BaseServices<User>, IUserService
     {
         var user = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (user.IsNull())
-            return OperateResult.Error("数据不存在！");
-        if (!updateUserCenterDto.Phone.IsPhone())
-            return OperateResult.Error("电话格式错误");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
 
         var checkUser = await TableWhere(x =>
             x.Phone == updateUserCenterDto.Phone && x.Id != App.HttpUser.Id).FirstAsync();
         if (checkUser.IsNotNull())
-            return OperateResult.Error($"电话=>{checkUser.Phone}=>已存在!");
+        {
+            return OperateResult.Error(DataErrorHelper.IsExist(updateUserCenterDto,
+                nameof(updateUserCenterDto.Phone)));
+        }
 
         user.NickName = updateUserCenterDto.NickName;
         user.Gender = updateUserCenterDto.Gender;
@@ -305,19 +295,22 @@ public class UserService : BaseServices<User>, IUserService
         string confirmPassword = rsaHelper.Decrypt(userPassDto.ConfirmPassword);
 
         if (oldPassword == newPassword)
-            return OperateResult.Error("新密码不能与旧密码相同");
+            return OperateResult.Error(App.L.R("Error.PasswordSameAsOld"));
 
         if (!newPassword.Equals(confirmPassword))
         {
-            return OperateResult.Error("两次输入不匹配");
+            return OperateResult.Error(App.L.R("Error.InputsDoNotMatch"));
         }
 
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
-            return OperateResult.Error("数据不存在！");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         if (!BCryptHelper.Verify(oldPassword, curUser.Password))
         {
-            return OperateResult.Error("旧密码错误");
+            return OperateResult.Error(App.L.R("Error.IncorrectOldPassword"));
         }
 
         //设置用户密码
@@ -347,19 +340,22 @@ public class UserService : BaseServices<User>, IUserService
     {
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
-            return OperateResult.Error("数据不存在！");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         var rsaHelper = new RsaHelper(App.GetOptions<RsaOptions>());
         string password = rsaHelper.Decrypt(updateUserEmailDto.Password);
         if (!BCryptHelper.Verify(password, curUser.Password))
         {
-            return OperateResult.Error("密码错误");
+            return OperateResult.Error(App.L.R("Error.InvalidPassword"));
         }
 
         var code = await App.Cache.GetAsync<string>(
             GlobalConstants.CachePrefix.EmailCaptcha + updateUserEmailDto.Email.ToMd5String16());
         if (code.IsNullOrEmpty() || !code.Equals(updateUserEmailDto.Code))
         {
-            return OperateResult.Error("验证码错误");
+            return OperateResult.Error(App.L.R("Error.InvalidVerificationCode"));
         }
 
         curUser.Email = updateUserEmailDto.Email;
@@ -371,7 +367,10 @@ public class UserService : BaseServices<User>, IUserService
     {
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
-            return OperateResult.Error("数据不存在！");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
 
         var prefix = App.WebHostEnvironment.WebRootPath;
         string avatarName = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + IdHelper.NextId() +

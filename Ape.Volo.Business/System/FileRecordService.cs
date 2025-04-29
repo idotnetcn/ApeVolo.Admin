@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
@@ -18,25 +19,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace Ape.Volo.Business.System;
 
+/// <summary>
+/// 文件记录服务
+/// </summary>
 public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
 {
-    #region 构造函数
-
-    public FileRecordService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
-    public async Task<OperateResult> CreateAsync(string description, IFormFile file)
+    public async Task<OperateResult> CreateAsync(CreateUpdateFileRecordDto createUpdateFileRecordDto, IFormFile file)
     {
-        if (await TableWhere(x => x.Description == description).AnyAsync())
-        {
-            return OperateResult.Error($"文件描述=>{description}=>已存在!");
-        }
-
         var fileExtensionName = FileHelper.GetExtensionName(file.FileName);
         var fileTypeName = FileHelper.GetFileTypeName(fileExtensionName);
         var fileTypeNameEn = FileHelper.GetFileTypeNameEn(fileTypeName);
@@ -62,7 +53,7 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
         relativePath = "/" + relativePath.Replace("\\", "/");
         var fileRecord = new FileRecord
         {
-            Description = description,
+            Description = createUpdateFileRecordDto.Description,
             OriginalName = file.FileName,
             NewName = fileName,
             FilePath = relativePath,
@@ -81,13 +72,9 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
         var oldFileRecord = await TableWhere(x => x.Id == createUpdateFileRecordDto.Id).FirstAsync();
         if (oldFileRecord.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
-        }
-
-        if (oldFileRecord.Description != createUpdateFileRecordDto.Description &&
-            await TableWhere(x => x.Description == createUpdateFileRecordDto.Description).AnyAsync())
-        {
-            return OperateResult.Error($"文件描述=>{createUpdateFileRecordDto.Description}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateFileRecordDto,
+                LanguageKeyConstants.FileRecord,
+                nameof(createUpdateFileRecordDto.Id)));
         }
 
         var fileRecord = App.Mapper.MapTo<FileRecord>(createUpdateFileRecordDto);
@@ -98,6 +85,11 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var appSecretList = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
+        if (appSecretList.Count == 0)
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         await LogicDelete<FileRecord>(x => ids.Contains(x.Id));
         foreach (var appSecret in appSecretList)
         {
@@ -124,8 +116,9 @@ public class FileRecordService : BaseServices<FileRecord>, IFileRecordService
         var conditionalModels = fileRecordQueryCriteria.ApplyQueryConditionalModel();
         var fileRecords = await TableWhere(conditionalModels).ToListAsync();
         List<ExportBase> fileRecordExports = new List<ExportBase>();
-        fileRecordExports.AddRange(fileRecords.Select(x => new FileRecordExport()
+        fileRecordExports.AddRange(fileRecords.Select(x => new FileRecordExport
         {
+            Id = x.Id,
             Description = x.Description,
             ContentType = x.ContentType,
             ContentTypeName = x.ContentTypeName,

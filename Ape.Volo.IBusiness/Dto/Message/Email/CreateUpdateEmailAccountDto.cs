@@ -14,38 +14,44 @@ public class CreateUpdateEmailAccountDto : BaseEntityDto<long>
     /// <summary>
     ///电子邮件地址
     /// </summary>
-    [Required]
-    [EmailAddress]
+    [Display(Name = "Sys.Email")]
+    [Required(ErrorMessage = "{0}required")]
+    [EmailAddress(ErrorMessage = "{0}Error.Format")]
     public string Email { get; set; }
 
     /// <summary>
     /// 电子邮件显示名称
     /// </summary>
-    [Required]
+    [Display(Name = "EmailAccount.DisplayName")]
+    [Required(ErrorMessage = "{0}required")]
     public string DisplayName { get; set; }
 
     /// <summary>
     /// 电子邮件主机
     /// </summary>
-    [Required]
+    [Display(Name = "EmailAccount.Host")]
+    [Required(ErrorMessage = "{0}required")]
     public string Host { get; set; }
 
     /// <summary>
     /// 电子邮件端口
     /// </summary>
-    [Required]
+    [Display(Name = "EmailAccount.Port")]
+    [Range(1, 65535, ErrorMessage = "{0}range{1}{2}")]
     public int Port { get; set; }
 
     /// <summary>
     /// 电子邮件用户名
     /// </summary>
-    [Required]
+    [Display(Name = "EmailAccount.Username")]
+    [Required(ErrorMessage = "{0}required")]
     public string Username { get; set; }
 
     /// <summary>
     /// 电子邮件密码
     /// </summary>
-    [Required]
+    [Display(Name = "EmailAccount.Password")]
+    [Required(ErrorMessage = "{0}required")]
     public string Password { get; set; }
 
     /// <summary>

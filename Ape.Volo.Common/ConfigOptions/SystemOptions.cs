@@ -29,6 +29,11 @@ public class SystemOptions
     public bool IsQuickDebug { get; set; }
 
     /// <summary>
+    /// 用户默认密码
+    /// </summary>
+    public string UserDefaultPassword { get; set; }
+
+    /// <summary>
     /// 文件限制大小
     /// </summary>
     public int FileLimitSize { get; set; }

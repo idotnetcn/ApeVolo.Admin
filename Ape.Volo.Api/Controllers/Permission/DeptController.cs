@@ -16,7 +16,7 @@ namespace Ape.Volo.Api.Controllers.Permission;
 /// <summary>
 /// 部门管理
 /// </summary>
-[Area("部门管理")]
+[Area("Area.DepartmentManagement")]
 [Route("/api/dept", Order = 4)]
 public class DeptController : BaseApiController
 {
@@ -44,7 +44,7 @@ public class DeptController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateDepartmentDto createUpdateDepartmentDto)
     {
@@ -66,7 +66,7 @@ public class DeptController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateDepartmentDto createUpdateDepartmentDto)
     {
@@ -88,7 +88,7 @@ public class DeptController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -110,7 +110,7 @@ public class DeptController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(DeptQueryCriteria deptQueryCriteria,
         Pagination pagination)
     {
@@ -123,7 +123,7 @@ public class DeptController : BaseApiController
 
     [HttpGet]
     [Route("queryTree")]
-    [Description("树形部门数据")]
+    [Description("Action.GetDepartmentTreeData")]
     public async Task<ActionResult> QueryTree()
     {
         var deptList = await _departmentService.QueryAllAsync();
@@ -139,7 +139,7 @@ public class DeptController : BaseApiController
     /// <param name="deptQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(DeptQueryCriteria deptQueryCriteria)
     {
@@ -159,7 +159,7 @@ public class DeptController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("superior")]
-    [Description("获取同级、父级部门")]
+    [Description("Action.GetSiblingAndParentDepartments")]
     public async Task<ActionResult> GetSuperior(long id)
     {
         if (id.IsNullOrEmpty())

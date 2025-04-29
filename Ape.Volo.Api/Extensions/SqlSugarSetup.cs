@@ -37,7 +37,7 @@ public static class SqlSugarSetup
         var options = App.GetOptions<DataConnectionOptions>();
         if (options.ConnectionItem.Count == 0)
         {
-            throw new Exception("请确保配置数据库配置DataConnection无误;");
+            throw new Exception(App.L.R("Error.AppSettings.DataConnection"));
         }
 
         // var connectionMaster =
@@ -46,12 +46,14 @@ public static class SqlSugarSetup
             options.ConnectionItem.Where(x => x.Enabled).ToList();
         if (allConnectionItem.Count == 0 || allConnectionItem.All(x => x.ConnId != systemOptions.DefaultDataBase))
         {
-            throw new Exception($"请确保主库ID:{systemOptions.DefaultDataBase}的Enabled为true;");
+            throw new Exception(App.L.R("Error.Database.EnsureEnabled{0}",
+                systemOptions.DefaultDataBase));
         }
 
         if (allConnectionItem.All(x => x.ConnId != systemOptions.LogDataBase))
         {
-            throw new Exception($"请确保日志库ID:{systemOptions.LogDataBase}的Enabled为true;");
+            throw new Exception(App.L.R("Error.LogDatabase.EnsureEnabled{0}",
+                systemOptions.LogDataBase));
         }
 
 
@@ -73,7 +75,8 @@ public static class SqlSugarSetup
                     .ToList();
                 if (!connectionSlaves.Any())
                 {
-                    throw new Exception($"请确保数据库ID:{connectionItem.ConnId}对应的从库的Enabled为true;");
+                    throw new Exception(App.L.R("Error.Database.SlaveEnsureEnabled{0}",
+                        connectionItem.ConnId));
                 }
 
                 slaveDbs = new List<SlaveConnectionConfig>();
@@ -102,11 +105,9 @@ public static class SqlSugarSetup
                 },
                 ConfigureExternalServices = new ConfigureExternalServices
                 {
-                    DataInfoCacheService = connectionItem.ConnId != systemOptions.DefaultDataBase
-                        ? null
-                        : systemOptions.UseRedisCache
-                            ? new SqlSugarRedisCache()
-                            : new SqlSugarDistributedCache(),
+                    DataInfoCacheService = systemOptions.UseRedisCache
+                        ? new SqlSugarRedisCache()
+                        : new SqlSugarDistributedCache(),
                     EntityService = (c, p) =>
                     {
                         p.DbColumnName = UtilMethods.ToUnderLine(p.DbColumnName); //字段使用驼峰转下划线，不需要请注释
@@ -141,48 +142,47 @@ public static class SqlSugarSetup
         var sugar = new SqlSugarScope(allConnectionConfig,
             db =>
             {
-                allConnectionConfig.Where(x => x.ConfigId.ToString() != systemOptions.LogDataBase).ForEach(
-                    config =>
-                    {
-                        var sugarScopeProvider = db.GetConnectionScope((string)config.ConfigId);
+                allConnectionConfig.Where(x => x.ConfigId.ToString() != systemOptions.LogDataBase).ForEach(config =>
+                {
+                    var sugarScopeProvider = db.GetConnectionScope((string)config.ConfigId);
 
-                        #region 配置过滤器
+                    #region 配置过滤器
 
-                        //软删除
-                        sugarScopeProvider.ConfiguringSoftDeletedFilter();
+                    //软删除
+                    sugarScopeProvider.ConfiguringSoftDeletedFilter();
 
-                        //租户
-                        sugarScopeProvider.ConfiguringTenantFilter();
+                    //租户
+                    sugarScopeProvider.ConfiguringTenantFilter();
 
-                        //数据权限  这个要放在最后
-                        sugarScopeProvider.ConfiguringUserDataScopeFilter();
+                    //数据权限  这个要放在最后
+                    sugarScopeProvider.ConfiguringUserDataScopeFilter();
 
-                        #endregion
+                    #endregion
 
-                        #region 读写事件
+                    #region 读写事件
 
-                        sugarScopeProvider.Aop.DataExecuting = DataExecuting;
+                    sugarScopeProvider.Aop.DataExecuting = DataExecuting;
 
-                        #endregion
+                    #endregion
 
-                        #region 执行中
+                    #region 执行中
 
-                        // sugarScopeProvider.Aop.OnLogExecuting = (sql, pars) => OnLogExecuting(
-                        //     sugarScopeProvider,
-                        //     Enum.GetName(typeof(SugarActionType), sugarScopeProvider.SugarActionType), sql, pars,
-                        //     config.ConfigId.ToString());
+                    // sugarScopeProvider.Aop.OnLogExecuting = (sql, pars) => OnLogExecuting(
+                    //     sugarScopeProvider,
+                    //     Enum.GetName(typeof(SugarActionType), sugarScopeProvider.SugarActionType), sql, pars,
+                    //     config.ConfigId.ToString());
 
-                        #endregion
+                    #endregion
 
-                        #region 执行结束
+                    #region 执行结束
 
-                        sugarScopeProvider.Aop.OnLogExecuted = (sql, pars) => OnLogExecuted(sugarScopeProvider.Ado,
-                            sugarScopeProvider,
-                            Enum.GetName(typeof(SugarActionType), sugarScopeProvider.SugarActionType), sql, pars,
-                            config.ConfigId.ToString());
+                    sugarScopeProvider.Aop.OnLogExecuted = (sql, pars) => OnLogExecuted(sugarScopeProvider.Ado,
+                        sugarScopeProvider,
+                        Enum.GetName(typeof(SugarActionType), sugarScopeProvider.SugarActionType), sql, pars,
+                        config.ConfigId.ToString());
 
-                        #endregion
-                    });
+                    #endregion
+                });
             });
         services.AddSingleton<ISqlSugarClient>(sugar);
     }
@@ -308,16 +308,6 @@ public static class SqlSugarSetup
     #endregion
 
     #region sql执行事件
-
-    /// <summary>
-    /// 参数拼接字符串
-    /// </summary>
-    /// <param name="pars"></param>
-    /// <returns></returns>
-    private static string GetParams(SugarParameter[] pars)
-    {
-        return pars.Aggregate("", (current, p) => current + $"{p.ParameterName}:{p.Value}\n");
-    }
 
     /// <summary>
     /// 执行中
@@ -471,7 +461,7 @@ public static class SqlSugarSetup
         }
         catch (Exception e)
         {
-            Logger.Fatal("配置用户数据权限错误：\r\n" + ExceptionHelper.GetExceptionAllMsg(e));
+            Logger.Fatal("Error in configuring user data permissions：\r\n" + ExceptionHelper.GetExceptionAllMsg(e));
             db.QueryFilter.AddTableFilter<ICreateByEntity>(it => it.CreateBy == App.HttpUser.Account);
         }
     }

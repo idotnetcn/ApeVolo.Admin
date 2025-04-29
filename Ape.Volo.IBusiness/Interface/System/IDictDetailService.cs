@@ -36,6 +36,14 @@ public interface IDictDetailService : IBaseServices<DictDetail>
     /// <returns></returns>
     Task<OperateResult> DeleteAsync(long id);
 
+
+    /// <summary>
+    /// 查询 根据字典ID
+    /// </summary>
+    /// <param name="dictId"></param>
+    /// <returns></returns>
+    Task<List<DictDetailDto>> GetDetailByDictIdAsync(long dictId);
+
     /// <summary>
     /// 查询
     /// </summary>

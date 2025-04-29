@@ -11,24 +11,24 @@ public class AppSecretExport : ExportBase
     /// <summary>
     /// 应用ID
     /// </summary>
-    [Display(Name = "应用ID")]
+    [Display(Name = "App.AppId")]
     public string AppId { get; set; }
 
     /// <summary>
     /// 应用密钥
     /// </summary>
-    [Display(Name = "应用密钥")]
+    [Display(Name = "App.AppSecretKey")]
     public string AppSecretKey { get; set; }
 
     /// <summary>
     /// 应用名称
     /// </summary>
-    [Display(Name = "应用名称")]
+    [Display(Name = "App.AppName")]
     public string AppName { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [Display(Name = "备注")]
+    [Display(Name = "App.Remark")]
     public string Remark { get; set; }
 }

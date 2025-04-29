@@ -64,7 +64,7 @@ public class GlobalExceptionFilter : IAsyncExceptionFilter
         var remoteIp = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
         var ipAddress = _ipSearcher.Search(remoteIp);
         string throwMsg = context.Exception.Message; //错误信息
-        var actionError = new ActionError() { Errors = new Dictionary<string, string>() };
+        var actionError = new ActionError { Errors = new Dictionary<string, string>() };
         context.Result = new ContentResult
         {
             Content = new ActionResultVm
@@ -140,16 +140,17 @@ public class GlobalExceptionFilter : IAsyncExceptionFilter
                 .GetCustomAttributes(typeof(DescriptionAttribute), true)
                 .OfType<DescriptionAttribute>()
                 .FirstOrDefault();
+            var descriptionValue = descriptionAttribute != null ? descriptionAttribute.Description : "";
             log = new ExceptionLog
             {
                 Id = IdHelper.NextId(),
                 CreateBy = App.HttpUser.Account,
                 CreateTime = DateTime.Now,
-                Area = routeValues["area"],
+                Area = routeValues["area"].IsNullOrEmpty() ? "" : App.L.R(routeValues["area"]),
                 Controller = routeValues["controller"],
                 Action = routeValues["action"],
                 Method = httpContext.Request.Method,
-                Description = descriptionAttribute?.Description,
+                Description = App.L.R(descriptionValue),
                 RequestUrl = httpContext.Request.Path,
                 RequestParameters = arguments.ToJson(),
                 ExceptionMessage = context.Exception.Message,

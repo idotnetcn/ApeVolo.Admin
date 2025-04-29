@@ -5,6 +5,7 @@ using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Message.Email;
 using Ape.Volo.IBusiness.Dto.Message.Email;
@@ -16,14 +17,6 @@ namespace Ape.Volo.Business.Message.Email;
 
 public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountService
 {
-    #region 构造函数
-
-    public EmailAccountService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     /// <summary>
@@ -35,7 +28,8 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     {
         if (await TableWhere(x => x.Email == createUpdateEmailAccountDto.Email).AnyAsync())
         {
-            return OperateResult.Error($"邮箱账户=>{createUpdateEmailAccountDto.Email}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateEmailAccountDto,
+                nameof(createUpdateEmailAccountDto.Email)));
         }
 
         var emailAccount = App.Mapper.MapTo<EmailAccount>(createUpdateEmailAccountDto);
@@ -53,13 +47,16 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
         var oldEmailAccount = await TableWhere(x => x.Id == createUpdateEmailAccountDto.Id).FirstAsync();
         if (oldEmailAccount.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateEmailAccountDto,
+                LanguageKeyConstants.EmailAccount,
+                nameof(createUpdateEmailAccountDto.Id)));
         }
 
         if (oldEmailAccount.Email != createUpdateEmailAccountDto.Email &&
             await TableWhere(j => j.Email == createUpdateEmailAccountDto.Email).AnyAsync())
         {
-            return OperateResult.Error($"邮箱账户=>{createUpdateEmailAccountDto.Email}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateEmailAccountDto,
+                nameof(createUpdateEmailAccountDto.Email)));
         }
 
         var emailAccount = App.Mapper.MapTo<EmailAccount>(createUpdateEmailAccountDto);
@@ -76,7 +73,9 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     {
         var emailAccounts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (emailAccounts.Count < 1)
-            return OperateResult.Error("无可删除数据!");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
 
         var result = await LogicDelete<EmailAccount>(x => ids.Contains(x.Id));
         return OperateResult.Result(result);
@@ -104,15 +103,16 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     {
         var emailAccounts = await TableWhere(emailAccountQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> emailAccountExports = new List<ExportBase>();
-        emailAccountExports.AddRange(emailAccounts.Select(x => new EmailAccountExport()
+        emailAccountExports.AddRange(emailAccounts.Select(x => new EmailAccountExport
         {
+            Id = x.Id,
             Email = x.Email,
             DisplayName = x.DisplayName,
             Host = x.Host,
             Port = x.Port,
             Username = x.Username,
-            EnableSsl = x.EnableSsl ? BoolState.True : BoolState.False,
-            UseDefaultCredentials = x.UseDefaultCredentials ? BoolState.True : BoolState.False,
+            EnableSsl = x.EnableSsl,
+            UseDefaultCredentials = x.UseDefaultCredentials,
             CreateTime = x.CreateTime
         }));
         return emailAccountExports;

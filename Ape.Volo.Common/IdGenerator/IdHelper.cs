@@ -27,7 +27,7 @@ public class IdHelper
     {
         if (_idGenInstance == null)
         {
-            throw new ArgumentException("请先初始化IdGeneratorOptions参数配置");
+            throw new ArgumentException("Please initialize the IdGeneratorOptions parameter configuration first.");
         }
 
         return _idGenInstance.NewId();

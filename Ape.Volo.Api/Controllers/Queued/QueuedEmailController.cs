@@ -14,7 +14,7 @@ namespace Ape.Volo.Api.Controllers.Queued;
 /// <summary>
 /// 邮件队列管理
 /// </summary>
-[Area("邮件队列管理")]
+[Area("Area.MailQueueManagement")]
 [Route("/api/queued/email", Order = 19)]
 public class QueuedEmailController : BaseApiController
 {
@@ -27,43 +27,55 @@ public class QueuedEmailController : BaseApiController
 
 
     /// <summary>
-    /// 新增邮箱账户
+    /// 新增
     /// </summary>
     /// <param name="createUpdateQueuedEmailDto"></param>
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
+        if (!ModelState.IsValid)
+        {
+            var actionError = ModelState.GetErrors();
+            return Error(actionError);
+        }
+
         var result = await _queuedEmailService.CreateAsync(createUpdateQueuedEmailDto);
         return Ok(result);
     }
 
     /// <summary>
-    /// 更新邮箱账户
+    /// 更新
     /// </summary>
     /// <param name="createUpdateQueuedEmailDto"></param>
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
+        if (!ModelState.IsValid)
+        {
+            var actionError = ModelState.GetErrors();
+            return Error(actionError);
+        }
+
         var result = await _queuedEmailService.UpdateAsync(createUpdateQueuedEmailDto);
         return Ok(result);
     }
 
     /// <summary>
-    /// 删除邮箱账户
+    /// 删除
     /// </summary>
     /// <param name="idCollection"></param>
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -77,14 +89,14 @@ public class QueuedEmailController : BaseApiController
     }
 
     /// <summary>
-    /// 邮箱账户列表
+    /// 列表
     /// </summary>
     /// <param name="queuedEmailQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(QueuedEmailQueryCriteria queuedEmailQueryCriteria,
         Pagination pagination)
     {

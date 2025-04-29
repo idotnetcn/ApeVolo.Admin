@@ -13,23 +13,21 @@ namespace Ape.Volo.Api.Controllers.System;
 /// <summary>
 /// 字典详情管理
 /// </summary>
-[Area("字典详情管理")]
+[Area("Area.DictionaryDetailManagement")]
 [Route("/api/dictDetail", Order = 8)]
 public class DictDetailController : BaseApiController
 {
     #region 字段
 
     private readonly IDictDetailService _dictDetailService;
-    private readonly IDictService _dictService;
 
     #endregion
 
     #region 构造函数
 
-    public DictDetailController(IDictDetailService dictDetailService, IDictService dictService)
+    public DictDetailController(IDictDetailService dictDetailService)
     {
         _dictDetailService = dictDetailService;
-        _dictService = dictService;
     }
 
     #endregion
@@ -43,7 +41,7 @@ public class DictDetailController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateDictDetailDto createUpdateDictDto)
     {
@@ -65,7 +63,7 @@ public class DictDetailController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateDictDetailDto createUpdateDictDetailDto)
     {
@@ -86,7 +84,7 @@ public class DictDetailController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete(long id)
     {
         if (id.IsNullOrEmpty())
@@ -106,7 +104,7 @@ public class DictDetailController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(DictDetailQueryCriteria dictDetailQueryCriteria, Pagination pagination)
     {
         var list = await _dictDetailService.QueryAsync(dictDetailQueryCriteria, pagination);

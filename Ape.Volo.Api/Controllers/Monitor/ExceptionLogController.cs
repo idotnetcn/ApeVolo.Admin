@@ -12,7 +12,7 @@ namespace Ape.Volo.Api.Controllers.Monitor;
 /// <summary>
 /// 异常日志管理
 /// </summary>
-[Area("异常日志管理")]
+[Area("Area.ExceptionLogManagement")]
 [Route("/api/exception", Order = 14)]
 public class ExceptionLogController : BaseApiController
 {
@@ -41,7 +41,7 @@ public class ExceptionLogController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     [NotAudit]
     public async Task<ActionResult> Query(LogQueryCriteria logQueryCriteria,
         Pagination pagination)

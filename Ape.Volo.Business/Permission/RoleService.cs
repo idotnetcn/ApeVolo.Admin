@@ -8,6 +8,7 @@ using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.Permission;
 using Ape.Volo.IBusiness.Dto.Permission;
@@ -23,18 +24,6 @@ namespace Ape.Volo.Business.Permission;
 /// </summary>
 public class RoleService : BaseServices<Role>, IRoleService
 {
-    #region 字段
-
-    #endregion
-
-    #region 构造函数
-
-    public RoleService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     [UseTran]
@@ -43,23 +32,26 @@ public class RoleService : BaseServices<Role>, IRoleService
         await VerificationUserRoleLevelAsync(createUpdateRoleDto.Level);
         if (await TableWhere(r => r.Name == createUpdateRoleDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"角色名称=>{createUpdateRoleDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+                nameof(createUpdateRoleDto.Name)));
         }
 
         if (await TableWhere(r => r.Permission == createUpdateRoleDto.Permission).AnyAsync())
         {
-            return OperateResult.Error($"权限标识=>{createUpdateRoleDto.Permission}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+                nameof(createUpdateRoleDto.Permission)));
         }
 
         if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize && createUpdateRoleDto.Depts.Count == 0)
         {
-            return OperateResult.Error("数据权限为自定义,请至少选择一个部门!");
+            return OperateResult.Error(App.L.R("{0}AtLeastOne",
+                App.L.R("Sys.Department")));
         }
 
         var role = App.Mapper.MapTo<Role>(createUpdateRoleDto);
         await AddAsync(role);
 
-        if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize && createUpdateRoleDto.Depts.Count != 0)
+        if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize)
         {
             var roleDepts = new List<RoleDepartment>();
             roleDepts.AddRange(createUpdateRoleDto.Depts.Select(rd => new RoleDepartment
@@ -77,20 +69,30 @@ public class RoleService : BaseServices<Role>, IRoleService
         var oldRole = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
         if (oldRole.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateRoleDto, LanguageKeyConstants.Role,
+                nameof(createUpdateRoleDto.Id)));
         }
 
         if (oldRole.Name != createUpdateRoleDto.Name &&
             await TableWhere(x => x.Name == createUpdateRoleDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"角色名称=>{createUpdateRoleDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+                nameof(createUpdateRoleDto.Name)));
         }
 
         if (oldRole.Permission != createUpdateRoleDto.Permission &&
             await TableWhere(x => x.Permission == createUpdateRoleDto.Permission).AnyAsync())
         {
-            return OperateResult.Error($"权限标识=>{createUpdateRoleDto.Permission}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+                nameof(createUpdateRoleDto.Permission)));
         }
+
+        if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize && createUpdateRoleDto.Depts.Count == 0)
+        {
+            return OperateResult.Error(App.L.R("{0}AtLeastOne",
+                App.L.R("Sys.Department")));
+        }
+
 
         await VerificationUserRoleLevelAsync(createUpdateRoleDto.Level);
         var role = App.Mapper.MapTo<Role>(createUpdateRoleDto);
@@ -98,7 +100,7 @@ public class RoleService : BaseServices<Role>, IRoleService
 
         //删除部门权限关联
         await SugarClient.Deleteable<RoleDepartment>().Where(x => x.RoleId == role.Id).ExecuteCommandAsync();
-        if (!createUpdateRoleDto.Depts.IsNullOrEmpty() && createUpdateRoleDto.Depts.Count > 0)
+        if (createUpdateRoleDto.DataScopeType == DataScopeType.Customize)
         {
             var roleDepts = new List<RoleDepartment>();
             roleDepts.AddRange(createUpdateRoleDto.Depts.Select(rd => new RoleDepartment
@@ -120,6 +122,11 @@ public class RoleService : BaseServices<Role>, IRoleService
     {
         //返回用户列表的最大角色等级
         var roles = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
+        if (roles.Count == 0)
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         int userCount = 0;
         if (roles.Any(role => role.Users != null && role.Users.Count != 0))
         {
@@ -128,7 +135,7 @@ public class RoleService : BaseServices<Role>, IRoleService
 
         if (userCount > 0)
         {
-            return OperateResult.Error("存在用户关联，请解除后再试！");
+            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
         }
 
 
@@ -168,7 +175,7 @@ public class RoleService : BaseServices<Role>, IRoleService
         var roles = await TableWhere(roleQueryCriteria.ApplyQueryConditionalModel()).Includes(x => x.DepartmentList)
             .ToListAsync();
         List<ExportBase> roleExports = new List<ExportBase>();
-        roleExports.AddRange(roles.Select(x => new RoleExport()
+        roleExports.AddRange(roles.Select(x => new RoleExport
         {
             Id = x.Id,
             Name = x.Name,
@@ -223,7 +230,8 @@ public class RoleService : BaseServices<Role>, IRoleService
 
         if (level != null && level < minLevel)
         {
-            throw new BadRequestException("您无权修改或删除比你角色等级更高的数据！");
+            throw new BadRequestException(
+                App.L.R("Error.PermissionDenied.HigherRoleData"));
         }
 
         return minLevel;
@@ -231,22 +239,25 @@ public class RoleService : BaseServices<Role>, IRoleService
 
 
     [UseTran]
-    public async Task<OperateResult> UpdateRolesMenusAsync(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<OperateResult> UpdateRolesMenusAsync(UpdateRoleMenuDto updateRoleMenuDto)
     {
-        var role = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
+        var role = await TableWhere(x => x.Id == updateRoleMenuDto.Id).Includes(x => x.Users).FirstAsync();
+        if (role.IsNull())
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         await VerificationUserRoleLevelAsync(role.Level);
 
 
         //删除菜单
         List<RoleMenu> roleMenus = new List<RoleMenu>();
-        if (!createUpdateRoleDto.Menus.IsNullOrEmpty() && createUpdateRoleDto.Menus.Count > 0)
-        {
-            roleMenus.AddRange(createUpdateRoleDto.Menus.Select(rm => new RoleMenu
-                { RoleId = role.Id, MenuId = rm.Id }));
+        roleMenus.AddRange(updateRoleMenuDto.Menus.Select(rm => new RoleMenu
+            { RoleId = role.Id, MenuId = rm.Id }));
 
-            await SugarClient.Deleteable<RoleMenu>().Where(x => x.RoleId == role.Id).ExecuteCommandAsync();
-            await SugarClient.Insertable(roleMenus).ExecuteCommandAsync();
-        }
+        await SugarClient.Deleteable<RoleMenu>().Where(x => x.RoleId == role.Id).ExecuteCommandAsync();
+        await SugarClient.Insertable(roleMenus).ExecuteCommandAsync();
+
 
         //删除用户缓存
         foreach (var user in role.Users)
@@ -262,33 +273,35 @@ public class RoleService : BaseServices<Role>, IRoleService
 
 
     [UseTran]
-    public async Task<OperateResult> UpdateRolesApisAsync(CreateUpdateRoleDto createUpdateRoleDto)
+    public async Task<OperateResult> UpdateRolesApisAsync(UpdateRoleApiDto updateRoleApiDto)
     {
-        var role = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
+        var role = await TableWhere(x => x.Id == updateRoleApiDto.Id).Includes(x => x.Users).FirstAsync();
+        if (role.IsNull())
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         await VerificationUserRoleLevelAsync(role.Level);
 
 
         //删除菜单
         List<RoleApis> roleApis = new List<RoleApis>();
-        if (createUpdateRoleDto.Apis.Any())
+        // 这里过滤一下自生成的一级节点ID
+        updateRoleApiDto.Apis = updateRoleApiDto.Apis.Where(x => x.Id > 10000).ToList();
+        roleApis.AddRange(updateRoleApiDto.Apis.Select(ra => new RoleApis
+            { RoleId = role.Id, ApisId = ra.Id }));
+
+        await SugarClient.Deleteable<RoleApis>().Where(x => x.RoleId == role.Id).ExecuteCommandAsync();
+        await SugarClient.Insertable(roleApis).ExecuteCommandAsync();
+
+
+        //删除用户缓存
+        foreach (var user in role.Users)
         {
-            // 这里过滤一下自生成的一级节点ID
-            createUpdateRoleDto.Apis = createUpdateRoleDto.Apis.Where(x => x.Id > 10000).ToList();
-            roleApis.AddRange(createUpdateRoleDto.Apis.Select(ra => new RoleApis()
-                { RoleId = role.Id, ApisId = ra.Id }));
-
-            await SugarClient.Deleteable<RoleApis>().Where(x => x.RoleId == role.Id).ExecuteCommandAsync();
-            await SugarClient.Insertable(roleApis).ExecuteCommandAsync();
-
-
-            //删除用户缓存
-            foreach (var user in role.Users)
-            {
-                await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.UserPermissionUrls +
-                                            user.Id.ToString().ToMd5String16());
-                await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.UserMenuById +
-                                            user.Id.ToString().ToMd5String16());
-            }
+            await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.UserPermissionUrls +
+                                        user.Id.ToString().ToMd5String16());
+            await App.Cache.RemoveAsync(GlobalConstants.CachePrefix.UserMenuById +
+                                        user.Id.ToString().ToMd5String16());
         }
 
         return OperateResult.Success();

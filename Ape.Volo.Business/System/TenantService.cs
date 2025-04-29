@@ -5,6 +5,8 @@ using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
@@ -19,41 +21,40 @@ namespace Ape.Volo.Business.System;
 /// </summary>
 public class TenantService : BaseServices<Tenant>, ITenantService
 {
-    #region 构造函数
-
-    public TenantService()
-    {
-    }
-
-    #endregion
+    #region 基础方法
 
     public async Task<OperateResult> CreateAsync(CreateUpdateTenantDto createUpdateTenantDtoDto)
     {
         if (await TableWhere(r => r.TenantId == createUpdateTenantDtoDto.TenantId).AnyAsync())
         {
-            return OperateResult.Error($"租户Id=>{createUpdateTenantDtoDto.TenantId}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateTenantDtoDto,
+                nameof(createUpdateTenantDtoDto.TenantId)));
         }
 
         if (createUpdateTenantDtoDto.TenantType == TenantType.Db)
         {
             if (createUpdateTenantDtoDto.DbType.IsNull())
             {
-                return OperateResult.Error($"数据库类型不能为空");
+                return OperateResult.Error(App.L.R("{0}required",
+                    App.L.R("Tenant.DbType")));
             }
 
             if (createUpdateTenantDtoDto.ConfigId.IsNullOrEmpty())
             {
-                return OperateResult.Error($"数据库标识ID不能为空");
+                return OperateResult.Error(App.L.R("{0}required",
+                    App.L.R("Tenant.ConfigId")));
             }
 
             if (createUpdateTenantDtoDto.Connection.IsNullOrEmpty())
             {
-                return OperateResult.Error($"数据库连接不能为空");
+                return OperateResult.Error(App.L.R("{0}required",
+                    App.L.R("Tenant.Connection")));
             }
 
             if (await TableWhere(r => r.ConfigId == createUpdateTenantDtoDto.ConfigId).AnyAsync())
             {
-                return OperateResult.Error($"标识Id=>{createUpdateTenantDtoDto.ConfigId}=>已存在!");
+                return OperateResult.Error(DataErrorHelper.IsExist(createUpdateTenantDtoDto,
+                    nameof(createUpdateTenantDtoDto.ConfigId)));
             }
         }
 
@@ -68,36 +69,42 @@ public class TenantService : BaseServices<Tenant>, ITenantService
         var oldTenant = await TableWhere(x => x.Id == createUpdateTenantDtoDto.Id).FirstAsync();
         if (oldTenant.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateTenantDtoDto, LanguageKeyConstants.Tenant,
+                nameof(createUpdateTenantDtoDto.Id)));
         }
 
         if (oldTenant.TenantId != createUpdateTenantDtoDto.TenantId &&
             await TableWhere(x => x.TenantId == createUpdateTenantDtoDto.TenantId).AnyAsync())
         {
-            return OperateResult.Error($"租户Id=>{createUpdateTenantDtoDto.TenantId}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateTenantDtoDto,
+                nameof(createUpdateTenantDtoDto.TenantId)));
         }
 
         if (createUpdateTenantDtoDto.TenantType == TenantType.Db)
         {
             if (createUpdateTenantDtoDto.DbType.IsNull())
             {
-                return OperateResult.Error($"数据库类型不能为空");
+                return OperateResult.Error(App.L.R("{0}required",
+                    App.L.R("Tenant.DbType")));
             }
 
             if (createUpdateTenantDtoDto.ConfigId.IsNullOrEmpty())
             {
-                return OperateResult.Error($"数据库标识ID不能为空");
+                return OperateResult.Error(App.L.R("{0}required",
+                    App.L.R("Tenant.ConfigId")));
             }
 
             if (createUpdateTenantDtoDto.Connection.IsNullOrEmpty())
             {
-                return OperateResult.Error($"数据库连接不能为空");
+                return OperateResult.Error(App.L.R("{0}required",
+                    App.L.R("Tenant.Connection")));
             }
 
             if (oldTenant.ConfigId != createUpdateTenantDtoDto.ConfigId &&
                 await TableWhere(x => x.ConfigId == createUpdateTenantDtoDto.ConfigId).AnyAsync())
             {
-                return OperateResult.Error($"标识Id=>{createUpdateTenantDtoDto.ConfigId}=>已存在!");
+                return OperateResult.Error(DataErrorHelper.IsExist(createUpdateTenantDtoDto,
+                    nameof(createUpdateTenantDtoDto.ConfigId)));
             }
         }
 
@@ -111,7 +118,7 @@ public class TenantService : BaseServices<Tenant>, ITenantService
         var tenants = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
         if (tenants.Any(x => x.Users != null && x.Users.Count != 0))
         {
-            return OperateResult.Error("存在用户关联，请解除后再试！");
+            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
         }
 
         var result = await LogicDelete<Tenant>(x => ids.Contains(x.Id));
@@ -140,8 +147,9 @@ public class TenantService : BaseServices<Tenant>, ITenantService
     {
         var tenants = await TableWhere(tenantQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         List<ExportBase> tenantExports = new List<ExportBase>();
-        tenantExports.AddRange(tenants.Select(x => new TenantExport()
+        tenantExports.AddRange(tenants.Select(x => new TenantExport
         {
+            Id = x.Id,
             TenantId = x.TenantId,
             Name = x.Name,
             Description = x.Description,
@@ -153,4 +161,6 @@ public class TenantService : BaseServices<Tenant>, ITenantService
         }));
         return tenantExports;
     }
+
+    #endregion
 }

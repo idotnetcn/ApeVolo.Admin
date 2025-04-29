@@ -6,6 +6,8 @@ using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
@@ -21,21 +23,14 @@ namespace Ape.Volo.Business.System;
 /// </summary>
 public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
 {
-    #region 构造函数
-
-    public AppSecretService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(CreateUpdateAppSecretDto createUpdateAppSecretDto)
     {
         if (await TableWhere(r => r.AppName == createUpdateAppSecretDto.AppName).AnyAsync())
         {
-            return OperateResult.Error($"应用名称=>{createUpdateAppSecretDto.AppName}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateAppSecretDto,
+                nameof(createUpdateAppSecretDto.AppName)));
         }
 
         var id = IdHelper.NextId().ToString();
@@ -53,17 +48,23 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
         var oldAppSecret = await TableWhere(x => x.Id == createUpdateAppSecretDto.Id).FirstAsync();
         if (oldAppSecret.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateAppSecretDto,
+                LanguageKeyConstants.AppSecret,
+                nameof(createUpdateAppSecretDto.Id)));
         }
 
         if (oldAppSecret.AppName != createUpdateAppSecretDto.AppName &&
             await TableWhere(x => x.AppName == createUpdateAppSecretDto.AppName).AnyAsync())
         {
-            return OperateResult.Error($"应用名称=>{createUpdateAppSecretDto.AppName}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateAppSecretDto,
+                nameof(createUpdateAppSecretDto.AppName)));
         }
 
         var appSecret = App.Mapper.MapTo<AppSecret>(createUpdateAppSecretDto);
-        var result = await UpdateAsync(appSecret);
+        var result = await UpdateAsync(appSecret, null, x => new
+        {
+            x.AppId, x.AppSecretKey
+        });
         return OperateResult.Result(result);
     }
 
@@ -71,7 +72,10 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
     {
         var appSecrets = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (appSecrets.Count <= 0)
-            return OperateResult.Error("数据不存在！");
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         var result = await LogicDelete<AppSecret>(x => ids.Contains(x.Id));
         return OperateResult.Result(result);
     }
@@ -93,8 +97,9 @@ public class AppSecretService : BaseServices<AppSecret>, IAppSecretService
         var conditionalModels = appsecretQueryCriteria.ApplyQueryConditionalModel();
         var appSecrets = await TableWhere(conditionalModels).ToListAsync();
         List<ExportBase> appSecretExports = new List<ExportBase>();
-        appSecretExports.AddRange(appSecrets.Select(x => new AppSecretExport()
+        appSecretExports.AddRange(appSecrets.Select(x => new AppSecretExport
         {
+            Id = x.Id,
             AppId = x.AppId,
             AppSecretKey = x.AppSecretKey,
             AppName = x.AppName,

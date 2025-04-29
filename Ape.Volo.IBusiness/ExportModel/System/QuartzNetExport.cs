@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using Ape.Volo.Common.Enums;
-using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
 
 namespace Ape.Volo.IBusiness.ExportModel.System;
@@ -14,114 +13,108 @@ public class QuartzNetExport : ExportBase
     /// <summary>
     /// 任务名称
     /// </summary>
-    [Display(Name = "任务名称")]
+    [Display(Name = "Task.TaskName")]
     public string TaskName { get; set; }
 
     /// <summary>
     /// 任务分组
     /// </summary>
-    [Display(Name = "任务组")]
+    [Display(Name = "Task.TaskGroup")]
     public string TaskGroup { get; set; }
 
     /// <summary>
     /// cron 表达式
     /// </summary>
-    [Display(Name = "Cron表达式")]
+    [Display(Name = "Task.Cron")]
     public string Cron { get; set; }
 
     /// <summary>
     /// 程序集名称
     /// </summary>
-    [Display(Name = "程序集名称")]
+    [Display(Name = "Task.AssemblyName")]
     public string AssemblyName { get; set; }
 
     /// <summary>
     /// 任务所在类
     /// </summary>
-    [Display(Name = "执行类")]
+    [Display(Name = "Task.ClassName")]
     public string ClassName { get; set; }
 
     /// <summary>
     /// 任务描述
     /// </summary>
-    [Display(Name = "描述")]
+    [Display(Name = "Sys.Description")]
     public string Description { get; set; }
 
     /// <summary>
     /// 任务负责人
     /// </summary>
-    [Display(Name = "负责人")]
+    [Display(Name = "Task.Principal")]
     public string Principal { get; set; }
 
     /// <summary>
     /// 告警邮箱
     /// </summary>
-    [Display(Name = "告警邮箱")]
+    [Display(Name = "Task.AlertEmail")]
     public string AlertEmail { get; set; }
 
     /// <summary>
     /// 任务失败后是否继续
     /// </summary>
-    [Display(Name = "失败是否继续")]
+    [Display(Name = "Task.PauseAfterFailure")]
     public bool PauseAfterFailure { get; set; }
 
     /// <summary>
     /// 执行次数
     /// </summary>
-    [Display(Name = "执行次数")]
+    [Display(Name = "Task.RunTimes")]
     public int RunTimes { get; set; }
 
     /// <summary>
     /// 开始时间
     /// </summary>
-    [Display(Name = "开始时间")]
+    [Display(Name = "Task.StartTime")]
     public DateTime? StartTime { get; set; }
 
     /// <summary>
     /// 结束时间
     /// </summary>
-    [Display(Name = "结束时间")]
+    [Display(Name = "Task.EndTime")]
     public DateTime? EndTime { get; set; }
 
     /// <summary>
     /// 触发器类型（0、simple 1、cron）
     /// </summary>
-    [Display(Name = "任务类型")]
+    [Display(Name = "Task.TriggerType")]
     public TriggerType TriggerType { get; set; }
 
     /// <summary>
     /// 执行间隔时间, 秒为单位
     /// </summary>
-    [Display(Name = "执行间隔时间")]
+    [Display(Name = "Task.IntervalSecond")]
     public int IntervalSecond { get; set; }
 
     /// <summary>
     /// 循环执行次数
     /// </summary>
-    [Display(Name = "循环执行次数")]
+    [Display(Name = "Task.CycleRunTimes")]
     public int CycleRunTimes { get; set; }
 
     /// <summary>
     /// 是否启动
     /// </summary>
-    [Display(Name = "是否启动")]
-    public BoolState IsEnable { get; set; }
+    [Display(Name = "Task.IsEnable")]
+    public bool IsEnable { get; set; }
 
     /// <summary>
     /// 执行传参
     /// </summary>
-    [Display(Name = "执行传参")]
+    [Display(Name = "Task.RunParams")]
     public string RunParams { get; set; }
 
     /// <summary>
     /// 触发器状态
     /// </summary>
-    [Display(Name = "触发器状态")]
+    [Display(Name = "Task.TriggerStatus")]
     public string TriggerStatus { get; set; }
-
-    /// <summary>
-    /// 触发器模式
-    /// </summary>
-    [Display(Name = "触发器模式")]
-    public string TriggerTypeStr { get; set; }
 }

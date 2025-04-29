@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace Ape.Volo.Common.Extensions;
 
@@ -27,5 +28,20 @@ public static partial class ExtObject
         }
 
         return enumValue.ToString();
+    }
+
+
+    public static string GetDisplayName(Type type, string propertyName)
+    {
+        // 获取属性信息
+        var property = type.GetProperty(propertyName);
+        if (property == null)
+        {
+            throw new ArgumentException($"Property '{propertyName}' not found on type '{type.FullName}'");
+        }
+
+        // 获取Display特性
+        var displayAttribute = property.GetCustomAttribute<DisplayAttribute>();
+        return displayAttribute?.Name ?? "No Display Attribute Found";
     }
 }

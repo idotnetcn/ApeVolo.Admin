@@ -16,19 +16,10 @@ namespace Ape.Volo.Business.Monitor;
 /// </summary>
 public class ExceptionLogService : BaseServices<ExceptionLog>, IExceptionLogService
 {
-    #region 构造函数
-
-    public ExceptionLogService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(ExceptionLog exceptionLog)
     {
-        //return await AddEntityAsync(exceptionLog);
         var result = await SugarRepository.SugarClient.Insertable(exceptionLog).SplitTable().ExecuteCommandAsync() > 0;
         return OperateResult.Result(result);
     }

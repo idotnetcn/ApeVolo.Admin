@@ -12,9 +12,10 @@ namespace Ape.Volo.IBusiness.Dto.System;
 public class CreateUpdateFileRecordDto : BaseEntityDto<long>
 {
     /// <summary>
-    /// 描述
+    /// 描述 Sys.Description
     /// </summary>
-    [Required]
+    [Display(Name = "Sys.Description")]
+    [Required(ErrorMessage = "{0}required")]
     public string Description { get; set; }
 
     /// <summary>

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Ape.Volo.Business.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Entity.System;
 using Ape.Volo.IBusiness.Dto.System;
@@ -18,21 +20,13 @@ namespace Ape.Volo.Business.System;
 /// </summary>
 public class DictService : BaseServices<Dict>, IDictService
 {
-    #region 构造函数
-
-    public DictService()
-    {
-    }
-
-    #endregion
-
     #region 基础方法
 
     public async Task<OperateResult> CreateAsync(CreateUpdateDictDto createUpdateDictDto)
     {
         if (await TableWhere(d => d.Name == createUpdateDictDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"名称=>{createUpdateDictDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDictDto, nameof(createUpdateDictDto.Name)));
         }
 
         var result = await AddAsync(App.Mapper.MapTo<Dict>(createUpdateDictDto));
@@ -45,13 +39,14 @@ public class DictService : BaseServices<Dict>, IDictService
             await TableWhere(x => x.Id == createUpdateDictDto.Id).FirstAsync();
         if (oldDict.IsNull())
         {
-            return OperateResult.Error("数据不存在！");
+            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateDictDto, LanguageKeyConstants.Dict,
+                nameof(createUpdateDictDto.Id)));
         }
 
         if (oldDict.Name != createUpdateDictDto.Name &&
             await TableWhere(j => j.Name == createUpdateDictDto.Name).AnyAsync())
         {
-            return OperateResult.Error($"名称=>{createUpdateDictDto.Name}=>已存在!");
+            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDictDto, nameof(createUpdateDictDto.Name)));
         }
 
         var result = await UpdateAsync(App.Mapper.MapTo<Dict>(createUpdateDictDto));
@@ -60,9 +55,12 @@ public class DictService : BaseServices<Dict>, IDictService
 
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
-        var dicts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
-        if (dicts.Count <= 0)
-            return OperateResult.Error("数据不存在！");
+        var dictList = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
+        if (dictList.Count <= 0)
+        {
+            return OperateResult.Error(DataErrorHelper.NotExist());
+        }
+
         var result = await LogicDelete<Dict>(x => ids.Contains(x.Id));
         return OperateResult.Result(result);
     }
@@ -94,8 +92,9 @@ public class DictService : BaseServices<Dict>, IDictService
 
         dicts.ForEach(x =>
         {
-            dictExports.AddRange(x.DictDetails.Select(d => new DictExport()
+            dictExports.AddRange(x.DictDetails.Select(d => new DictExport
             {
+                Id = x.Id,
                 DictType = x.DictType,
                 Name = x.Name,
                 Description = x.Description,

@@ -6,7 +6,7 @@ namespace Ape.Volo.Common.Caches;
 
 public interface ICache
 {
-    IDatabase GetDatabase();
+    IDatabase GetDatabase(int db = -1);
 
     #region 获取缓存
 

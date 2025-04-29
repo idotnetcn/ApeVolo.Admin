@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
 
 namespace Ape.Volo.IBusiness.ExportModel.System;
@@ -12,24 +11,24 @@ public class SettingExport : ExportBase
     /// <summary>
     /// 键
     /// </summary>
-    [Display(Name = "键")]
+    [Display(Name = "Setting.Name")]
     public string Name { get; set; }
 
     /// <summary>
     /// 值
     /// </summary>
-    [Display(Name = "值")]
+    [Display(Name = "Setting.Value")]
     public string Value { get; set; }
 
     /// <summary>
     /// 是否启用
     /// </summary>
-    [Display(Name = "是否启用")]
-    public EnabledState EnabledState { get; set; }
+    [Display(Name = "Setting.Enabled")]
+    public bool Enabled { get; set; }
 
     /// <summary>
     /// 描述
     /// </summary>
-    [Display(Name = "描述")]
+    [Display(Name = "Sys.Description")]
     public string Description { get; set; }
 }

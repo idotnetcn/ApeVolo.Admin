@@ -36,13 +36,15 @@ public static class QuartzNetJobMiddleware
                 {
                     if (!item.IsEnable) continue;
                     var results = AsyncHelper.RunSync(() => schedulerCenter.AddScheduleJobAsync(item));
-                    Logger.Information(results ? $"作业=>{item.TaskName}=>启动成功！" : $"作业=>{item.TaskName}=>启动失败！");
+                    Logger.Information(results
+                        ? $"{App.L.R("Sys.QuartzNet")}=>{item.TaskName}=>{App.L.R("Action.StartupSSuccess")}！"
+                        : $"{App.L.R("Sys.QuartzNet")}=>{item.TaskName}=>{App.L.R("Action.StartupFailure")}！");
                 }
             }
         }
         catch (Exception e)
         {
-            Logger.Error($"启动作业调度服务失败。\n{e.Message}");
+            Logger.Error($"Error starting the job scheduling service:\n{e.Message}");
             throw;
         }
     }

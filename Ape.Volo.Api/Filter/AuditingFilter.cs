@@ -138,16 +138,17 @@ public class AuditingFilter : IAsyncActionFilter
             .GetCustomAttributes(typeof(DescriptionAttribute), true)
             .OfType<DescriptionAttribute>()
             .FirstOrDefault();
+        var descriptionValue = descriptionAttribute != null ? descriptionAttribute.Description : "";
         var auditLog = new AuditLog
         {
             Id = IdHelper.NextId(),
             CreateBy = App.HttpUser.Account,
             CreateTime = DateTime.Now,
-            Area = routeValues["area"],
+            Area = routeValues["area"].IsNullOrEmpty() ? "" : App.L.R(routeValues["area"]),
             Controller = routeValues["controller"],
             Action = routeValues["action"],
             Method = httpContext.Request.Method,
-            Description = descriptionAttribute?.Description,
+            Description = App.L.R(descriptionValue),
             RequestUrl = httpContext.Request.Path,
             RequestParameters = arguments.ToJson(),
             RequestIp = remoteIp,

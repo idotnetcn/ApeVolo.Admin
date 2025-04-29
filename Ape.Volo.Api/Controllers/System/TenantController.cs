@@ -15,7 +15,7 @@ namespace Ape.Volo.Api.Controllers.System;
 /// <summary>
 /// 租户管理
 /// </summary>
-[Area("租户管理")]
+[Area("Area.TenantManagement")]
 [Route("/api/tenant", Order = 19)]
 public class TenantController : BaseApiController
 {
@@ -43,7 +43,7 @@ public class TenantController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateTenantDto createUpdateTenantDto)
     {
@@ -64,7 +64,7 @@ public class TenantController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateTenantDto createUpdateTenantDto)
     {
@@ -85,7 +85,7 @@ public class TenantController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -106,7 +106,7 @@ public class TenantController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(TenantQueryCriteria tenantQueryCriteria, Pagination pagination)
     {
         var tenantList = await _tenantService.QueryAsync(tenantQueryCriteria, pagination);
@@ -120,7 +120,7 @@ public class TenantController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("queryAll")]
-    [Description("查询全部")]
+    [Description("Action.GetAllTenant")]
     public async Task<ActionResult> QueryAll()
     {
         var tenantList = await _tenantService.QueryAllAsync();
@@ -135,7 +135,7 @@ public class TenantController : BaseApiController
     /// <param name="tenantQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(TenantQueryCriteria tenantQueryCriteria)
     {

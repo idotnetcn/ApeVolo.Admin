@@ -47,7 +47,7 @@ public static class SwaggerUiMiddleware
                 var stream = streamHtml?.Invoke();
                 if (stream == null)
                 {
-                    const string msg = "index.html属性错误";
+                    const string msg = "index.html attribute error";
                     Logger.Error(msg);
                     throw new Exception(msg);
                 }

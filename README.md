@@ -1,6 +1,6 @@
 #### 📚系统说明
 
-- 基于 .Net 8 、SqlSugar ORM、Vue 2.X、RBAC、前后端分离的开箱则用的企业级中后台**权限管理系统**
+- 基于 .Net 8 、SqlSugar ORM、Vue 2.X、RBAC、前后端分离的开箱则用的企业级权限开发框架(**中后台管理系统**)
 - 无业务逻辑代码入侵，适用于任何 .NET/C# 应用程序。
 - 预览体验：  [https://www.apevolo.com](https://apevolo.com)
 - 开发文档：  [http://doc.apevolo.com](http://doc.apevolo.com)
@@ -53,6 +53,7 @@
 - 支持接口限流 避免恶意请求攻击
 - 支持数据权限 (全部、本人、本部门、本部门及以下、自定义)
 - 支持数据字典、自定义设置处理
+- 支持国际化
 
 #### ⚡快速开始
 
@@ -68,8 +69,8 @@
 
 
 #### ⭐️支持作者
-如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/xianhc/ape-volo-admin">Github</a> 或者
-<a target="_blank" href="https://gitee.com/xianhc/ape-volo-admin">Gitee</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持。
+如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/xianhc/ApeVolo.Admin">Github</a> 或者
+<a target="_blank" href="https://gitee.com/xianhc/ApeVolo.Admin">Gitee</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持。
 
 #### 🙋反馈交流
 ##### QQ群：839263566

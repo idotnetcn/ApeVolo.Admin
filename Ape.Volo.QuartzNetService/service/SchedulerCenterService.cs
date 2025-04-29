@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Reflection;
 using System.Threading.Tasks;
+using Ape.Volo.Common;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Helper.Serilog;
 using Ape.Volo.Entity.System;
@@ -241,7 +242,7 @@ public class SchedulerCenterService : ISchedulerCenterService
     /// <returns></returns>
     public async Task<string> GetTriggerStatus(QuartzNetDto taskQuartzDto)
     {
-        string triggerStatus = "未执行";
+        string triggerStatus = App.L.R("Enum.Trigger.NotRunning");
         JobKey jobKey = new JobKey(taskQuartzDto.Id.ToString(), taskQuartzDto.TaskGroup);
         IJobDetail job = await _scheduler.Result.GetJobDetail(jobKey);
         if (job == null)
@@ -262,12 +263,12 @@ public class SchedulerCenterService : ISchedulerCenterService
                 var state = await _scheduler.Result.GetTriggerState(trigger.Key);
                 triggerStatus = state switch
                 {
-                    TriggerState.Blocked => "阻塞",
-                    TriggerState.Complete => "完成",
-                    TriggerState.Error => "错误",
-                    TriggerState.None => "阻塞",
-                    TriggerState.Normal => "运行中",
-                    TriggerState.Paused => "暂停",
+                    TriggerState.Blocked => App.L.R("Enum.Trigger.Blocked"),
+                    TriggerState.Complete => App.L.R("Enum.Trigger.Complete"),
+                    TriggerState.Error => App.L.R("Enum.Trigger.Error"),
+                    TriggerState.None => App.L.R("Enum.Trigger.None"),
+                    TriggerState.Normal => App.L.R("Enum.Trigger.Normal"),
+                    TriggerState.Paused => App.L.R("Enum.Trigger.Paused"),
                     _ => triggerStatus
                 };
             }

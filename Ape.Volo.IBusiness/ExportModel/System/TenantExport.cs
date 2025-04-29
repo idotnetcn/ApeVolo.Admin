@@ -13,42 +13,42 @@ public class TenantExport : ExportBase
     /// <summary>
     /// 租户Id
     /// </summary>
-    [Display(Name = "租户Id")]
+    [Display(Name = "Tenant.Id")]
     public int TenantId { get; set; }
 
     /// <summary>
     /// 名称
     /// </summary>
-    [Display(Name = "名称")]
+    [Display(Name = "Tenant.Name")]
     public string Name { get; set; }
 
     /// <summary>
     /// 描述
     /// </summary>
-    [Display(Name = "描述")]
+    [Display(Name = "Sys.Description")]
     public string Description { get; set; }
 
     /// <summary>
     /// 租户类型
     /// </summary>
-    [Display(Name = "租户类型")]
+    [Display(Name = "Tenant.TenantType")]
     public TenantType TenantType { get; set; }
 
     /// <summary>
     /// 库Id
     /// </summary>
-    [Display(Name = "库Id")]
+    [Display(Name = "Tenant.ConfigId")]
     public string ConfigId { get; set; }
 
     /// <summary>
     /// 库类型
     /// </summary>
-    [Display(Name = "库类型")]
+    [Display(Name = "Tenant.DbType")]
     public DbType DbType { get; set; }
 
     /// <summary>
     /// 库连接
     /// </summary>
-    [Display(Name = "库连接")]
+    [Display(Name = "Tenant.ConnectionString")]
     public string ConnectionString { get; set; }
 }

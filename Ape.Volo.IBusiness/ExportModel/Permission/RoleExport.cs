@@ -12,36 +12,36 @@ public class RoleExport : ExportBase
     /// <summary>
     /// 角色名称
     /// </summary>
-    [Display(Name = "角色名称")]
+    [Display(Name = "Role.Name")]
     public string Name { get; set; }
 
     /// <summary>
     /// 角色等级
     /// </summary>
-    [Display(Name = "角色等级")]
+    [Display(Name = "Role.Level")]
     public int Level { get; set; }
 
     /// <summary>
     /// 角色描述
     /// </summary>
-    [Display(Name = "角色描述")]
+    [Display(Name = "Sys.Description")]
     public string Description { get; set; }
 
     /// <summary>
     /// 数据范围
     /// </summary>
-    [Display(Name = "数据权限")]
+    [Display(Name = "Role.DataScopeType")]
     public DataScopeType DataScopeType { get; set; }
 
     /// <summary>
     /// 数据部门
     /// </summary>
-    [Display(Name = "数据部门")]
+    [Display(Name = "Role.DataDept")]
     public string DataDept { get; set; }
 
     /// <summary>
     /// 角色代码
     /// </summary>
-    [Display(Name = "角色代码")]
+    [Display(Name = "Role.Permission")]
     public string Permission { get; set; }
 }

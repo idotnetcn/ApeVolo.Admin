@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ape.Volo.Api.Controllers.Monitor;
 
 /// <summary>
-/// 审计管理
+/// 审计日志管理
 /// </summary>
-[Area("审计管理")]
+[Area("Area.AuditLogManagement")]
 [Route("/api/auditing", Order = 13)]
 public class AuditingController : BaseApiController
 {
@@ -41,7 +41,7 @@ public class AuditingController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     [NotAudit]
     public async Task<ActionResult> Query(LogQueryCriteria logQueryCriteria,
         Pagination pagination)
@@ -59,7 +59,7 @@ public class AuditingController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("current")]
-    [Description("用户行为")]
+    [Description("Action.UserConduct")]
     [NotAudit]
     public async Task<ActionResult> FindListByCurrent(Pagination pagination)
     {

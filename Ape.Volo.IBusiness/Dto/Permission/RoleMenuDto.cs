@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Entity.Permission;
 
@@ -13,6 +13,7 @@ public class RoleMenuDto
     /// <summary>
     /// ID
     /// </summary>
+    [Display(Name = "Sys.Id")]
     [RegularExpression(@"^\+?[1-9]\d*$")]
     public long Id { get; set; }
 }

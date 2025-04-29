@@ -14,7 +14,8 @@ public class CreateUpdateEmailMessageTemplateDto : BaseEntityDto<long>
     /// <summary>
     /// 模板名称
     /// </summary>
-    [Required]
+    [Display(Name = "EmailTemplate.Name")]
+    [Required(ErrorMessage = "{0}required")]
     public string Name { get; set; }
 
     /// <summary>
@@ -25,13 +26,15 @@ public class CreateUpdateEmailMessageTemplateDto : BaseEntityDto<long>
     /// <summary>
     /// 主题
     /// </summary>
-    [Required]
+    [Display(Name = "EmailTemplate.Subject")]
+    [Required(ErrorMessage = "{0}required")]
     public string Subject { get; set; }
 
     /// <summary>
     /// 内容
     /// </summary>
-    [Required]
+    [Display(Name = "EmailTemplate.Body")]
+    [Required(ErrorMessage = "{0}required")]
     public string Body { get; set; }
 
     /// <summary>

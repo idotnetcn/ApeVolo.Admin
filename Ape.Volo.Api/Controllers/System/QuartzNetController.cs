@@ -20,7 +20,7 @@ namespace Ape.Volo.Api.Controllers.System;
 /// <summary>
 /// 作业调度管理
 /// </summary>
-[Area("作业调度管理")]
+[Area("Area.JobSchedulingManagement")]
 [Route("/api/tasks", Order = 9)]
 public class QuartzNetController : BaseApiController
 {
@@ -53,7 +53,7 @@ public class QuartzNetController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateQuartzNetDto createUpdateQuartzNetDto)
     {
@@ -63,23 +63,23 @@ public class QuartzNetController : BaseApiController
             return Error(actionError);
         }
 
-        if (createUpdateQuartzNetDto.TriggerType == (int)TriggerType.Cron)
+        if (createUpdateQuartzNetDto.TriggerType == TriggerType.Cron)
         {
             if (createUpdateQuartzNetDto.Cron.IsNullOrEmpty())
             {
-                return Error("cron模式下请设置作业执行cron表达式");
+                return Error(DataErrorHelper.Required(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.Cron)));
             }
 
             if (!CronExpression.IsValidExpression(createUpdateQuartzNetDto.Cron))
             {
-                return Error("cron模式下请设置正确得cron表达式");
+                return Error(App.L.R("{0}Error.Format", "cron"));
             }
         }
         else if (createUpdateQuartzNetDto.TriggerType == (int)TriggerType.Simple)
         {
             if (createUpdateQuartzNetDto.IntervalSecond <= 5)
             {
-                return Error("simple模式下请设置作业间隔执行秒数");
+                return Error(App.L.R("Error.SetIntervalSeconds"));
             }
         }
 
@@ -103,7 +103,7 @@ public class QuartzNetController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateQuartzNetDto createUpdateQuartzNetDto)
     {
@@ -113,23 +113,23 @@ public class QuartzNetController : BaseApiController
             return Error(actionError);
         }
 
-        if (createUpdateQuartzNetDto.TriggerType == (int)TriggerType.Cron)
+        if (createUpdateQuartzNetDto.TriggerType == TriggerType.Cron)
         {
             if (createUpdateQuartzNetDto.Cron.IsNullOrEmpty())
             {
-                return Error("cron模式下请设置作业执行cron表达式");
+                return Error(DataErrorHelper.Required(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.Cron)));
             }
 
             if (!CronExpression.IsValidExpression(createUpdateQuartzNetDto.Cron))
             {
-                return Error("cron模式下请设置正确得cron表达式");
+                return Error(App.L.R("{0}Error.Format", "cron"));
             }
         }
         else if (createUpdateQuartzNetDto.TriggerType == (int)TriggerType.Simple)
         {
             if (createUpdateQuartzNetDto.IntervalSecond <= 5)
             {
-                return Error("simple模式下请设置作业间隔执行秒数");
+                return Error(App.L.R("Error.SetIntervalSeconds"));
             }
         }
 
@@ -155,7 +155,7 @@ public class QuartzNetController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -179,7 +179,7 @@ public class QuartzNetController : BaseApiController
             return Ok(result);
         }
 
-        return Error();
+        return Error(DataErrorHelper.NotExist());
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class QuartzNetController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(QuartzNetQueryCriteria quartzNetQueryCriteria,
         Pagination pagination)
     {
@@ -210,7 +210,7 @@ public class QuartzNetController : BaseApiController
     /// <param name="quartzNetQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(QuartzNetQueryCriteria quartzNetQueryCriteria)
     {
@@ -229,7 +229,7 @@ public class QuartzNetController : BaseApiController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpPut]
-    [Description("执行")]
+    [Description("Action.ExecuteJob")]
     [Route("execute")]
     public async Task<ActionResult> Execute(long id)
     {
@@ -241,7 +241,7 @@ public class QuartzNetController : BaseApiController
         var quartzNet = await _quartzNetService.TableWhere(x => x.Id == id).FirstAsync();
         if (quartzNet.IsNull())
         {
-            return Error("作业调度不存在");
+            return Error(DataErrorHelper.NotExist());
         }
 
         //开启作业任务
@@ -257,13 +257,13 @@ public class QuartzNetController : BaseApiController
                     return Ok(OperateResult.Success());
                 }
 
-                return Ok(OperateResult.Error("执行失败,请重试！"));
+                return Ok(OperateResult.Error(App.L.R("Error.ExecutionFailed")));
             }
 
-            return Ok(OperateResult.Error("已在运行,请勿重复开启！"));
+            return Ok(OperateResult.Error(App.L.R("Error.AlreadyRunning")));
         }
 
-        return Ok(OperateResult.Error(""));
+        return Error();
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public class QuartzNetController : BaseApiController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpPut]
-    [Description("暂停")]
+    [Description("Action.PauseJob")]
     [Route("pause")]
     public async Task<ActionResult> Pause(long id)
     {
@@ -284,7 +284,7 @@ public class QuartzNetController : BaseApiController
         var quartzNet = await _quartzNetService.TableWhere(x => x.Id == id).FirstAsync();
         if (quartzNet.IsNull())
         {
-            return Error("作业调度不存在");
+            return Error(DataErrorHelper.NotExist());
         }
 
         var triggerStatus = await _schedulerCenterService.GetTriggerStatus(App.Mapper.MapTo<QuartzNetDto>(quartzNet));
@@ -298,7 +298,7 @@ public class QuartzNetController : BaseApiController
             }
         }
 
-        return Error("暂停失败,请重试！");
+        return Error(App.L.R("Error.PauseFailed"));
     }
 
     /// <summary>
@@ -307,7 +307,7 @@ public class QuartzNetController : BaseApiController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpPut]
-    [Description("恢复作业")]
+    [Description("Action.ResumeJob")]
     [Route("resume")]
     public async Task<ActionResult> Resume(long id)
     {
@@ -319,7 +319,7 @@ public class QuartzNetController : BaseApiController
         var quartzNet = await _quartzNetService.TableWhere(x => x.Id == id).FirstAsync();
         if (quartzNet.IsNull())
         {
-            return Error("作业调度不存在");
+            return Error(DataErrorHelper.NotExist());
         }
 
         var triggerStatus = await _schedulerCenterService.GetTriggerStatus(App.Mapper.MapTo<QuartzNetDto>(quartzNet));
@@ -333,7 +333,7 @@ public class QuartzNetController : BaseApiController
             }
         }
 
-        return Error("恢复失败,请重试！");
+        return Error(App.L.R("Error.RestoreFailed"));
     }
 
 
@@ -345,7 +345,7 @@ public class QuartzNetController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("logs/query")]
-    [Description("执行日志")]
+    [Description("Action.ExecutionLogJob")]
     public async Task<ActionResult> QueryLog(QuartzNetLogQueryCriteria quartzNetLogQueryCriteria,
         Pagination pagination)
     {
@@ -360,7 +360,7 @@ public class QuartzNetController : BaseApiController
     /// <param name="quartzNetLogQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("logs/download")]
     public async Task<ActionResult> Download(QuartzNetLogQueryCriteria quartzNetLogQueryCriteria)
     {

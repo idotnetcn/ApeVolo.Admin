@@ -14,7 +14,7 @@ namespace Ape.Volo.Api.Controllers.Message.Email;
 /// <summary>
 /// 邮件模板管理
 /// </summary>
-[Area("邮件模板管理")]
+[Area("Area.EmailMessageTemplateManagement")]
 [Route("/api/email/template", Order = 18)]
 public class EmailMessageTemplateController : BaseApiController
 {
@@ -42,7 +42,7 @@ public class EmailMessageTemplateController : BaseApiController
     /// <returns></returns>
     [HttpPost]
     [Route("create")]
-    [Description("创建")]
+    [Description("Sys.Create")]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto)
     {
@@ -63,7 +63,7 @@ public class EmailMessageTemplateController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateEmailMessageTemplateDto createUpdateEmailMessageTemplateDto)
     {
@@ -84,7 +84,7 @@ public class EmailMessageTemplateController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -105,7 +105,7 @@ public class EmailMessageTemplateController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(EmailMessageTemplateQueryCriteria messageTemplateQueryCriteria,
         Pagination pagination)
     {

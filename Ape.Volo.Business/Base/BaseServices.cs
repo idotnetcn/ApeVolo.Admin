@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Base;
@@ -97,7 +98,7 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
     {
         if (isUpdateColumns != null && ignoreColumns != null)
         {
-            throw new Exception("更新列和排除列不能同时使用");
+            throw new Exception(App.L.R("Error.UpdateAndExcludeConflict"));
         }
 
         var ignoreIsDeletedFields = (Expression<Func<TEntity, object>>)(x => ((ISoftDeletedEntity)x).IsDeleted);
@@ -133,7 +134,7 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
     {
         if (isUpdateColumns != null && ignoreColumns != null)
         {
-            throw new Exception("更新列和排除列不能同时使用");
+            throw new Exception(App.L.R("Error.UpdateAndExcludeConflict"));
         }
 
         var ignoreIsDeletedFields = (Expression<Func<TEntity, object>>)(x => ((ISoftDeletedEntity)x).IsDeleted);
@@ -272,17 +273,17 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
     {
         if (queryOptions.Pagination.PageIndex < 1)
         {
-            throw new Exception("页码必须是 >=1 的整数");
+            throw new Exception(App.L.R("Error.PageNumberInvalid"));
         }
 
         if (queryOptions.Pagination.PageSize < 1 || queryOptions.Pagination.PageSize > 100)
         {
-            throw new Exception("每页条数必须是 >=1 并且 <=100 的整数");
+            throw new Exception(App.L.R("Error.PageSizeInvalid"));
         }
 
         if (queryOptions.WhereLambda != null && queryOptions.ConditionalModels != null)
         {
-            throw new Exception("条件表达式和条件模型不能同时使用");
+            throw new Exception(App.L.R("Error.ConditionConflict"));
         }
 
         RefAsync<int> totalNumber = 0; //总条数
@@ -328,7 +329,7 @@ public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : clas
             totalNumber, totalPage);
         if (totalNumber > 0 && queryOptions.Pagination.PageIndex > totalPage)
         {
-            throw new Exception("当前页码超出表格最大页码");
+            throw new Exception(App.L.R("Error.PageNumberExceedsLimit"));
         }
 
         queryOptions.Pagination.TotalElements = totalNumber;

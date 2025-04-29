@@ -6,6 +6,7 @@ using System.Linq;
 using Ape.Volo.Common.Caches;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Internal;
+using Ape.Volo.Common.MultiLanguage.Contract;
 using Ape.Volo.Common.WebApp;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -49,11 +50,25 @@ public static class App
     public static HttpContext HttpContext =>
         CatchOrDefault(() => RootServices?.GetService<IHttpContextAccessor>()?.HttpContext);
 
+    /// <summary>
+    /// Http当前用户
+    /// </summary>
     public static IHttpUser HttpUser => GetService<IHttpUser>();
 
+    /// <summary>
+    /// 缓存
+    /// </summary>
     public static ICache Cache => GetService<ICache>();
 
+    /// <summary>
+    /// 对象映射
+    /// </summary>
     public static IMapper Mapper => GetService<IMapper>();
+
+    /// <summary>
+    /// 多语言
+    /// </summary>
+    public static ILocalizationService L => GetService<ILocalizationService>();
 
     /// <summary>
     /// 未托管的对象集合
@@ -297,8 +312,8 @@ public static class App
         if (UnmanagedObjects.Any())
         {
             var nowTime = DateTime.UtcNow;
-            if ((LastGCCollectTime == null ||
-                 (nowTime - LastGCCollectTime.Value).TotalSeconds > GC_COLLECT_INTERVAL_SECONDS))
+            if (LastGCCollectTime == null ||
+                (nowTime - LastGCCollectTime.Value).TotalSeconds > GC_COLLECT_INTERVAL_SECONDS)
             {
                 LastGCCollectTime = nowTime;
                 GC.Collect();

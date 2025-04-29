@@ -129,7 +129,7 @@ public class TestController : BaseApiController
 
     [HttpGet]
     [Route("SearchOrder")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     [NotAudit]
     public async Task<ActionResult> SearchOrder()
     {

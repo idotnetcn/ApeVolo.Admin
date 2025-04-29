@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
-using Ape.Volo.Api.ActionExtension.Parameter;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common;
 using Ape.Volo.Common.ConfigOptions;
@@ -19,7 +18,7 @@ namespace Ape.Volo.Api.Controllers.System;
 /// <summary>
 /// 文件存储管理
 /// </summary>
-[Area("文件存储管理")]
+[Area("Area.FileStorageManagement")]
 [Route("/api/storage", Order = 12)]
 public class FileRecordController : BaseApiController
 {
@@ -44,27 +43,33 @@ public class FileRecordController : BaseApiController
     /// 新增文件
     /// </summary>
     /// <param name="file"></param>
-    /// <param name="description"></param>
+    /// <param name="createUpdateFileRecordDto"></param>
     /// <returns></returns>
     [HttpPost, HttpOptions]
     [Route("upload")]
-    [Description("创建")]
-    [CheckParamNotEmpty("description")]
-    public async Task<ActionResult> Upload(string description,
+    [Description("Sys.Create")]
+    public async Task<ActionResult> Upload(CreateUpdateFileRecordDto createUpdateFileRecordDto,
         [FromForm] IFormFile file)
     {
+        if (!ModelState.IsValid)
+        {
+            var actionError = ModelState.GetErrors();
+            return Error(actionError);
+        }
+
         if (file.IsNull())
         {
-            return Error("请选择一个文件再尝试!");
+            return Error(App.L.R("{0}required", "file"));
         }
+
 
         var fileLimitSize = App.GetOptions<SystemOptions>().FileLimitSize * 1024 * 1024;
         if (file.Length > fileLimitSize)
         {
-            return Error($"文件过大，请选择文件小于等于{fileLimitSize}MB的重新进行尝试!");
+            return Error(App.L.R("Error.FileTooLarge{0}", fileLimitSize));
         }
 
-        var result = await _fileRecordService.CreateAsync(description, file);
+        var result = await _fileRecordService.CreateAsync(createUpdateFileRecordDto, file);
         return Ok(result);
     }
 
@@ -75,7 +80,7 @@ public class FileRecordController : BaseApiController
     /// <returns></returns>
     [HttpPut]
     [Route("edit")]
-    [Description("编辑")]
+    [Description("Sys.Edit")]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateFileRecordDto createUpdateAppSecretDto)
     {
@@ -96,7 +101,7 @@ public class FileRecordController : BaseApiController
     /// <returns></returns>
     [HttpDelete]
     [Route("delete")]
-    [Description("删除")]
+    [Description("Sys.Delete")]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -118,7 +123,7 @@ public class FileRecordController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [Route("query")]
-    [Description("查询")]
+    [Description("Sys.Query")]
     public async Task<ActionResult> Query(FileRecordQueryCriteria fileRecordQueryCriteria,
         Pagination pagination)
     {
@@ -134,7 +139,7 @@ public class FileRecordController : BaseApiController
     /// <param name="fileRecordQueryCriteria"></param>
     /// <returns></returns>
     [HttpGet]
-    [Description("导出")]
+    [Description("Sys.Export")]
     [Route("download")]
     public async Task<ActionResult> Download(FileRecordQueryCriteria fileRecordQueryCriteria)
     {

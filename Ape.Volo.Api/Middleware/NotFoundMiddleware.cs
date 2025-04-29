@@ -26,11 +26,9 @@ public class NotFoundMiddleware
             {
                 Status = StatusCodes.Status404NotFound,
                 ActionError = new ActionError(),
-                Message = "请求失败，访问接口不存在",
+                Message = "The request failed. The access interface does not exist.",
                 Path = context.Request.Path.Value?.ToLower()
             }.ToJson());
-
-            return;
         }
 
         // // 继续处理请求

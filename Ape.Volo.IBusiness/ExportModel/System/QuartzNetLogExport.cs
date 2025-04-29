@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
 
 namespace Ape.Volo.IBusiness.ExportModel.System;
@@ -12,60 +11,60 @@ public class QuartzNetLogExport : ExportBase
     /// <summary>
     /// 任务ID
     /// </summary>
-    [Display(Name = "任务ID")]
+    [Display(Name = "TaskLog.TaskId")]
     public long TaskId { get; set; }
 
     /// <summary>
     /// 任务名称
     /// </summary>
-    [Display(Name = "任务名称")]
+    [Display(Name = "Task.TaskName")]
     public string TaskName { get; set; }
 
     /// <summary>
     /// 任务组
     /// </summary>
-    [Display(Name = "任务组")]
+    [Display(Name = "Task.TaskGroup")]
     public string TaskGroup { get; set; }
 
     /// <summary>
     /// 程序集名称
     /// </summary>
-    [Display(Name = "程序集名称")]
+    [Display(Name = "Task.AssemblyName")]
     public string AssemblyName { get; set; }
 
     /// <summary>
     /// 执行类
     /// </summary>
-    [Display(Name = "执行类")]
+    [Display(Name = "Task.ClassName")]
     public string ClassName { get; set; }
 
     /// <summary>
     /// Cron表达式
     /// </summary>
-    [Display(Name = "Cron表达式")]
+    [Display(Name = "Task.Cron")]
     public string Cron { get; set; }
 
     /// <summary>
     /// 异常详情
     /// </summary>
-    [Display(Name = "异常详情")]
+    [Display(Name = "TaskLog.ExceptionDetail")]
     public string ExceptionDetail { get; set; }
 
     /// <summary>
     /// 执行耗时
     /// </summary>
-    [Display(Name = "执行耗时")]
+    [Display(Name = "TaskLog.ExecutionDuration")]
     public long ExecutionDuration { get; set; }
 
     /// <summary>
     /// 执行传参
     /// </summary>
-    [Display(Name = "执行传参")]
+    [Display(Name = "Task.RunParams")]
     public string RunParams { get; set; }
 
     /// <summary>
     /// 是否成功
     /// </summary>
-    [Display(Name = "是否成功")]
-    public BoolState IsSuccess { get; set; }
+    [Display(Name = "TaskLog.IsSuccess")]
+    public bool IsSuccess { get; set; }
 }

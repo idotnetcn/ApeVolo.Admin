@@ -13,12 +13,15 @@ public class UserRoleDto
     /// <summary>
     /// ID
     /// </summary>
-    [RegularExpression(@"^\+?[1-9]\d*$")]
+    [Display(Name = "Sys.Id")]
+    [RegularExpression(@"^\+?[1-9]\d*$", ErrorMessage = "{0}Error.Format")]
+
     public long Id { get; set; }
 
     /// <summary>
     /// 名称
     /// </summary>
-    [Required]
+    [Display(Name = "Sys.Name")]
+    [Required(ErrorMessage = "{0}required")]
     public string Name { get; set; }
 }

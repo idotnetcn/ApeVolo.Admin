@@ -17,7 +17,7 @@ public class CreateUpdateMenuDto : BaseEntityDto<long>
     /// </summary>
     [Display(Name = "Menu.Title")]
     [Required(ErrorMessage = "{0}required")]
-    public string Title { get; private set; }
+    public string Title { get; set; }
 
     /// <summary>
     /// 路径

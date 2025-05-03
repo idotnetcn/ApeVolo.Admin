@@ -22,13 +22,17 @@
 | # | 模块功能                      |  项目文件                    | 说明|
 |---|-------------------------------|-------------------------------|-------------------------------|
 | 1 | Web 控制器 |Ape.Volo.Api | 接口交互层 |
-| 2 | 数据库仓储 |Ape.Volo.Repository | 常用的增删查改操作 |
-| 3 | 业务接口 |Ape.Volo.IBusiness | 业务接口、DTO传输对象等 |
-| 4 | 业务接口实现 |Ape.Volo.Business | 业务具体实现 |
-| 5 | 系统通用 |Ape.Volo.Common | 通用的工具类；扩展方法、文件、图像操作等 |
-| 6 | 实体 |Ape.Volo.Entity | 数据库实体映射类 |
-| 7 | 事件总线 |Ape.Volo.EventBus | 事件总线|
-| 8 | 任务调度 |Ape.Volo.QuartzNetService | 系统定时任务实现 |
+| 2 | 业务接口实现 |Ape.Volo.Business | 业务服务接口实现 |
+| 3 | 系统通用 |Ape.Volo.Common | 通用的工具类；扩展方法、文件、图像操作等 |
+| 4 | 系统核心 |Ape.Volo.Core | Aop拦截、系统配置、App服务等 |
+| 5 | 系统实体 |Ape.Volo.Entity | 数据库实体映射类 |
+| 6 | 事件总线 |Ape.Volo.EventBus | 事件总线|
+| 7 | 业务接口 |Ape.Volo.IBusiness | 业务服务接口 |
+| 8 | 基础设施 |Ape.Volo.Infrastructure | 依赖注入、服务扩展等 |
+| 9 | 仓储 |Ape.Volo.Repository | 数据库仓储扩展 事务等 |
+| 10 | 共享模型 |Ape.Volo.SharedModel | 实体(请求DTO、查询参数对象等) |
+| 11 | 作业调度 |Ape.Volo.TaskService | 系统定时任务 |
+| 12 | 视图模型 |Ape.Volo.ViewModel | UI视图层对象 |
 
 #### 🚀系统特性
 - 使用  Async Await 异步编程

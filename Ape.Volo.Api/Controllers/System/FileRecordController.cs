@@ -1,14 +1,17 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.Core;
 using Ape.Volo.Core.ConfigOptions;
 using Ape.Volo.IBusiness.System;
 using Ape.Volo.SharedModel.Dto.Core.System;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -80,6 +83,7 @@ public class FileRecordController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateFileRecordDto createUpdateAppSecretDto)
     {
@@ -101,6 +105,7 @@ public class FileRecordController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -123,6 +128,7 @@ public class FileRecordController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<FileRecordVo>>))]
     public async Task<ActionResult> Query(FileRecordQueryCriteria fileRecordQueryCriteria,
         Pagination pagination)
     {
@@ -140,6 +146,7 @@ public class FileRecordController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(FileRecordQueryCriteria fileRecordQueryCriteria)
     {
         var fileRecordExports = await _fileRecordService.DownloadAsync(fileRecordQueryCriteria);

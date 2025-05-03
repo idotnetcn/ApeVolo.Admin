@@ -1,11 +1,15 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.System;
 using Ape.Volo.SharedModel.Dto.Core.System.Dict;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System.Dict;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.System;
@@ -42,6 +46,7 @@ public class DictDetailController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateDictDetailDto createUpdateDictDto)
     {
@@ -64,6 +69,7 @@ public class DictDetailController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateDictDetailDto createUpdateDictDetailDto)
     {
@@ -85,6 +91,7 @@ public class DictDetailController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete(long id)
     {
         if (id.IsNullOrEmpty())
@@ -105,6 +112,7 @@ public class DictDetailController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<DictDetailVo>>))]
     public async Task<ActionResult> Query(DictDetailQueryCriteria dictDetailQueryCriteria, Pagination pagination)
     {
         var list = await _dictDetailService.QueryAsync(dictDetailQueryCriteria, pagination);

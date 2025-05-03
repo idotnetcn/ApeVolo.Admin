@@ -1,14 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.Core;
 using Ape.Volo.IBusiness.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission.User;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,6 +49,7 @@ public class UserController : BaseApiController
     [HttpPost]
     [Description("Sys.Create")]
     [Route("create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create([FromBody] CreateUpdateUserDto createUpdateUserDto)
     {
         if (!ModelState.IsValid)
@@ -68,6 +72,7 @@ public class UserController : BaseApiController
     [HttpPut]
     [Description("Sys.Edit")]
     [Route("edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update([FromBody] CreateUpdateUserDto createUpdateUserDto)
     {
         if (!ModelState.IsValid)
@@ -88,6 +93,7 @@ public class UserController : BaseApiController
     [HttpDelete]
     [Description("Sys.Delete")]
     [Route("delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -103,6 +109,7 @@ public class UserController : BaseApiController
     [HttpPut]
     [Route("update/center")]
     [Description("Action.UpdatePersonalInfo")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> UpdateCenterAsync([FromBody] UpdateUserCenterDto updateUserCenterDto)
     {
         if (!ModelState.IsValid)
@@ -118,6 +125,7 @@ public class UserController : BaseApiController
     [HttpPost]
     [Route("update/password")]
     [Description("Action.UpdatePassword")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> UpdatePasswordAsync([FromBody] UpdateUserPassDto updateUserPassDto)
     {
         if (!ModelState.IsValid)
@@ -133,6 +141,7 @@ public class UserController : BaseApiController
     [HttpPost]
     [Route("update/email")]
     [Description("Action.UpdateEmail")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> UpdateEmail([FromBody] UpdateUserEmailDto updateUserEmailDto)
     {
         if (!ModelState.IsValid)
@@ -148,6 +157,7 @@ public class UserController : BaseApiController
     [HttpPost, HttpOptions]
     [Route("update/avatar")]
     [Description("Action.UpdateAvatar")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> UpdateAvatar([FromForm] IFormFile avatar) //多文件使用  IFormFileCollection
     {
         if (avatar.IsNull())
@@ -170,7 +180,7 @@ public class UserController : BaseApiController
     [Description("Sys.Query")]
     [Route("query")]
     [Produces("application/json")]
-    //[ProducesResponseType(typeof(UserVo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<UserVo>>))]
     public async Task<ActionResult> Query(UserQueryCriteria userQueryCriteria,
         Pagination pagination)
     {
@@ -186,6 +196,7 @@ public class UserController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(UserQueryCriteria userQueryCriteria)
     {
         var userExports = await _userService.DownloadAsync(userQueryCriteria);

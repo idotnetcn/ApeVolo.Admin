@@ -22,6 +22,7 @@ using Ape.Volo.IBusiness.System;
 using Ape.Volo.Infrastructure.Authentication;
 using Ape.Volo.SharedModel.Queries.Login;
 using Ape.Volo.ViewModel.Core.Permission.User;
+using Ape.Volo.ViewModel.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +74,7 @@ public class AuthorizationController : BaseApiController
     [Route("captcha")]
     [AllowAnonymous]
     [NotAudit]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CaptchaVo))]
     public async Task<ActionResult> Captcha()
     {
         var showCaptcha = true; //是否显示验证码
@@ -100,14 +102,14 @@ public class AuthorizationController : BaseApiController
         var captchaId = GlobalConstants.CachePrefix.CaptchaId +
                         IdHelper.NextId().ToString().Base64Encode();
         await App.Cache.SetAsync(captchaId, code, TimeSpan.FromMinutes(2), null);
-        var response = new
+        var captchaVo = new CaptchaVo
         {
-            img,
-            captchaId,
-            showCaptcha
+            Img = img,
+            CaptchaId = captchaId,
+            ShowCaptcha = showCaptcha
         };
 
-        return JsonContent(response);
+        return JsonContent(captchaVo);
     }
 
 
@@ -120,6 +122,7 @@ public class AuthorizationController : BaseApiController
     [Route("login")]
     [Description("Action.UserLogin")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResultVo))]
     public async Task<ActionResult> Login([FromBody] LoginAuthUser authUser)
     {
         if (!ModelState.IsValid)
@@ -284,6 +287,7 @@ public class AuthorizationController : BaseApiController
     [AllowAnonymous]
     [NotAudit]
     [ParamRequired("token")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TokenVo))]
     public async Task<ActionResult> RefreshToken(string token)
     {
         var tokenMd5 = token.ToMd5String16();
@@ -324,6 +328,7 @@ public class AuthorizationController : BaseApiController
     [Route("info")]
     [Description("Action.PersonalInfo")]
     [NotAudit]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(JwtUserVo))]
     public async Task<ActionResult> GetInfo()
     {
         var netUser = await _userService.QueryByIdAsync(App.HttpUser.Id);
@@ -342,6 +347,7 @@ public class AuthorizationController : BaseApiController
     [Description("Action.GetEmailVerificationCode")]
     [Route("code/reset/email")]
     [ParamRequired("email")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> ResetEmail(string email)
     {
         if (!email.IsEmail())
@@ -363,6 +369,7 @@ public class AuthorizationController : BaseApiController
     [Route("logout")]
     [Description("Action.UserLogOut")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Logout()
     {
         //清理缓存
@@ -395,6 +402,7 @@ public class AuthorizationController : BaseApiController
     [Route("swagger/login")]
     [Description("Action.UserLogin")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> SwaggerLogin([FromBody] SwaggerLoginAuthUser swaggerLoginAuthUser)
     {
         if (!ModelState.IsValid)
@@ -462,9 +470,10 @@ public class AuthorizationController : BaseApiController
         switch (type)
         {
             case "login":
-                var response = new
+                var response = new LoginResultVo
                 {
-                    user = jwtUserVo, token
+                    JwtUserVo = jwtUserVo,
+                    TokenVo = token
                 };
                 return JsonContent(response);
             case "refresh":

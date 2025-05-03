@@ -1,8 +1,11 @@
 ﻿using Newtonsoft.Json;
 
-namespace Ape.Volo.Infrastructure.Authentication;
+namespace Ape.Volo.ViewModel.Jwt;
 
-public class Token
+/// <summary>
+/// 
+/// </summary>
+public class TokenVo
 {
     /// <summary>
     /// 授权token

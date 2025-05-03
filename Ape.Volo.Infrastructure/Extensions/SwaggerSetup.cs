@@ -31,7 +31,13 @@ public static class SwaggerSetup
             {
                 Version = options.Version,
                 Title = options.Title + "    " + RuntimeInformation.FrameworkDescription,
-                Description = $"Build: {DateTime.Now:yyyy-MM-dd HH:mm:ss}  | User: xianhc"
+                Description = $"Build: {DateTime.Now:yyyy-MM-dd HH:mm:ss}  | User: xianhc",
+                Contact = new OpenApiContact
+                {
+                    Name = "xianhc",
+                    Email = "apevolo@gamil.com",
+                    Url = new Uri("http://doc.apevolo.com")
+                }
             });
 
             try
@@ -68,19 +74,20 @@ public static class SwaggerSetup
             });
             //c.SchemaFilter<ExcludeSchemaFilter>();
             //c.CustomSchemaIds(type => type.FullName);
-            c.CustomSchemaIds(type =>
-            {
-                var typeName = type.Name;
-
-                // 处理泛型类型
-                if (type.IsGenericType)
-                    typeName = type.Name.Split('`')[0] +
-                               type.GetGenericArguments().Select(a => a.Name).Aggregate((x, y) => $"{x}Of{y}");
-
-                // 添加命名空间前缀以避免冲突
-                return type.Namespace.StartsWith("System") ? $"System{typeName}" :
-                    type.Namespace.Contains("SqlSugar") ? $"SqlSugar{typeName}" : typeName;
-            });
+            // c.CustomSchemaIds(type =>
+            // {
+            //     var typeName = type.Name;
+            //
+            //     // 处理泛型类型
+            //     if (type.IsGenericType)
+            //         typeName = type.Name.Split('`')[0] +
+            //                    type.GetGenericArguments().Select(a => a.Name).Aggregate((x, y) => $"{x}Of{y}");
+            //
+            //     // 添加命名空间前缀以避免冲突
+            //     return type.Namespace.StartsWith("System") ? $"System{typeName}" :
+            //         type.Namespace.Contains("SqlSugar") ? $"SqlSugar{typeName}" : typeName;
+            // });
+            c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
         });
     }
 

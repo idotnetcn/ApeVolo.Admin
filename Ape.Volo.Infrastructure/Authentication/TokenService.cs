@@ -6,6 +6,7 @@ using Ape.Volo.Common.Global;
 using Ape.Volo.Common.WebApp;
 using Ape.Volo.Core;
 using Ape.Volo.Core.ConfigOptions;
+using Ape.Volo.ViewModel.Jwt;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -22,7 +23,7 @@ public class TokenService : ITokenService
         _logger = logger;
     }
 
-    public async Task<Token> IssueTokenAsync(LoginUserInfo loginUserInfo, bool refresh = false)
+    public async Task<TokenVo> IssueTokenAsync(LoginUserInfo loginUserInfo, bool refresh = false)
     {
         if (loginUserInfo == null)
             throw new ArgumentNullException(nameof(loginUserInfo));
@@ -58,7 +59,7 @@ public class TokenService : ITokenService
         var token = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
         if (refresh)
         {
-            return await Task.FromResult(new Token
+            return await Task.FromResult(new TokenVo
             {
                 Expires = jwtAuthOptions.Expires * 3600,
                 TokenType = AuthConstants.JwtTokenType,
@@ -66,7 +67,7 @@ public class TokenService : ITokenService
             });
         }
 
-        return await Task.FromResult(new Token
+        return await Task.FromResult(new TokenVo
         {
             AccessToken = token,
             Expires = jwtAuthOptions.Expires * 3600,

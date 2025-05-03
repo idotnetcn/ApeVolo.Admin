@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Message.Email;
 using Ape.Volo.SharedModel.Dto.Core.Message.Email;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Message;
+using Ape.Volo.ViewModel.Core.Message.Email;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Message.Email;
@@ -34,6 +38,7 @@ public class EmailAccountController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
     {
@@ -55,6 +60,7 @@ public class EmailAccountController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateEmailAccountDto createUpdateEmailAccountDto)
     {
@@ -76,6 +82,7 @@ public class EmailAccountController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -97,6 +104,7 @@ public class EmailAccountController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<EmailAccountVo>>))]
     public async Task<ActionResult> Query(EmailAccountQueryCriteria emailAccountQueryCriteria,
         Pagination pagination)
     {
@@ -114,6 +122,7 @@ public class EmailAccountController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(EmailAccountQueryCriteria emailAccountQueryCriteria)
     {
         var emailAccountExports = await _emailAccountService.DownloadAsync(emailAccountQueryCriteria);

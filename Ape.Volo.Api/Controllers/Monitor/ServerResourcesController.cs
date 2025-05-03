@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.ViewModel.ServerInfo;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Monitor;
@@ -27,6 +29,7 @@ public class ServerResourcesController : BaseApiController
     [Route("resources/info")]
     [Description("Action.ServerResourceInfo")]
     [NotAudit]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ServerResourcesInfo))]
     public async Task<ActionResult> Query()
     {
         var resourcesInfo = await _serverResourcesService.Query();

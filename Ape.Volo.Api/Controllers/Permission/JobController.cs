@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.Job;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -43,6 +47,7 @@ public class JobController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateJobDto createUpdateJobDto)
     {
@@ -64,6 +69,7 @@ public class JobController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateJobDto createUpdateJobDto)
     {
@@ -85,6 +91,7 @@ public class JobController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -106,6 +113,7 @@ public class JobController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<JobVo>>))]
     public async Task<ActionResult> Query(JobQueryCriteria jobQueryCriteria, Pagination pagination)
     {
         var jobList = await _jobService.QueryAsync(jobQueryCriteria, pagination);
@@ -120,6 +128,7 @@ public class JobController : BaseApiController
     [HttpGet]
     [Route("queryAll")]
     [Description("Action.GetAllJobs")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<JobVo>))]
     public async Task<ActionResult> QueryAll()
     {
         var jobList = await _jobService.QueryAllAsync();
@@ -135,6 +144,7 @@ public class JobController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(JobQueryCriteria jobQueryCriteria)
     {
         var jobExports = await _jobService.DownloadAsync(jobQueryCriteria);

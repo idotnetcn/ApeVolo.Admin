@@ -8,7 +8,9 @@ using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission.Role;
+using Ape.Volo.ViewModel.Core.Permission;
 using Ape.Volo.ViewModel.Core.Permission.Menu;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -48,6 +50,7 @@ public class PermissionsController : BaseApiController
     [HttpGet]
     [Route("menus/query")]
     [Description("Action.GetAllMenu")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MenuVo>))]
     public async Task<ActionResult> QueryAllMenus()
     {
         var menus = await _menuService.QueryAllAsync();
@@ -64,6 +67,7 @@ public class PermissionsController : BaseApiController
     [HttpGet]
     [Route("apis/query")]
     [Description("Action.GetAllApi")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ApisVo>))]
     public async Task<ActionResult> QueryAllApis()
     {
         List<ApisTree> apisTree = new List<ApisTree>();
@@ -109,6 +113,7 @@ public class PermissionsController : BaseApiController
     [HttpPut]
     [Route("menus/edit")]
     [Description("Action.UpdateRoleMenu")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> UpdateRolesMenus([FromBody] UpdateRoleMenuDto updateRoleMenuDto)
     {
         if (!ModelState.IsValid)

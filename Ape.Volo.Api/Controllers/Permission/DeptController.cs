@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Permission;
 using Ape.Volo.ViewModel.Core.Permission.Department;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -45,6 +47,7 @@ public class DeptController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateDepartmentDto createUpdateDepartmentDto)
     {
@@ -67,6 +70,7 @@ public class DeptController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateDepartmentDto createUpdateDepartmentDto)
     {
@@ -89,6 +93,7 @@ public class DeptController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -111,6 +116,7 @@ public class DeptController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<DepartmentVo>>))]
     public async Task<ActionResult> Query(DeptQueryCriteria deptQueryCriteria,
         Pagination pagination)
     {
@@ -124,6 +130,7 @@ public class DeptController : BaseApiController
     [HttpGet]
     [Route("queryTree")]
     [Description("Action.GetDepartmentTreeData")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DepartmentVo>))]
     public async Task<ActionResult> QueryTree()
     {
         var deptList = await _departmentService.QueryAllAsync();
@@ -141,6 +148,7 @@ public class DeptController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(DeptQueryCriteria deptQueryCriteria)
     {
         var deptExports = await _departmentService.DownloadAsync(deptQueryCriteria);
@@ -160,13 +168,9 @@ public class DeptController : BaseApiController
     [HttpGet]
     [Route("superior")]
     [Description("Action.GetSiblingAndParentDepartments")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DepartmentVo>))]
     public async Task<ActionResult> GetSuperior(long id)
     {
-        if (id.IsNullOrEmpty())
-        {
-            return Error("id cannot be empty");
-        }
-
         var deptList = await _departmentService.QuerySuperiorDeptAsync(id);
 
         return JsonContent(deptList);

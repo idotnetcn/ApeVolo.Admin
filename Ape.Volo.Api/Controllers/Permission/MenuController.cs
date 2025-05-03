@@ -1,13 +1,17 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.Core;
 using Ape.Volo.IBusiness.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.Menu;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -44,6 +48,7 @@ public class MenusController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateMenuDto createUpdateMenuDto)
     {
@@ -65,6 +70,7 @@ public class MenusController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateMenuDto createUpdateMenuDto)
     {
@@ -86,6 +92,7 @@ public class MenusController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -105,6 +112,7 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("Action.BuildLoginMenu")]
     [Route("build")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MenuVo>))]
     public async Task<ActionResult> Build()
     {
         var menuVos = await _menuService.BuildTreeAsync(App.HttpUser.Id);
@@ -119,6 +127,7 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("Action.GetSubMenu")]
     [Route("lazy")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MenuVo>))]
     public async Task<ActionResult<object>> GetMenuLazy(long pid)
     {
         if (pid.IsNullOrEmpty())
@@ -138,6 +147,7 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("Sys.Query")]
     [Route("query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<MenuVo>>))]
     public async Task<ActionResult> Query(MenuQueryCriteria menuQueryCriteria)
     {
         var menuList = await _menuService.QueryAsync(menuQueryCriteria);
@@ -153,6 +163,7 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(MenuQueryCriteria menuQueryCriteria)
     {
         var menuExports = await _menuService.DownloadAsync(menuQueryCriteria);
@@ -171,6 +182,7 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("Action.GetSiblingAndParentMenus")]
     [Route("superior")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MenuVo>))]
     public async Task<ActionResult<object>> GetSuperior(long id)
     {
         if (id.IsNullOrEmpty())
@@ -185,13 +197,9 @@ public class MenusController : BaseApiController
     [HttpGet]
     [Description("Action.GetAllSubMenu")]
     [Route("child")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<long>))]
     public async Task<ActionResult> GetChild(long id)
     {
-        if (id.IsNullOrEmpty())
-        {
-            return Error("id is null");
-        }
-
         var menuIds = await _menuService.FindChildAsync(id);
         return Ok(menuIds);
     }

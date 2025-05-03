@@ -34,6 +34,7 @@ public class ParamRequiredAttribute(params string[] parameters) : Attribute, IAc
         var res = new ActionResultVm
         {
             Status = StatusCodes.Status400BadRequest,
+            Timestamp = DateTime.Now.ToUnixTimeStampMillisecond().ToString(),
             Message = App.L.R("{0}required", string.Join(",", needParameters)),
             Path = service?.HttpContext?.Request.Path.Value?.ToLower()
         };

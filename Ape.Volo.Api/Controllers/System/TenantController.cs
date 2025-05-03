@@ -1,12 +1,16 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.System;
 using Ape.Volo.SharedModel.Dto.Core.System;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.System;
@@ -43,6 +47,7 @@ public class TenantController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateTenantDto createUpdateTenantDto)
     {
@@ -64,6 +69,7 @@ public class TenantController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateTenantDto createUpdateTenantDto)
     {
@@ -85,6 +91,7 @@ public class TenantController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -106,6 +113,7 @@ public class TenantController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<TenantVo>>))]
     public async Task<ActionResult> Query(TenantQueryCriteria tenantQueryCriteria, Pagination pagination)
     {
         var tenantList = await _tenantService.QueryAsync(tenantQueryCriteria, pagination);
@@ -120,6 +128,7 @@ public class TenantController : BaseApiController
     [HttpGet]
     [Route("queryAll")]
     [Description("Action.GetAllTenant")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TenantVo>))]
     public async Task<ActionResult> QueryAll()
     {
         var tenantList = await _tenantService.QueryAllAsync();
@@ -136,6 +145,7 @@ public class TenantController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(TenantQueryCriteria tenantQueryCriteria)
     {
         var tenantExports = await _tenantService.DownloadAsync(tenantQueryCriteria);

@@ -5,6 +5,7 @@ using Ape.Volo.Entity.Core.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission;
 
 namespace Ape.Volo.IBusiness.Permission;
 
@@ -40,13 +41,13 @@ public interface IApisService
     /// <param name="apisQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
-    Task<List<Apis>> QueryAsync(ApisQueryCriteria apisQueryCriteria, Pagination pagination);
+    Task<List<ApisVo>> QueryAsync(ApisQueryCriteria apisQueryCriteria, Pagination pagination);
 
     /// <summary>
     /// 查询所有
     /// </summary>
     /// <returns></returns>
-    Task<List<Apis>> QueryAllAsync();
+    Task<List<ApisVo>> QueryAllAsync();
 
     /// <summary>
     /// 

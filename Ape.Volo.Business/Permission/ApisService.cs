@@ -10,6 +10,7 @@ using Ape.Volo.IBusiness.Permission;
 using Ape.Volo.SharedModel.Dto.Core.Permission;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission;
 
 namespace Ape.Volo.Business.Permission;
 
@@ -84,23 +85,23 @@ public class ApisService : BaseServices<Apis>, IApisService
     /// <param name="apisQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
-    public async Task<List<Apis>> QueryAsync(ApisQueryCriteria apisQueryCriteria, Pagination pagination)
+    public async Task<List<ApisVo>> QueryAsync(ApisQueryCriteria apisQueryCriteria, Pagination pagination)
     {
         var queryOptions = new QueryOptions<Apis>
         {
             Pagination = pagination,
             ConditionalModels = apisQueryCriteria.ApplyQueryConditionalModel()
         };
-        return await TablePageAsync(queryOptions);
+        return App.Mapper.MapTo<List<ApisVo>>(await TablePageAsync(queryOptions));
     }
 
     /// <summary>
     /// 查询全部
     /// </summary>
     /// <returns></returns>
-    public async Task<List<Apis>> QueryAllAsync()
+    public async Task<List<ApisVo>> QueryAllAsync()
     {
-        return await Table.ToListAsync();
+        return App.Mapper.MapTo<List<ApisVo>>(await Table.ToListAsync());
     }
 
     /// <summary>

@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.System;
 using Ape.Volo.SharedModel.Dto.Core.System.Dict;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System.Dict;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.System;
@@ -43,6 +47,7 @@ public class DictController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create([FromBody] CreateUpdateDictDto createUpdateDictDto)
     {
         if (!ModelState.IsValid)
@@ -64,6 +69,7 @@ public class DictController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update([FromBody] CreateUpdateDictDto createUpdateDictDto)
     {
         if (!ModelState.IsValid)
@@ -84,6 +90,7 @@ public class DictController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -105,6 +112,7 @@ public class DictController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<DictVo>>))]
     public async Task<ActionResult> Query(DictQueryCriteria dictQueryCriteria,
         Pagination pagination)
     {
@@ -121,6 +129,7 @@ public class DictController : BaseApiController
     [HttpGet]
     [Description("Sys.Export")]
     [Route("download")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     public async Task<ActionResult> Download(DictQueryCriteria dictQueryCriteria)
     {
         var dictExports = await _dictService.DownloadAsync(dictQueryCriteria);

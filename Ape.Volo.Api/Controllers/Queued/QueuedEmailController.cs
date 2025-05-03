@@ -1,11 +1,15 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
+using Ape.Volo.Common.Model;
 using Ape.Volo.IBusiness.Queued;
 using Ape.Volo.SharedModel.Dto.Core.Queued;
 using Ape.Volo.SharedModel.Queries.Common;
 using Ape.Volo.SharedModel.Queries.Queued;
+using Ape.Volo.ViewModel.Core.Queued;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Queued;
@@ -33,6 +37,7 @@ public class QueuedEmailController : BaseApiController
     [HttpPost]
     [Route("create")]
     [Description("Sys.Create")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Create(
         [FromBody] CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
@@ -54,6 +59,7 @@ public class QueuedEmailController : BaseApiController
     [HttpPut]
     [Route("edit")]
     [Description("Sys.Edit")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> Update(
         [FromBody] CreateUpdateQueuedEmailDto createUpdateQueuedEmailDto)
     {
@@ -75,6 +81,7 @@ public class QueuedEmailController : BaseApiController
     [HttpDelete]
     [Route("delete")]
     [Description("Sys.Delete")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm))]
     public async Task<ActionResult> Delete([FromBody] IdCollection idCollection)
     {
         if (!ModelState.IsValid)
@@ -96,6 +103,7 @@ public class QueuedEmailController : BaseApiController
     [HttpGet]
     [Route("query")]
     [Description("Sys.Query")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ActionResultVm<List<QueuedEmailVo>>))]
     public async Task<ActionResult> Query(QueuedEmailQueryCriteria queuedEmailQueryCriteria,
         Pagination pagination)
     {

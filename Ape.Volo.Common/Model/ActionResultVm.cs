@@ -13,17 +13,17 @@ public class ActionResultVm
     public int Status { get; set; } = StatusCodes.Status200OK;
 
     /// <summary>
-    /// 错误
+    /// 错误集合
     /// </summary>
     public ActionError ActionError { get; set; }
 
     /// <summary>
-    /// 返回消息
+    /// 默认显示的错误消息
     /// </summary>
     public string Message { get; set; }
 
     /// <summary>
-    /// Timestamp
+    /// 时间戳(毫秒)
     /// </summary>
     public string Timestamp { get; set; }
 

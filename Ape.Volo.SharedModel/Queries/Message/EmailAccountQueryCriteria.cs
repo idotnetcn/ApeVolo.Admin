@@ -16,7 +16,7 @@ public class EmailAccountQueryCriteria : DateRange, IConditionalModel
     public string Email { get; set; }
 
     /// <summary>
-    /// 现实名称
+    /// 显示名称
     /// </summary>
     [QueryCondition(ConditionType = ConditionalType.Like)]
     public string DisplayName { get; set; }

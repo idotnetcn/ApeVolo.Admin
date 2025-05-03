@@ -19,11 +19,11 @@ public class UsingLock<T> : IDisposable
     {
         /// <summary> 读写锁对象
         /// </summary>
-        private ReaderWriterLockSlim _Lock;
+        private ReaderWriterLockSlim _lock;
 
         /// <summary> 是否为写入模式
         /// </summary>
-        private bool _IsWrite;
+        private bool _isWrite;
 
         /// <summary> 利用IDisposable的using语法糖方便的释放锁定操作
         /// <para>构造函数</para>
@@ -32,26 +32,26 @@ public class UsingLock<T> : IDisposable
         /// <param name="isWrite">写入模式为true,读取模式为false</param>
         public Lock(ReaderWriterLockSlim rwl, bool isWrite)
         {
-            _Lock = rwl;
-            _IsWrite = isWrite;
+            _lock = rwl;
+            _isWrite = isWrite;
         }
 
         /// <summary> 释放对象时退出指定锁定模式
         /// </summary>
         public void Dispose()
         {
-            if (_IsWrite)
+            if (_isWrite)
             {
-                if (_Lock.IsWriteLockHeld)
+                if (_lock.IsWriteLockHeld)
                 {
-                    _Lock.ExitWriteLock();
+                    _lock.ExitWriteLock();
                 }
             }
             else
             {
-                if (_Lock.IsReadLockHeld)
+                if (_lock.IsReadLockHeld)
                 {
-                    _Lock.ExitReadLock();
+                    _lock.ExitReadLock();
                 }
             }
         }
@@ -77,11 +77,11 @@ public class UsingLock<T> : IDisposable
 
     /// <summary> 读写锁
     /// </summary>
-    private ReaderWriterLockSlim _LockSlim = new ReaderWriterLockSlim();
+    private ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
 
     /// <summary> 保存数据
     /// </summary>
-    private T _Data;
+    private T _data;
 
     /// <summary> 使用using代替lock操作的对象,可指定写入和读取锁定模式
     /// <para>构造函数</para>
@@ -94,7 +94,7 @@ public class UsingLock<T> : IDisposable
     public UsingLock(T data)
     {
         Enabled = true;
-        _Data = data;
+        _data = data;
     }
 
     /// <summary> 获取或设置当前对象中保存数据的值
@@ -105,21 +105,21 @@ public class UsingLock<T> : IDisposable
     {
         get
         {
-            if (_LockSlim.IsReadLockHeld || _LockSlim.IsWriteLockHeld)
+            if (_lockSlim.IsReadLockHeld || _lockSlim.IsWriteLockHeld)
             {
-                return _Data;
+                return _data;
             }
 
             throw new MemberAccessException("请先进入读取或写入锁定模式再进行操作");
         }
         set
         {
-            if (_LockSlim.IsWriteLockHeld == false)
+            if (_lockSlim.IsWriteLockHeld == false)
             {
                 throw new MemberAccessException("只有写入模式中才能改变Data的值");
             }
 
-            _Data = value;
+            _data = value;
         }
     }
 
@@ -134,13 +134,13 @@ public class UsingLock<T> : IDisposable
     /// </summary>
     public IDisposable Read()
     {
-        if (Enabled == false || _LockSlim.IsReadLockHeld || _LockSlim.IsWriteLockHeld)
+        if (Enabled == false || _lockSlim.IsReadLockHeld || _lockSlim.IsWriteLockHeld)
         {
             return Disposable.Empty;
         }
 
-        _LockSlim.EnterReadLock();
-        return new Lock(_LockSlim, false);
+        _lockSlim.EnterReadLock();
+        return new Lock(_lockSlim, false);
     }
 
     /// <summary> 进入写入锁定模式,该模式下只允许同时执行一个读操作
@@ -151,22 +151,22 @@ public class UsingLock<T> : IDisposable
     /// <exception cref="NotImplementedException">读取模式下不能进入写入锁定状态</exception>
     public IDisposable Write()
     {
-        if (Enabled == false || _LockSlim.IsWriteLockHeld)
+        if (Enabled == false || _lockSlim.IsWriteLockHeld)
         {
             return Disposable.Empty;
         }
 
-        if (_LockSlim.IsReadLockHeld)
+        if (_lockSlim.IsReadLockHeld)
         {
             throw new NotImplementedException("读取模式下不能进入写入锁定状态");
         }
 
-        _LockSlim.EnterWriteLock();
-        return new Lock(_LockSlim, true);
+        _lockSlim.EnterWriteLock();
+        return new Lock(_lockSlim, true);
     }
 
     public void Dispose()
     {
-        _LockSlim.Dispose();
+        _lockSlim.Dispose();
     }
 }

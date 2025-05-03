@@ -7,7 +7,7 @@ namespace Ape.Volo.Common.Extensions;
 
 public static partial class ExtObject
 {
-    public static Dictionary<string, List<PropertyInfo>> _propertyCache { get; set; } =
+    public static Dictionary<string, List<PropertyInfo>> PropertyCache { get; set; } =
         new Dictionary<string, List<PropertyInfo>>();
 
     /// <summary>
@@ -155,11 +155,11 @@ public static partial class ExtObject
 
     public static PropertyInfo GetSingleProperty(this Type self, string name)
     {
-        if (_propertyCache.ContainsKey(self.FullName) == false)
+        if (PropertyCache.ContainsKey(self.FullName) == false)
         {
-            _propertyCache.Add(self.FullName, self.GetProperties().ToList());
+            PropertyCache.Add(self.FullName, self.GetProperties().ToList());
         }
 
-        return _propertyCache[self.FullName].Where(x => x.Name == name).FirstOrDefault();
+        return PropertyCache[self.FullName].Where(x => x.Name == name).FirstOrDefault();
     }
 }

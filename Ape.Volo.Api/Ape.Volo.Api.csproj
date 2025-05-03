@@ -11,44 +11,34 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="index.html"/>
+    <None Remove="index.html" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="index.html"/>
+    <EmbeddedResource Include="index.html" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.1"/>
-    <PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.3.8"/>
-    <PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.3.8"/>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
-    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.0"/>
-    <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.1" />
+    <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Ape.Volo.Business\Ape.Volo.Business.csproj"/>
-    <ProjectReference Include="..\Ape.Volo.Common\Ape.Volo.Common.csproj"/>
-    <ProjectReference Include="..\Ape.Volo.EventBus\Ape.Volo.EventBus.csproj"/>
-    <ProjectReference Include="..\Ape.Volo.QuartzNetService\Ape.Volo.QuartzNetService.csproj"/>
-    <ProjectReference Include="..\Ape.Volo.Repository\Ape.Volo.Repository.csproj"/>
+    <ProjectReference Include="..\Ape.Volo.Infrastructure\Ape.Volo.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="MQ\Rabbit"/>
-    <Folder Include="wwwroot\exportFile\"/>
+    <Folder Include="wwwroot\exportFile\" />
   </ItemGroup>
 
   <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\uploads\file\images\20231009100657_1711201552485584896.png"/>
-    <_ContentIncludedByDefault Remove="wwwroot\uploads\file\images\20231009101734_1711204223531618304.png"/>
+    <_ContentIncludedByDefault Remove="wwwroot\uploads\file\images\20231009100657_1711201552485584896.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\uploads\file\images\20231009101734_1711204223531618304.png" />
   </ItemGroup>
 
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties appsettings_1json__JsonSchema="http://json.schemastore.org/band-manifest"/>
+      <UserProperties appsettings_1json__JsonSchema="http://json.schemastore.org/band-manifest" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

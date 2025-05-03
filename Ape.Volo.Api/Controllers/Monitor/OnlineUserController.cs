@@ -4,8 +4,8 @@ using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Interface.Monitor;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.SharedModel.Queries.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Monitor;

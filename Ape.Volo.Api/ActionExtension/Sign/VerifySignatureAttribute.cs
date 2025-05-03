@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
-using Ape.Volo.IBusiness.Dto.System;
-using Ape.Volo.IBusiness.Interface.System;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Dto.Core.System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
@@ -86,7 +86,7 @@ public class VerifySignatureAttribute : BaseActionFilter
                 AppId = appId
             };
             filterContext.Result =
-                Error(DataErrorHelper.NotExist(createUpdateAppSecretDto, LanguageKeyConstants.AppSecret,
+                Error(ValidationError.NotExist(createUpdateAppSecretDto, LanguageKeyConstants.AppSecret,
                     nameof(createUpdateAppSecretDto.AppId)));
             return;
         }

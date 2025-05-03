@@ -8,7 +8,7 @@ namespace Ape.Volo.Common.Exception;
 /// </summary>
 public class BadRequestException : System.Exception
 {
-    public int statusCode { get; set; } = StatusCodes.Status400BadRequest;
+    public int StatusCode { get; set; } = StatusCodes.Status400BadRequest;
 
     public Dictionary<string, string> Errors { get; set; }
 

@@ -5,7 +5,7 @@ namespace Ape.Volo.EventBus.EventBusRabbitMQ;
 /// <summary>
 /// RabbitMQ 持久连接
 /// </summary>
-public interface IRabbitMQPersistentConnection
+public interface IRabbitMqPersistentConnection
 {
     /// <summary>
     /// 已连接

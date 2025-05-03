@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.System;
-using Ape.Volo.IBusiness.Dto.System;
-using Ape.Volo.IBusiness.Interface.System;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.System.Dict;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Dto.Core.System.Dict;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System.Dict;
 
 namespace Ape.Volo.Business.System;
 
@@ -21,20 +22,25 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
 {
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="createUpdateDictDetailDto"></param>
+    /// <returns></returns>
     public async Task<OperateResult> CreateAsync(CreateUpdateDictDetailDto createUpdateDictDetailDto)
     {
         if (
             await TableWhere(x =>
                 x.DictId == createUpdateDictDetailDto.DictId && x.Label == createUpdateDictDetailDto.Label).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDictDetailDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateDictDetailDto,
                 nameof(createUpdateDictDetailDto.Label)));
         }
 
         if (await TableWhere(x =>
                 x.DictId == createUpdateDictDetailDto.DictId && x.Value == createUpdateDictDetailDto.Value).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDictDetailDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateDictDetailDto,
                 nameof(createUpdateDictDetailDto.Value)));
         }
 
@@ -43,6 +49,11 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="createUpdateDictDetailDto"></param>
+    /// <returns></returns>
     public async Task<OperateResult> UpdateAsync(CreateUpdateDictDetailDto createUpdateDictDetailDto)
     {
         var oldDictDetail =
@@ -50,7 +61,7 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
 
         if (oldDictDetail.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateDictDetailDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateDictDetailDto,
                 LanguageKeyConstants.DictDetail,
                 nameof(createUpdateDictDetailDto.Id)));
         }
@@ -58,14 +69,14 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
         if (oldDictDetail.Label != createUpdateDictDetailDto.Label &&
             await TableWhere(x => x.Label == createUpdateDictDetailDto.Label).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDictDetailDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateDictDetailDto,
                 nameof(createUpdateDictDetailDto.Label)));
         }
 
         if (oldDictDetail.Value != createUpdateDictDetailDto.Value &&
             await TableWhere(x => x.Value == createUpdateDictDetailDto.Value).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDictDetailDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateDictDetailDto,
                 nameof(createUpdateDictDetailDto.Value)));
         }
 
@@ -75,27 +86,43 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<OperateResult> DeleteAsync(long id)
     {
         var dictDetail = await TableWhere(x => x.Id == id).FirstAsync();
         if (dictDetail == null)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         var result = await LogicDelete<DictDetail>(x => x.Id == id);
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 获取字典详情
+    /// </summary>
+    /// <param name="dictId">字典ID</param>
+    /// <returns></returns>
     [UseCache(Expiration = 30, KeyPrefix = GlobalConstants.CachePrefix.LoadDictDetailByDictId)]
-    public async Task<List<DictDetailDto>> GetDetailByDictIdAsync(long dictId)
+    public async Task<List<DictDetailVo>> GetDetailByDictIdAsync(long dictId)
     {
         var dictDetail = await TableWhere(x => x.DictId == dictId).OrderBy(x => x.DictSort).ToListAsync();
 
-        return App.Mapper.MapTo<List<DictDetailDto>>(dictDetail);
+        return App.Mapper.MapTo<List<DictDetailVo>>(dictDetail);
     }
 
-    public async Task<List<DictDetailDto>> QueryAsync(DictDetailQueryCriteria dictDetailQueryCriteria,
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="dictDetailQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<DictDetailVo>> QueryAsync(DictDetailQueryCriteria dictDetailQueryCriteria,
         Pagination pagination)
     {
         if (dictDetailQueryCriteria.DictId > 0)
@@ -109,7 +136,7 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
                 .FirstAsync();
             if (dict == null)
             {
-                return new List<DictDetailDto>();
+                return new List<DictDetailVo>();
             }
 
             var dictDetailList = await App.GetService<IDictDetailService>().GetDetailByDictIdAsync(dict.Id);
@@ -123,7 +150,7 @@ public class DictDetailService : BaseServices<DictDetail>, IDictDetailService
             ConditionalModels = dictDetailQueryCriteria.ApplyQueryConditionalModel()
         };
         var list = await TablePageAsync(queryOptions);
-        return App.Mapper.MapTo<List<DictDetailDto>>(list);
+        return App.Mapper.MapTo<List<DictDetailVo>>(list);
     }
 
     #endregion

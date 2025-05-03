@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
+using Ape.Volo.Core;
+using Ape.Volo.SharedModel.Queries.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

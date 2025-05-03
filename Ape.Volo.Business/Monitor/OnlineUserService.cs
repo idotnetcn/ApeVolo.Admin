@@ -1,29 +1,43 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Common.Caches;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Common.WebApp;
-using Ape.Volo.Entity.System;
-using Ape.Volo.IBusiness.ExportModel.Monitor;
-using Ape.Volo.IBusiness.Interface.Monitor;
-using Ape.Volo.IBusiness.Interface.System;
+using Ape.Volo.Core.Caches;
+using Ape.Volo.Entity.Core.System;
+using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.ViewModel.Report.Monitor;
 
 namespace Ape.Volo.Business.Monitor;
 
+/// <summary>
+/// 在线用户服务
+/// </summary>
 public class OnlineUserService : IOnlineUserService
 {
     private readonly ICache _cache;
     private readonly ITokenBlacklistService _tokenBlacklistService;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="cache"></param>
+    /// <param name="tokenBlacklistService"></param>
     public OnlineUserService(ICache cache, ITokenBlacklistService tokenBlacklistService)
     {
         _cache = cache;
         _tokenBlacklistService = tokenBlacklistService;
     }
 
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
     public async Task<List<LoginUserInfo>> QueryAsync(Pagination pagination)
     {
         List<LoginUserInfo> loginUserInfos = new List<LoginUserInfo>();
@@ -51,10 +65,14 @@ public class OnlineUserService : IOnlineUserService
         return newOnlineUsers;
     }
 
+    /// <summary>
+    /// 强退
+    /// </summary>
+    /// <param name="ids"></param>
     public async Task DropOutAsync(HashSet<string> ids)
     {
         var list = new List<TokenBlacklist>();
-        list.AddRange(ids.Select(x => new TokenBlacklist() { AccessToken = x }));
+        list.AddRange(ids.Select(x => new TokenBlacklist { AccessToken = x }));
         if (await _tokenBlacklistService.AddAsync(list))
         {
             foreach (var item in ids)
@@ -64,6 +82,10 @@ public class OnlineUserService : IOnlineUserService
         }
     }
 
+    /// <summary>
+    /// 下载
+    /// </summary>
+    /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync()
     {
         List<ExportBase> onlineUserExports = new List<ExportBase>();

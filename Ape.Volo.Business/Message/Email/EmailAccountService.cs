@@ -1,20 +1,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Message.Email;
-using Ape.Volo.IBusiness.Dto.Message.Email;
-using Ape.Volo.IBusiness.ExportModel.Message.Email.Account;
-using Ape.Volo.IBusiness.Interface.Message.Email;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.Message.Email;
+using Ape.Volo.IBusiness.Message.Email;
+using Ape.Volo.SharedModel.Dto.Core.Message.Email;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Message;
+using Ape.Volo.ViewModel.Core.Message.Email;
+using Ape.Volo.ViewModel.Report.Message.Email.Account;
 
 namespace Ape.Volo.Business.Message.Email;
 
+/// <summary>
+/// 邮箱账户服务
+/// </summary>
 public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountService
 {
     #region 基础方法
@@ -28,7 +32,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     {
         if (await TableWhere(x => x.Email == createUpdateEmailAccountDto.Email).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateEmailAccountDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateEmailAccountDto,
                 nameof(createUpdateEmailAccountDto.Email)));
         }
 
@@ -47,7 +51,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
         var oldEmailAccount = await TableWhere(x => x.Id == createUpdateEmailAccountDto.Id).FirstAsync();
         if (oldEmailAccount.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateEmailAccountDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateEmailAccountDto,
                 LanguageKeyConstants.EmailAccount,
                 nameof(createUpdateEmailAccountDto.Id)));
         }
@@ -55,7 +59,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
         if (oldEmailAccount.Email != createUpdateEmailAccountDto.Email &&
             await TableWhere(j => j.Email == createUpdateEmailAccountDto.Email).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateEmailAccountDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateEmailAccountDto,
                 nameof(createUpdateEmailAccountDto.Email)));
         }
 
@@ -74,7 +78,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
         var emailAccounts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (emailAccounts.Count < 1)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         var result = await LogicDelete<EmailAccount>(x => ids.Contains(x.Id));
@@ -87,7 +91,7 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
     /// <param name="emailAccountQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
-    public async Task<List<EmailAccountDto>> QueryAsync(EmailAccountQueryCriteria emailAccountQueryCriteria,
+    public async Task<List<EmailAccountVo>> QueryAsync(EmailAccountQueryCriteria emailAccountQueryCriteria,
         Pagination pagination)
     {
         var queryOptions = new QueryOptions<EmailAccount>
@@ -95,10 +99,15 @@ public class EmailAccountService : BaseServices<EmailAccount>, IEmailAccountServ
             Pagination = pagination,
             ConditionalModels = emailAccountQueryCriteria.ApplyQueryConditionalModel(),
         };
-        return App.Mapper.MapTo<List<EmailAccountDto>>(
+        return App.Mapper.MapTo<List<EmailAccountVo>>(
             await TablePageAsync(queryOptions));
     }
 
+    /// <summary>
+    /// 下载
+    /// </summary>
+    /// <param name="emailAccountQueryCriteria"></param>
+    /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync(EmailAccountQueryCriteria emailAccountQueryCriteria)
     {
         var emailAccounts = await TableWhere(emailAccountQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();

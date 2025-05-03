@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Monitor;
-using Ape.Volo.IBusiness.Dto.Monitor;
-using Ape.Volo.IBusiness.Interface.Monitor;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Entity.Logs;
+using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.Monitor;
 
 namespace Ape.Volo.Business.Monitor;
 
@@ -20,21 +20,35 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
 {
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="auditLog"></param>
+    /// <returns></returns>
     public async Task<OperateResult> CreateAsync(AuditLog auditLog)
     {
         var result = await SugarRepository.SugarClient.Insertable(auditLog).SplitTable().ExecuteCommandAsync() > 0;
         return OperateResult.Result(result);
     }
 
-
+    /// <summary>
+    /// 批量创建
+    /// </summary>
+    /// <param name="auditLogs"></param>
+    /// <returns></returns>
     public async Task<OperateResult> CreateListAsync(List<AuditLog> auditLogs)
     {
         var result = await SugarRepository.SugarClient.Insertable(auditLogs).SplitTable().ExecuteCommandAsync() > 0;
         return OperateResult.Result(result);
     }
 
-
-    public async Task<List<AuditLogDto>> QueryAsync(LogQueryCriteria logQueryCriteria,
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="logQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<AuditLogVo>> QueryAsync(LogQueryCriteria logQueryCriteria,
         Pagination pagination)
     {
         var queryOptions = new QueryOptions<AuditLog>
@@ -45,10 +59,15 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
         };
 
         var auditInfos = await TablePageAsync(queryOptions);
-        return App.Mapper.MapTo<List<AuditLogDto>>(auditInfos);
+        return App.Mapper.MapTo<List<AuditLogVo>>(auditInfos);
     }
 
-    public async Task<List<AuditLogDto>> QueryByCurrentAsync(Pagination pagination)
+    /// <summary>
+    /// 查询当前用户
+    /// </summary>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<AuditLogVo>> QueryByCurrentAsync(Pagination pagination)
     {
         Expression<Func<AuditLog, bool>> whereLambda = x => x.CreateBy == App.HttpUser.Account;
 
@@ -67,7 +86,7 @@ public class AuditInfoService : BaseServices<AuditLog>, IAuditLogService
             IsSplitTable = true
         };
         var auditInfos = await TablePageAsync(queryOptions);
-        return App.Mapper.MapTo<List<AuditLogDto>>(auditInfos);
+        return App.Mapper.MapTo<List<AuditLogVo>>(auditInfos);
     }
 
     #endregion

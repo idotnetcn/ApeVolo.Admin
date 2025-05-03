@@ -3,23 +3,25 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Api.Authentication.Jwt;
+using Ape.Volo.Api.ActionExtension.Parameter;
 using Ape.Volo.Api.Controllers.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
-using Ape.Volo.Common.Caches;
-using Ape.Volo.Common.ConfigOptions;
+using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
 using Ape.Volo.Common.WebApp;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.Interface.Queued;
-using Ape.Volo.IBusiness.Interface.System;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.ConfigOptions;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.IBusiness.Queued;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.Infrastructure.Authentication;
+using Ape.Volo.SharedModel.Queries.Login;
+using Ape.Volo.ViewModel.Core.Permission.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -176,12 +178,12 @@ public class AuthorizationController : BaseApiController
         {
             if (authUser.Captcha.IsNullOrEmpty())
             {
-                return Error(DataErrorHelper.Required(authUser, nameof(authUser.Captcha)));
+                return Error(ValidationError.Required(authUser, nameof(authUser.Captcha)));
             }
 
             if (authUser.CaptchaId.IsNullOrEmpty())
             {
-                return Error(DataErrorHelper.Required(authUser, nameof(authUser.CaptchaId)));
+                return Error(ValidationError.Required(authUser, nameof(authUser.CaptchaId)));
             }
 
 
@@ -219,7 +221,8 @@ public class AuthorizationController : BaseApiController
             return Error(App.L.R("Error.UserNotFound"));
         }
 
-        var password = new RsaHelper(App.GetOptions<RsaOptions>()).Decrypt(authUser.Password);
+        var rsaOptions = App.GetOptions<RsaOptions>();
+        var password = new RsaHelper(rsaOptions.PrivateKey, rsaOptions.PublicKey).Decrypt(authUser.Password);
         if (!BCryptHelper.Verify(password, userDto.Password))
         {
             if (captchaOptions.Threshold > 0)
@@ -280,13 +283,9 @@ public class AuthorizationController : BaseApiController
     [Description("Action.RefreshToken")]
     [AllowAnonymous]
     [NotAudit]
-    public async Task<ActionResult> RefreshToken(string token = "")
+    [ParamRequired("token")]
+    public async Task<ActionResult> RefreshToken(string token)
     {
-        if (token.IsNullOrEmpty())
-        {
-            return Error(App.L.R("{0}required", "Token"));
-        }
-
         var tokenMd5 = token.ToMd5String16();
         var tokenBlacklist = await _tokenBlacklistService
             .TableWhere(x => x.AccessToken == tokenMd5, null, null, null, true)
@@ -342,6 +341,7 @@ public class AuthorizationController : BaseApiController
     [HttpPost]
     [Description("Action.GetEmailVerificationCode")]
     [Route("code/reset/email")]
+    [ParamRequired("email")]
     public async Task<ActionResult> ResetEmail(string email)
     {
         if (!email.IsEmail())
@@ -409,7 +409,9 @@ public class AuthorizationController : BaseApiController
             return Error(App.L.R("Error.UserNotFound"));
         }
 
-        var password = new RsaHelper(App.GetOptions<RsaOptions>()).Decrypt(swaggerLoginAuthUser.Password);
+        var rsaOptions = App.GetOptions<RsaOptions>();
+        var password =
+            new RsaHelper(rsaOptions.PrivateKey, rsaOptions.PublicKey).Decrypt(swaggerLoginAuthUser.Password);
         if (!BCryptHelper.Verify(password, userDto.Password))
         {
             return Error(App.L.R("Error.InvalidPassword"));
@@ -436,7 +438,7 @@ public class AuthorizationController : BaseApiController
     /// <param name="userDto"></param>
     /// <param name="type">login:登录,refresh:刷新token</param>
     /// <returns></returns>
-    private async Task<ActionResult> LoginResult(UserDto userDto, string type)
+    private async Task<ActionResult> LoginResult(UserVo userDto, string type)
     {
         var permissionIdentifierList = new List<string>();
         var refresh = true;

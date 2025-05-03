@@ -1,18 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.Vo;
+using Ape.Volo.Entity.Core.Permission;
+using Ape.Volo.Entity.Core.Permission.Role;
+using Ape.Volo.Entity.Core.Permission.User;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.ViewModel.Jwt;
 
 namespace Ape.Volo.Business.Permission;
 
+/// <summary>
+/// 权限服务
+/// </summary>
 public class PermissionService : BaseServices<Role>, IPermissionService
 {
     #region 基础方法
@@ -51,7 +55,7 @@ public class PermissionService : BaseServices<Role>, IPermissionService
             .Where(ur => ur.UserId == userId)
             .OrderBy((ur, ra, a) => a.Url)
             .ClearFilter<ICreateByEntity>()
-            .Select((ur, ra, a) => new UrlAccessControlVo()
+            .Select((ur, ra, a) => new UrlAccessControlVo
             {
                 Url = a.Url,
                 Method = a.Method

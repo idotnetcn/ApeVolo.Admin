@@ -1,5 +1,5 @@
 ﻿using System;
-using Ape.Volo.Common.Caches;
+using Ape.Volo.Common.Enums;
 
 namespace Ape.Volo.Common.Attributes;
 

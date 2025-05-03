@@ -1,16 +1,16 @@
 using System;
 using System.Reflection;
-using Ape.Volo.Api.Extensions;
-using Ape.Volo.Api.Filter;
-using Ape.Volo.Api.Mapster;
-using Ape.Volo.Api.Middleware;
-using Ape.Volo.Common;
-using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.IdGenerator.Contract;
-using Ape.Volo.Common.Internal;
 using Ape.Volo.Common.MultiLanguage.Resources;
+using Ape.Volo.Core;
+using Ape.Volo.Core.ConfigOptions;
+using Ape.Volo.Core.Internal;
+using Ape.Volo.Core.Mapping;
+using Ape.Volo.Infrastructure.ActionFilter;
+using Ape.Volo.Infrastructure.Extensions;
+using Ape.Volo.Infrastructure.Middleware;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Mapster;
@@ -48,10 +48,10 @@ builder.ConfigureApplication();
 // 配置服务
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-builder.Services.AddSingleton<IRegister, MapsterCustomMapper>();
+builder.Services.AddSingleton<IRegister, CustomMapper>();
 builder.Services.AddSingleton<IMapper, Mapper>();
-builder.Services.AddSingleton(new AppSettings(builder.Configuration));
-builder.Services.AddOptionRegister();
+builder.Services.AddSingleton(new AppSettings(builder.Configuration, builder.Environment));
+builder.Services.AddOptionRegisterSetup();
 builder.Services.AddCustomMultiLanguages();
 // builder.Services.Configure<Configs>(configuration);
 // var configs = configuration.Get<Configs>();
@@ -80,9 +80,9 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllers(options =>
     {
         // 异常过滤器
-        options.Filters.Add<GlobalExceptionFilter>();
+        options.Filters.Add<ExceptionLogFilter>();
         // 审计过滤器
-        options.Filters.Add<AuditingFilter>();
+        options.Filters.Add<AuditLogFilter>();
     })
     //.AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization(typeof(Language))

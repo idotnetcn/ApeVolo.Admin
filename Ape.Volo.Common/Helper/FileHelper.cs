@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Ape.Volo.Common.Extensions;
 
 namespace Ape.Volo.Common.Helper;
 
@@ -14,13 +13,13 @@ public static class FileHelper
     #region 常量
 
     //GB
-    private const long GB = 1024 * 1024 * 1024;
+    private const long Gb = 1024 * 1024 * 1024;
 
     //MB
-    private const long MB = 1024 * 1024;
+    private const long Mb = 1024 * 1024;
 
     //KB
-    private const long KB = 1024;
+    private const long Kb = 1024;
 
     #endregion
 
@@ -163,46 +162,6 @@ public static class FileHelper
         }
     }
 
-    /// <summary>
-    /// 输出日志到指定文件
-    /// </summary>
-    /// <param name="msg">日志消息</param>
-    public static void WriteLog(string msg)
-    {
-        string content = $"/Logs/{DateTime.Now.ToCstTime():yyyy-MM-dd}.log";
-        msg = "【当前时间】 : " + DateTime.Now.ToCstTime().ToString("yyyy-MM-dd HH:mm:ss") + msg;
-        WriteText(msg, $"{App.WebHostEnvironment.ContentRootPath}{content}", Encoding.UTF8);
-    }
-
-
-    /// <summary>
-    /// 流写入
-    /// </summary>
-    /// <param name="content">内容</param>
-    /// <param name="fileFullPath">文件完整物理路径</param>
-    /// <param name="e">编码</param>
-    /// <param name="isAppend">默认追加，false覆盖</param>
-    public static void WriteText(string content, string fileFullPath, Encoding e, bool isAppend = true)
-    {
-        var dn = Path.GetDirectoryName(fileFullPath);
-        //检测目录
-        if (!Directory.Exists(dn))
-        {
-            if (dn != null) Directory.CreateDirectory(dn);
-        }
-
-        //打开方式
-        var fm = !File.Exists(fileFullPath) || !isAppend ? FileMode.Create : FileMode.Append;
-
-        if (fileFullPath != null)
-        {
-            using var fs = new FileStream(fileFullPath, fm);
-            //流写入
-            using var sw = new StreamWriter(fs, e);
-            sw.WriteLine(content);
-        }
-    }
-
     #endregion
 
     #region 文件相关
@@ -215,20 +174,20 @@ public static class FileHelper
     public static string GetFileSize(long size)
     {
         string fileSize;
-        if (size / GB >= 1)
+        if (size / Gb >= 1)
         {
             //如果当前Byte的值大于等于1GB
-            fileSize = (size * 1.0f / GB).ToString("F") + "GB";
+            fileSize = (size * 1.0f / Gb).ToString("F") + "GB";
         }
-        else if (size / MB >= 1)
+        else if (size / Mb >= 1)
         {
             //如果当前Byte的值大于等于1MB
-            fileSize = (size * 1.0f / MB).ToString("F") + "MB";
+            fileSize = (size * 1.0f / Mb).ToString("F") + "MB";
         }
-        else if (size / KB >= 1)
+        else if (size / Kb >= 1)
         {
             //如果当前Byte的值大于等于1KB
-            fileSize = (size * 1.0f / KB).ToString("F") + "KB";
+            fileSize = (size * 1.0f / Kb).ToString("F") + "KB";
         }
         else
         {

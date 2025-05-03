@@ -3,10 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
+  
+  
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Ape.Volo.Business.xml</DocumentationFile>
+  </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ape.Volo.Core\Ape.Volo.Core.csproj" />
     <ProjectReference Include="..\Ape.Volo.IBusiness\Ape.Volo.IBusiness.csproj" />
-    <ProjectReference Include="..\Ape.Volo.Repository\Ape.Volo.Repository.csproj" />
   </ItemGroup>
 
 </Project>

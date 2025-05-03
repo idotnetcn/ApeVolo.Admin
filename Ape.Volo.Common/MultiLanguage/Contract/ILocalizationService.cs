@@ -26,5 +26,5 @@ public interface ILocalizationService
     /// 获取所有字符串资源。
     /// <param name="includeParentCultures">指示是否包括父母文化的字符串。</param>
     /// </summary>
-    IEnumerable<LocalizedString> RAll(bool includeParentCultures);
+    IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures);
 }

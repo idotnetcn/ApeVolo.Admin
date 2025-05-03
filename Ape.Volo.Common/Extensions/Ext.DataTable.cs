@@ -40,7 +40,7 @@ public static partial class ExtObject
         for (int i = 0; i < dt.Rows.Count; i++)
         {
             //创建泛型对象
-            T _t = Activator.CreateInstance<T>();
+            T t = Activator.CreateInstance<T>();
             for (int j = 0; j < dt.Columns.Count; j++)
             {
                 string memberKey = dt.Columns[j].ColumnName.ToLower();
@@ -58,7 +58,7 @@ public static partial class ExtObject
                         dbValue = dbValue.ChangeType_ByConvert(memberType);
                     }
 
-                    theField.SetValue(_t, dbValue);
+                    theField.SetValue(t, dbValue);
                 }
 
                 //属性赋值
@@ -74,11 +74,11 @@ public static partial class ExtObject
                         dbValue = dbValue.ChangeType_ByConvert(memberType);
                     }
 
-                    theProperty.SetValue(_t, dbValue);
+                    theProperty.SetValue(t, dbValue);
                 }
             }
 
-            list.Add(_t);
+            list.Add(t);
         }
 
         return list;

@@ -2,9 +2,9 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Attributes;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Interface.Monitor;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Monitor;

@@ -10,7 +10,7 @@ namespace Ape.Volo.Common.Helper;
 /// </summary>
 public static class AsyncHelper
 {
-    private static readonly TaskFactory _myTaskFactory =
+    private static readonly TaskFactory MyTaskFactory =
         new TaskFactory(CancellationToken.None, TaskCreationOptions.None, TaskContinuationOptions.None,
             TaskScheduler.Default);
 
@@ -20,7 +20,7 @@ public static class AsyncHelper
     /// <param name="func">任务</param>
     public static void RunSync(Func<Task> func)
     {
-        _myTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
+        MyTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -31,6 +31,6 @@ public static class AsyncHelper
     /// <returns></returns>
     public static TResult RunSync<TResult>(Func<Task<TResult>> func)
     {
-        return _myTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
+        return MyTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
     }
 }

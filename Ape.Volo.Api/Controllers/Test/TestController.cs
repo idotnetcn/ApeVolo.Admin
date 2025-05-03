@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.ActionExtension.Sign;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Attributes;
-using Ape.Volo.Common.Caches;
 using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Interface.Test;
+using Ape.Volo.Core.Caches;
+using Ape.Volo.IBusiness.Test;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

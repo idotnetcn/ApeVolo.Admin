@@ -149,27 +149,4 @@ public static class ImgHelper
 
         return base64UrlStr;
     }
-
-    /// <summary>
-    /// 将图片的URL或者Base64字符串转为图片并上传到服务器，返回上传后的完整图片URL
-    /// </summary>
-    /// <param name="imgBase64OrUrl">URL地址或者Base64字符串</param>
-    /// <returns></returns>
-    public static string GetImgUrl(string imgBase64OrUrl)
-    {
-        if (imgBase64OrUrl.Contains("data:image"))
-        {
-            Image img = GetImgFromBase64Url(imgBase64OrUrl);
-            string fileName = $"{GuidHelper.GenerateKey()}.jpg";
-
-            string dir = Path.Combine(App.WebHostEnvironment.WebRootPath, "Upload", "Img");
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-            img.Save(Path.Combine(dir, fileName));
-
-            return $"{App.WebHostEnvironment.WebRootPath}/Upload/Img/{fileName}";
-        }
-
-        return imgBase64OrUrl;
-    }
 }

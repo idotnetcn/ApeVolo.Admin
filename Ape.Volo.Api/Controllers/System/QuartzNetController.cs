@@ -1,17 +1,19 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.System;
-using Ape.Volo.IBusiness.Dto.System;
-using Ape.Volo.IBusiness.Interface.System;
-using Ape.Volo.IBusiness.QueryModel;
-using Ape.Volo.IBusiness.RequestModel;
-using Ape.Volo.QuartzNetService.service;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.System.QuartzNet;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Dto.Core.System;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.TaskService.service;
+using Ape.Volo.ViewModel.Core.System.QuartzNet;
 using Microsoft.AspNetCore.Mvc;
 using Quartz;
 
@@ -67,7 +69,7 @@ public class QuartzNetController : BaseApiController
         {
             if (createUpdateQuartzNetDto.Cron.IsNullOrEmpty())
             {
-                return Error(DataErrorHelper.Required(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.Cron)));
+                return Error(ValidationError.Required(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.Cron)));
             }
 
             if (!CronExpression.IsValidExpression(createUpdateQuartzNetDto.Cron))
@@ -117,7 +119,7 @@ public class QuartzNetController : BaseApiController
         {
             if (createUpdateQuartzNetDto.Cron.IsNullOrEmpty())
             {
-                return Error(DataErrorHelper.Required(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.Cron)));
+                return Error(ValidationError.Required(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.Cron)));
             }
 
             if (!CronExpression.IsValidExpression(createUpdateQuartzNetDto.Cron))
@@ -179,7 +181,7 @@ public class QuartzNetController : BaseApiController
             return Ok(result);
         }
 
-        return Error(DataErrorHelper.NotExist());
+        return Error(ValidationError.NotExist());
     }
 
     /// <summary>
@@ -241,7 +243,7 @@ public class QuartzNetController : BaseApiController
         var quartzNet = await _quartzNetService.TableWhere(x => x.Id == id).FirstAsync();
         if (quartzNet.IsNull())
         {
-            return Error(DataErrorHelper.NotExist());
+            return Error(ValidationError.NotExist());
         }
 
         //开启作业任务
@@ -284,10 +286,10 @@ public class QuartzNetController : BaseApiController
         var quartzNet = await _quartzNetService.TableWhere(x => x.Id == id).FirstAsync();
         if (quartzNet.IsNull())
         {
-            return Error(DataErrorHelper.NotExist());
+            return Error(ValidationError.NotExist());
         }
 
-        var triggerStatus = await _schedulerCenterService.GetTriggerStatus(App.Mapper.MapTo<QuartzNetDto>(quartzNet));
+        var triggerStatus = await _schedulerCenterService.GetTriggerStatus(App.Mapper.MapTo<QuartzNetVo>(quartzNet));
         if (triggerStatus == "运行中")
         {
             //检查任务在内存状态
@@ -319,10 +321,10 @@ public class QuartzNetController : BaseApiController
         var quartzNet = await _quartzNetService.TableWhere(x => x.Id == id).FirstAsync();
         if (quartzNet.IsNull())
         {
-            return Error(DataErrorHelper.NotExist());
+            return Error(ValidationError.NotExist());
         }
 
-        var triggerStatus = await _schedulerCenterService.GetTriggerStatus(App.Mapper.MapTo<QuartzNetDto>(quartzNet));
+        var triggerStatus = await _schedulerCenterService.GetTriggerStatus(App.Mapper.MapTo<QuartzNetVo>(quartzNet));
         if (triggerStatus == "暂停")
         {
             //检查任务在内存状态

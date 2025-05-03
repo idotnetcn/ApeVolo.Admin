@@ -1,6 +1,5 @@
-﻿using Ape.Volo.Business.Base;
-using Ape.Volo.Entity.System;
-using Ape.Volo.IBusiness.Interface.System;
+﻿using Ape.Volo.Entity.Core.System;
+using Ape.Volo.IBusiness.System;
 
 namespace Ape.Volo.Business.System;
 

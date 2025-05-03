@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Entity.Message.Email;
-using Ape.Volo.IBusiness.Interface.Message.Email;
+using Ape.Volo.Entity.Core.Message.Email;
+using Ape.Volo.IBusiness.Message.Email;
 using MimeKit;
 using MimeKit.Text;
 
@@ -23,6 +23,10 @@ public class EmailSender : IEmailSender
 
     #region Ctor
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="smtpBuilder"></param>
     public EmailSender(ISmtpBuilder smtpBuilder)
     {
         _smtpBuilder = smtpBuilder;

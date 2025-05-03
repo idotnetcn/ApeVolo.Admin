@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Interface.Message.Email;
-using Ape.Volo.IBusiness.Interface.Queued;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.IBusiness.Message.Email;
+using Ape.Volo.IBusiness.Queued;
+using Ape.Volo.SharedModel.Queries.Queued;
 using Microsoft.Extensions.Logging;
 
 namespace Ape.Volo.Business.Message.Email;
@@ -25,6 +23,13 @@ public class EmailScheduleTask : IEmailScheduleTask
 
     #region Ctor
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="emailAccountService"></param>
+    /// <param name="emailSender"></param>
+    /// <param name="queuedEmailService"></param>
+    /// <param name="logger"></param>
     public EmailScheduleTask(IEmailAccountService emailAccountService, IEmailSender emailSender,
         IQueuedEmailService queuedEmailService, ILogger<EmailScheduleTask> logger)
     {
@@ -43,22 +48,19 @@ public class EmailScheduleTask : IEmailScheduleTask
     /// </summary>
     public virtual async Task ExecuteAsync(long emailId = 0)
     {
-        var maxTries = 3;
-        QueuedEmailQueryCriteria queuedEmailQueryCriteria = new QueuedEmailQueryCriteria();
-        queuedEmailQueryCriteria.MaxTries = maxTries;
-        queuedEmailQueryCriteria.IsSend = false;
+        const int maxTries = 3;
+        var queuedEmailQueryCriteria = new QueuedEmailQueryCriteria
+        {
+            MaxTries = maxTries,
+            IsSend = false
+        };
         if (emailId > 0)
         {
             queuedEmailQueryCriteria.Id = emailId;
         }
 
-        var queuedEmails = await _queuedEmailService.QueryAsync(
-            queuedEmailQueryCriteria,
-            new Pagination
-            {
-                PageIndex = 1, PageSize = 100,
-                SortFields = new List<string> { "priority asc", "create_time asc" }
-            });
+        var queuedEmails = await _queuedEmailService.QueryToSendMailAsync(
+            queuedEmailQueryCriteria);
         foreach (var queuedEmail in queuedEmails)
         {
             var bcc = string.IsNullOrWhiteSpace(queuedEmail.Bcc)

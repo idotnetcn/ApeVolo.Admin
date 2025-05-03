@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
-using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.IdGenerator;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Permission;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.ExportModel.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.ConfigOptions;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.Permission.User;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.SharedModel.Dto.Core.Permission.User;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.User;
+using Ape.Volo.ViewModel.Report.Permission;
 using Microsoft.AspNetCore.Http;
 using SqlSugar;
 
@@ -37,6 +39,11 @@ public class UserService : BaseServices<User>, IUserService
 
     #region 构造函数
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="departmentService"></param>
+    /// <param name="roleService"></param>
     public UserService(IDepartmentService departmentService, IRoleService roleService)
     {
         _departmentService = departmentService;
@@ -47,24 +54,29 @@ public class UserService : BaseServices<User>, IUserService
 
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="createUpdateUserDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> CreateAsync(CreateUpdateUserDto createUpdateUserDto)
     {
         if (await TableWhere(x => x.Username == createUpdateUserDto.Username).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateUserDto,
                 nameof(createUpdateUserDto.Username)));
         }
 
         if (await TableWhere(x => x.Email == createUpdateUserDto.Email).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateUserDto,
                 nameof(createUpdateUserDto.Email)));
         }
 
         if (await TableWhere(x => x.Phone == createUpdateUserDto.Phone).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateUserDto,
                 nameof(createUpdateUserDto.Phone)));
         }
 
@@ -91,6 +103,11 @@ public class UserService : BaseServices<User>, IUserService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="createUpdateUserDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> UpdateAsync(CreateUpdateUserDto createUpdateUserDto)
     {
@@ -98,28 +115,28 @@ public class UserService : BaseServices<User>, IUserService
         var oldUser = await TableWhere(x => x.Id == createUpdateUserDto.Id).Includes(x => x.Roles).FirstAsync();
         if (oldUser.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateUserDto, LanguageKeyConstants.User,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateUserDto, LanguageKeyConstants.User,
                 nameof(createUpdateUserDto.Id)));
         }
 
         if (oldUser.Username != createUpdateUserDto.Username &&
             await TableWhere(x => x.Username == createUpdateUserDto.Username).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateUserDto,
                 nameof(createUpdateUserDto.Username)));
         }
 
         if (oldUser.Email != createUpdateUserDto.Email &&
             await TableWhere(x => x.Email == createUpdateUserDto.Email).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateUserDto,
                 nameof(createUpdateUserDto.Email)));
         }
 
         if (oldUser.Phone != createUpdateUserDto.Phone &&
             await TableWhere(x => x.Phone == createUpdateUserDto.Phone).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateUserDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateUserDto,
                 nameof(createUpdateUserDto.Phone)));
         }
 
@@ -148,6 +165,11 @@ public class UserService : BaseServices<User>, IUserService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         if (ids.Contains(App.HttpUser.Id))
@@ -170,12 +192,12 @@ public class UserService : BaseServices<User>, IUserService
     }
 
     /// <summary>
-    /// 用户列表
+    /// 查询
     /// </summary>
     /// <param name="userQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
-    public async Task<List<UserDto>> QueryAsync(UserQueryCriteria userQueryCriteria, Pagination pagination)
+    public async Task<List<UserVo>> QueryAsync(UserQueryCriteria userQueryCriteria, Pagination pagination)
     {
         var conditionalModels = await GetConditionalModel(userQueryCriteria);
         var queryOptions = new QueryOptions<User>
@@ -186,10 +208,14 @@ public class UserService : BaseServices<User>, IUserService
         };
         var users = await TablePageAsync(queryOptions);
 
-        return App.Mapper.MapTo<List<UserDto>>(users);
+        return App.Mapper.MapTo<List<UserVo>>(users);
     }
 
-
+    /// <summary>
+    /// 下载
+    /// </summary>
+    /// <param name="userQueryCriteria"></param>
+    /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync(UserQueryCriteria userQueryCriteria)
     {
         var conditionalModels = await GetConditionalModel(userQueryCriteria);
@@ -217,14 +243,19 @@ public class UserService : BaseServices<User>, IUserService
 
     #region 扩展方法
 
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="userId">用户Id</param>
+    /// <returns></returns>
     //[UseCache(Expiration = 60, KeyPrefix = GlobalConstants.CachePrefix.UserInfoById)]
-    public async Task<UserDto> QueryByIdAsync(long userId)
+    public async Task<UserVo> QueryByIdAsync(long userId)
     {
         var user = await TableWhere(x => x.Id == userId, null, null, null, true).Includes(x => x.Dept)
             .Includes(x => x.Roles)
             .Includes(x => x.Jobs).FirstAsync();
 
-        return App.Mapper.MapTo<UserDto>(user);
+        return App.Mapper.MapTo<UserVo>(user);
     }
 
     /// <summary>
@@ -232,7 +263,7 @@ public class UserService : BaseServices<User>, IUserService
     /// </summary>
     /// <param name="userName">邮箱 or 用户名</param>
     /// <returns></returns>
-    public async Task<UserDto> QueryByNameAsync(string userName)
+    public async Task<UserVo> QueryByNameAsync(string userName)
     {
         User user;
         if (userName.IsEmail())
@@ -244,7 +275,7 @@ public class UserService : BaseServices<User>, IUserService
             user = await TableWhere(s => s.Username == userName, null, null, null, true).FirstAsync();
         }
 
-        return App.Mapper.MapTo<UserDto>(user);
+        return App.Mapper.MapTo<UserVo>(user);
     }
 
     /// <summary>
@@ -252,9 +283,9 @@ public class UserService : BaseServices<User>, IUserService
     /// </summary>
     /// <param name="deptIds"></param>
     /// <returns></returns>
-    public async Task<List<UserDto>> QueryByDeptIdsAsync(List<long> deptIds)
+    public async Task<List<UserVo>> QueryByDeptIdsAsync(List<long> deptIds)
     {
-        return App.Mapper.MapTo<List<UserDto>>(
+        return App.Mapper.MapTo<List<UserVo>>(
             await TableWhere(u => deptIds.Contains(u.DeptId)).ToListAsync());
     }
 
@@ -269,14 +300,14 @@ public class UserService : BaseServices<User>, IUserService
         var user = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (user.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         var checkUser = await TableWhere(x =>
             x.Phone == updateUserCenterDto.Phone && x.Id != App.HttpUser.Id).FirstAsync();
         if (checkUser.IsNotNull())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(updateUserCenterDto,
+            return OperateResult.Error(ValidationError.IsExist(updateUserCenterDto,
                 nameof(updateUserCenterDto.Phone)));
         }
 
@@ -287,9 +318,15 @@ public class UserService : BaseServices<User>, IUserService
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 更新用户密码
+    /// </summary>
+    /// <param name="userPassDto"></param>
+    /// <returns></returns>
     public async Task<OperateResult> UpdatePasswordAsync(UpdateUserPassDto userPassDto)
     {
-        var rsaHelper = new RsaHelper(App.GetOptions<RsaOptions>());
+        var rsaOptions = App.GetOptions<RsaOptions>();
+        var rsaHelper = new RsaHelper(rsaOptions.PrivateKey, rsaOptions.PublicKey);
         string oldPassword = rsaHelper.Decrypt(userPassDto.OldPassword);
         string newPassword = rsaHelper.Decrypt(userPassDto.NewPassword);
         string confirmPassword = rsaHelper.Decrypt(userPassDto.ConfirmPassword);
@@ -305,7 +342,7 @@ public class UserService : BaseServices<User>, IUserService
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         if (!BCryptHelper.Verify(oldPassword, curUser.Password))
@@ -341,10 +378,11 @@ public class UserService : BaseServices<User>, IUserService
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
-        var rsaHelper = new RsaHelper(App.GetOptions<RsaOptions>());
+        var rsaOptions = App.GetOptions<RsaOptions>();
+        var rsaHelper = new RsaHelper(rsaOptions.PrivateKey, rsaOptions.PublicKey);
         string password = rsaHelper.Decrypt(updateUserEmailDto.Password);
         if (!BCryptHelper.Verify(password, curUser.Password))
         {
@@ -363,12 +401,17 @@ public class UserService : BaseServices<User>, IUserService
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 更新用户头像
+    /// </summary>
+    /// <param name="file"></param>
+    /// <returns></returns>
     public async Task<OperateResult> UpdateAvatarAsync(IFormFile file)
     {
         var curUser = await TableWhere(x => x.Id == App.HttpUser.Id).FirstAsync();
         if (curUser.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
 

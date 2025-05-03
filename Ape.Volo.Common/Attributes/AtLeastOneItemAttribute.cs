@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
+using Ape.Volo.Common.MultiLanguage.Resources;
 
 namespace Ape.Volo.Common.Attributes;
 
@@ -23,7 +24,6 @@ public class AtLeastOneItemAttribute : ValidationAttribute
             return ValidationResult.Success;
         }
 
-        return new ValidationResult(App.L.R("{0}AtLeastOne",
-            App.L.R(displayName)));
+        return new ValidationResult(Localizer.R("{0}AtLeastOne", Localizer.R(displayName)));
     }
 }

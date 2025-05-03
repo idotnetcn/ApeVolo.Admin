@@ -1,5 +1,4 @@
-﻿using System.IO;
-using SqlSugar;
+﻿using SqlSugar;
 
 namespace Ape.Volo.Common.Helper;
 
@@ -14,20 +13,14 @@ public static class TenantHelper
     /// <returns></returns>
     public static ConnectionConfig GetConnectionConfig(string configId, DbType dbType, string connection)
     {
-        if (dbType == DbType.Sqlite)
-        {
-            connection = "DataSource=" + Path.Combine(App.WebHostEnvironment.ContentRootPath,
-                connection ?? string.Empty);
-        }
-
-        return new ConnectionConfig()
+        return new ConnectionConfig
         {
             ConfigId = configId,
             DbType = dbType,
             ConnectionString = connection,
             IsAutoCloseConnection = true,
             LanguageType = LanguageType.Chinese,
-            MoreSettings = new ConnMoreSettings()
+            MoreSettings = new ConnMoreSettings
             {
                 IsAutoRemoveDataCache = true,
                 SqlServerCodeFirstNvarchar = true,

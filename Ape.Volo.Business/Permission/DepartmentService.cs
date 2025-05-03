@@ -2,31 +2,41 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Permission;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.ExportModel.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.Permission;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.SharedModel.Dto.Core.Permission;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.Department;
+using Ape.Volo.ViewModel.Report.Permission;
 
 namespace Ape.Volo.Business.Permission;
 
+/// <summary>
+/// 部门服务
+/// </summary>
 public class DepartmentService : BaseServices<Department>, IDepartmentService
 {
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="createUpdateDepartmentDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> CreateAsync(CreateUpdateDepartmentDto createUpdateDepartmentDto)
     {
         if (await TableWhere(d => d.Name == createUpdateDepartmentDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDepartmentDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateDepartmentDto,
                 nameof(createUpdateDepartmentDto.Name)));
         }
 
@@ -51,6 +61,11 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="createUpdateDepartmentDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> UpdateAsync(CreateUpdateDepartmentDto createUpdateDepartmentDto)
     {
@@ -58,7 +73,7 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
             await TableWhere(x => x.Id == createUpdateDepartmentDto.Id).FirstAsync();
         if (oldUseDepartment.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateDepartmentDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateDepartmentDto,
                 LanguageKeyConstants.Department,
                 nameof(createUpdateDepartmentDto.Id)));
         }
@@ -66,7 +81,7 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
         if (oldUseDepartment.Name != createUpdateDepartmentDto.Name &&
             await TableWhere(x => x.Name == createUpdateDepartmentDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateDepartmentDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateDepartmentDto,
                 nameof(createUpdateDepartmentDto.Name)));
         }
 
@@ -108,6 +123,11 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> DeleteAsync(List<long> ids)
     {
@@ -116,17 +136,17 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
             .ToListAsync();
         if (departmentList.Count < 1)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         if (departmentList.Any(dept => dept.Users != null && dept.Users.Count != 0))
         {
-            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
+            return OperateResult.Error(ValidationError.DataAssociationExists());
         }
 
         if (departmentList.Any(dept => dept.Roles != null && dept.Roles.Count != 0))
         {
-            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
+            return OperateResult.Error(ValidationError.DataAssociationExists());
         }
 
 
@@ -154,8 +174,13 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
         return OperateResult.Result(isTrue);
     }
 
-
-    public async Task<List<DepartmentDto>> QueryAsync(DeptQueryCriteria deptQueryCriteria,
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="deptQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<DepartmentVo>> QueryAsync(DeptQueryCriteria deptQueryCriteria,
         Pagination pagination)
     {
         List<Department> deptList;
@@ -173,19 +198,27 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
             deptList = await TableWhere(deptQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
         }
 
-        var deptDataList = App.Mapper.MapTo<List<DepartmentDto>>(deptList);
+        var deptDataList = App.Mapper.MapTo<List<DepartmentVo>>(deptList);
 
         pagination.TotalElements = deptDataList.Count;
         return deptDataList;
     }
 
-    public async Task<List<DepartmentDto>> QueryAllAsync()
+    /// <summary>
+    /// 查询全部
+    /// </summary>
+    /// <returns></returns>
+    public async Task<List<DepartmentVo>> QueryAllAsync()
     {
-        var deptList = App.Mapper.MapTo<List<DepartmentDto>>(await Table.ToListAsync());
+        var deptList = App.Mapper.MapTo<List<DepartmentVo>>(await Table.ToListAsync());
         return deptList;
     }
 
-
+    /// <summary>
+    /// 下载
+    /// </summary>
+    /// <param name="deptQueryCriteria"></param>
+    /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync(DeptQueryCriteria deptQueryCriteria)
     {
         var depts = await TableWhere(deptQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
@@ -207,28 +240,43 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
 
     #region 扩展方法
 
-    public async Task<List<DepartmentDto>> QuerySuperiorDeptAsync(long id)
+    /// <summary>
+    /// 查询同级和父级
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public async Task<List<DepartmentVo>> QuerySuperiorDeptAsync(long id)
     {
-        var departmentList = new List<DepartmentDto>();
+        var departmentList = new List<DepartmentVo>();
         var dept = await TableWhere(x => x.Id == id).FirstAsync();
-        var deptDto = App.Mapper.MapTo<DepartmentDto>(dept);
-        var departmentDtoList = await FindSuperiorAsync(deptDto, new List<DepartmentDto>());
-        departmentList.AddRange(departmentDtoList);
+        var deptDto = App.Mapper.MapTo<DepartmentVo>(dept);
+        var departmentVoList = await FindSuperiorAsync(deptDto, new List<DepartmentVo>());
+        departmentList.AddRange(departmentVoList);
 
-        departmentList = TreeHelper<DepartmentDto>.ListToTrees(departmentList, "Id", "ParentId", 0);
+        departmentList = TreeHelper<DepartmentVo>.ListToTrees(departmentList, "Id", "ParentId", 0);
 
         return departmentList;
     }
 
-    public async Task<List<DepartmentDto>> QueryByPIdAsync(long id)
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="id">部门父Id</param>
+    /// <returns></returns>
+    public async Task<List<DepartmentVo>> QueryByPIdAsync(long id)
     {
-        return App.Mapper.MapTo<List<DepartmentDto>>(await TableWhere(x =>
+        return App.Mapper.MapTo<List<DepartmentVo>>(await TableWhere(x =>
             x.ParentId == id && x.Enabled).ToListAsync());
     }
 
-    public async Task<DepartmentSmallDto> QueryByIdAsync(long id)
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="id">部门ID</param>
+    /// <returns></returns>
+    public async Task<DepartmentSmallVo> QueryByIdAsync(long id)
     {
-        return App.Mapper.MapTo<DepartmentSmallDto>(await TableWhere(x =>
+        return App.Mapper.MapTo<DepartmentSmallVo>(await TableWhere(x =>
             x.Id == id && x.Enabled).FirstAsync());
     }
 
@@ -240,33 +288,33 @@ public class DepartmentService : BaseServices<Department>, IDepartmentService
     /// 获取顶级部门
     /// </summary>
     /// <returns></returns>
-    private async Task<List<DepartmentDto>> FindByPIdIsNullAsync()
+    private async Task<List<DepartmentVo>> FindByPIdIsNullAsync()
     {
-        return App.Mapper.MapTo<List<DepartmentDto>>(
+        return App.Mapper.MapTo<List<DepartmentVo>>(
             await TableWhere(x => x.ParentId == 0 && x.Enabled).ToListAsync());
     }
 
     /// <summary>
     /// 查找同级和所有上级部门
     /// </summary>
-    /// <param name="departmentDto"></param>
-    /// <param name="departmentDtoList"></param>
+    /// <param name="departmentVo"></param>
+    /// <param name="departmentVoList"></param>
     /// <returns></returns>
-    private async Task<List<DepartmentDto>> FindSuperiorAsync(DepartmentDto departmentDto,
-        List<DepartmentDto> departmentDtoList)
+    private async Task<List<DepartmentVo>> FindSuperiorAsync(DepartmentVo departmentVo,
+        List<DepartmentVo> departmentVoList)
     {
         while (true)
         {
-            if (departmentDto.ParentId == 0)
+            if (departmentVo.ParentId == 0)
             {
-                departmentDtoList.AddRange(await FindByPIdIsNullAsync());
-                return departmentDtoList;
+                departmentVoList.AddRange(await FindByPIdIsNullAsync());
+                return departmentVoList;
             }
 
-            departmentDtoList.AddRange(await QueryByPIdAsync(Convert.ToInt64(departmentDto.ParentId)));
-            var dto = departmentDto;
-            departmentDto =
-                App.Mapper.MapTo<DepartmentDto>(await TableWhere(x => x.Id == dto.ParentId)
+            departmentVoList.AddRange(await QueryByPIdAsync(Convert.ToInt64(departmentVo.ParentId)));
+            var dto = departmentVo;
+            departmentVo =
+                App.Mapper.MapTo<DepartmentVo>(await TableWhere(x => x.Id == dto.ParentId)
                     .FirstAsync());
         }
     }

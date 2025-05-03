@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Ape.Volo.Entity.Message.Email;
-using Ape.Volo.IBusiness.Interface.Message.Email;
-using Ape.Volo.IBusiness.Interface.System;
+using Ape.Volo.Entity.Core.Message.Email;
+using Ape.Volo.IBusiness.Message.Email;
+using Ape.Volo.IBusiness.System;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 
@@ -25,6 +25,11 @@ public class SmtpBuilder : ISmtpBuilder
 
     #region Ctor
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="emailAccountService"></param>
+    /// <param name="settingService"></param>
     public SmtpBuilder(IEmailAccountService emailAccountService, ISettingService settingService)
     {
         _emailAccountService = emailAccountService;

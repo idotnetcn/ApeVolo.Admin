@@ -2,11 +2,10 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.Queued;
-using Ape.Volo.IBusiness.Interface.Queued;
-using Ape.Volo.IBusiness.QueryModel;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.IBusiness.Queued;
+using Ape.Volo.SharedModel.Dto.Core.Queued;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Queued;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Queued;

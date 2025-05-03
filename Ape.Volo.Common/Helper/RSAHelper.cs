@@ -2,8 +2,8 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Ape.Volo.Common.ConfigOptions;
 using Ape.Volo.Common.Enums;
+using Ape.Volo.Common.Extensions;
 
 namespace Ape.Volo.Common.Helper;
 
@@ -25,16 +25,15 @@ public class RsaHelper
     /// 实例化RSAHelper
     /// </summary>
     /// <param name="rsaType">加密算法类型 RSA SHA1;RSA2 SHA256 密钥长度至少为2048</param>
-    /// <param name="rsaOptions">rsa config</param>
-    public RsaHelper(RsaOptions rsaOptions = null, RsaType rsaType = RsaType.Rsa)
+    /// <param name="privateKey">私钥</param>
+    /// <param name="publicKey">公钥</param>
+    public RsaHelper(string privateKey = "", string publicKey = "", RsaType rsaType = RsaType.Rsa)
     {
-        if (rsaOptions == null)
+        if (privateKey.IsNullOrEmpty() || publicKey.IsNullOrEmpty())
         {
-            throw new System.Exception("rsa配置对象读取失败,请检查");
+            throw new System.Exception("RSA private key or public key cannot be empty");
         }
 
-        string privateKey = rsaOptions.PrivateKey;
-        string publicKey = rsaOptions.PublicKey;
         if (!string.IsNullOrEmpty(privateKey))
         {
             _privateKeyRsaProvider = CreateRsaProviderFromPrivateKey(privateKey);

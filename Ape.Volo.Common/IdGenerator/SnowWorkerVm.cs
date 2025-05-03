@@ -41,15 +41,15 @@ public class SnowWorkerVm : ISnowWorker
     /// </summary>
     protected int TopOverCostCount = 0;
 
-    protected byte _TimestampShift = 0;
-    protected static object _SyncLock = new object();
+    protected byte TimestampShift = 0;
+    protected static object SyncLock = new object();
 
-    protected ushort _CurrentSeqNumber = 0;
-    protected long _LastTimeTick = 0; // -1L
-    protected long _TurnBackTimeTick = 0; // -1L;
-    protected byte _TurnBackIndex = 0;
-    protected bool _IsOverCost = false;
-    protected int _OverCostCountInOneTerm = 0;
+    protected ushort CurrentSeqNumber = 0;
+    protected long LastTimeTick = 0; // -1L
+    protected long TurnBackTimeTick = 0; // -1L;
+    protected byte TurnBackIndex = 0;
+    protected bool IsOverCost = false;
+    protected int OverCostCountInOneTerm = 0;
 
     //private static long _StartTimeTick = 0;
     //private static long _BaseTimeTick = 0;
@@ -106,8 +106,8 @@ public class SnowWorkerVm : ISnowWorker
         //    TopOverCostCount = 2000;
         //}
 
-        _TimestampShift = (byte)(WorkerIdBitLength + SeqBitLength);
-        _CurrentSeqNumber = options.MinSeqNumber;
+        TimestampShift = (byte)(WorkerIdBitLength + SeqBitLength);
+        CurrentSeqNumber = options.MinSeqNumber;
 
         //_BaseTimeTick = BaseTime.Ticks;
         //_StartTimeTick = (long)(DateTime.UtcNow.Subtract(BaseTime).TotalMilliseconds) - Environment.TickCount;
@@ -117,107 +117,107 @@ public class SnowWorkerVm : ISnowWorker
     {
         long currentTimeTick = GetCurrentTimeTick();
 
-        if (currentTimeTick > _LastTimeTick)
+        if (currentTimeTick > LastTimeTick)
         {
-            _LastTimeTick = currentTimeTick;
-            _CurrentSeqNumber = MinSeqNumber;
-            _IsOverCost = false;
-            _OverCostCountInOneTerm = 0;
+            LastTimeTick = currentTimeTick;
+            CurrentSeqNumber = MinSeqNumber;
+            IsOverCost = false;
+            OverCostCountInOneTerm = 0;
 
-            return CalcId(_LastTimeTick);
+            return CalcId(LastTimeTick);
         }
 
-        if (_OverCostCountInOneTerm >= TopOverCostCount)
+        if (OverCostCountInOneTerm >= TopOverCostCount)
         {
             // TODO: 在漂移终止，等待时间对齐时，如果发生时间回拨较长，则此处可能等待较长时间。可优化为：在漂移终止时增加时间回拨应对逻辑。（该情况发生概率低，暂不处理）
 
-            _LastTimeTick = GetNextTimeTick();
-            _CurrentSeqNumber = MinSeqNumber;
-            _IsOverCost = false;
-            _OverCostCountInOneTerm = 0;
+            LastTimeTick = GetNextTimeTick();
+            CurrentSeqNumber = MinSeqNumber;
+            IsOverCost = false;
+            OverCostCountInOneTerm = 0;
 
-            return CalcId(_LastTimeTick);
+            return CalcId(LastTimeTick);
         }
 
-        if (_CurrentSeqNumber > MaxSeqNumber)
+        if (CurrentSeqNumber > MaxSeqNumber)
         {
-            _LastTimeTick++;
-            _CurrentSeqNumber = MinSeqNumber;
-            _IsOverCost = true;
-            _OverCostCountInOneTerm++;
+            LastTimeTick++;
+            CurrentSeqNumber = MinSeqNumber;
+            IsOverCost = true;
+            OverCostCountInOneTerm++;
 
-            return CalcId(_LastTimeTick);
+            return CalcId(LastTimeTick);
         }
 
-        return CalcId(_LastTimeTick);
+        return CalcId(LastTimeTick);
     }
 
     protected virtual long NextNormalId()
     {
         long currentTimeTick = GetCurrentTimeTick();
 
-        if (currentTimeTick < _LastTimeTick)
+        if (currentTimeTick < LastTimeTick)
         {
-            if (_TurnBackTimeTick < 1)
+            if (TurnBackTimeTick < 1)
             {
-                _TurnBackTimeTick = _LastTimeTick - 1;
+                TurnBackTimeTick = LastTimeTick - 1;
 
-                _TurnBackIndex++;
+                TurnBackIndex++;
                 // 每毫秒序列数的前5位是预留位，0用于手工新值，1-4是时间回拨次序
                 // 支持4次回拨次序（避免回拨重叠导致ID重复），可无限次回拨（次序循环使用）。
-                if (_TurnBackIndex > 4)
+                if (TurnBackIndex > 4)
                 {
-                    _TurnBackIndex = 1;
+                    TurnBackIndex = 1;
                 }
             }
 
             //Thread.Sleep(1);
-            return CalcTurnBackId(_TurnBackTimeTick);
+            return CalcTurnBackId(TurnBackTimeTick);
         }
 
         // 时间追平时，_TurnBackTimeTick清零
-        if (_TurnBackTimeTick > 0)
+        if (TurnBackTimeTick > 0)
         {
-            _TurnBackTimeTick = 0;
+            TurnBackTimeTick = 0;
         }
 
-        if (currentTimeTick > _LastTimeTick)
+        if (currentTimeTick > LastTimeTick)
         {
-            _LastTimeTick = currentTimeTick;
-            _CurrentSeqNumber = MinSeqNumber;
+            LastTimeTick = currentTimeTick;
+            CurrentSeqNumber = MinSeqNumber;
 
-            return CalcId(_LastTimeTick);
+            return CalcId(LastTimeTick);
         }
 
-        if (_CurrentSeqNumber > MaxSeqNumber)
+        if (CurrentSeqNumber > MaxSeqNumber)
         {
-            _OverCostCountInOneTerm = 1;
-            _LastTimeTick++;
-            _CurrentSeqNumber = MinSeqNumber;
-            _IsOverCost = true;
+            OverCostCountInOneTerm = 1;
+            LastTimeTick++;
+            CurrentSeqNumber = MinSeqNumber;
+            IsOverCost = true;
 
-            return CalcId(_LastTimeTick);
+            return CalcId(LastTimeTick);
         }
 
-        return CalcId(_LastTimeTick);
+        return CalcId(LastTimeTick);
     }
 
     protected virtual long CalcId(long useTimeTick)
     {
-        var result = (useTimeTick << _TimestampShift) +
+        var result = (useTimeTick << TimestampShift) +
                      ((long)WorkerId << SeqBitLength) +
-                     (uint)_CurrentSeqNumber;
+                     (uint)CurrentSeqNumber;
 
-        _CurrentSeqNumber++;
+        CurrentSeqNumber++;
         return result;
     }
 
     protected virtual long CalcTurnBackId(long useTimeTick)
     {
-        var result = (useTimeTick << _TimestampShift) +
-                     ((long)WorkerId << SeqBitLength) + _TurnBackIndex;
+        var result = (useTimeTick << TimestampShift) +
+                     ((long)WorkerId << SeqBitLength) + TurnBackIndex;
 
-        _TurnBackTimeTick--;
+        TurnBackTimeTick--;
         return result;
     }
 
@@ -232,7 +232,7 @@ public class SnowWorkerVm : ISnowWorker
     {
         long tempTimeTicker = GetCurrentTimeTick();
 
-        while (tempTimeTicker <= _LastTimeTick)
+        while (tempTimeTicker <= LastTimeTick)
         {
             //Thread.Sleep(1);
             SpinWait.SpinUntil(() => false, 1);
@@ -245,9 +245,9 @@ public class SnowWorkerVm : ISnowWorker
 
     public virtual long NextId()
     {
-        lock (_SyncLock)
+        lock (SyncLock)
         {
-            return _IsOverCost ? NextOverCostId() : NextNormalId();
+            return IsOverCost ? NextOverCostId() : NextNormalId();
         }
     }
 }

@@ -1,19 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.System;
-using Ape.Volo.IBusiness.Dto.System;
-using Ape.Volo.IBusiness.ExportModel.System;
-using Ape.Volo.IBusiness.Interface.System;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.System.QuartzNet;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Dto.Core.System;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System.QuartzNet;
+using Ape.Volo.ViewModel.Report.System;
 
 namespace Ape.Volo.Business.System;
 
@@ -30,6 +31,10 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
 
     #region 构造函数
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="quartzNetLogService"></param>
     public QuartzNetService(IQuartzNetLogService quartzNetLogService)
     {
         _quartzNetLogService = quartzNetLogService;
@@ -39,12 +44,21 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
 
     #region 基础方法
 
+    /// <summary>
+    /// 查询全部
+    /// </summary>
+    /// <returns></returns>
     public async Task<List<QuartzNet>> QueryAllAsync()
     {
         return await Table.ToListAsync();
     }
 
-
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="createUpdateQuartzNetDto"></param>
+    /// <returns></returns>
+    /// <exception cref="BadRequestException"></exception>
     public async Task<QuartzNet> CreateAsync(CreateUpdateQuartzNetDto createUpdateQuartzNetDto)
     {
         if (await TableWhere(q =>
@@ -52,20 +66,25 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
                 q.ClassName == createUpdateQuartzNetDto.ClassName).AnyAsync())
         {
             throw new BadRequestException(
-                DataErrorHelper.IsExist(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.ClassName)));
+                ValidationError.IsExist(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.ClassName)));
         }
 
         var quartzNet = App.Mapper.MapTo<QuartzNet>(createUpdateQuartzNetDto);
         return await SugarClient.Insertable(quartzNet).ExecuteReturnEntityAsync();
     }
 
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="createUpdateQuartzNetDto"></param>
+    /// <returns></returns>
     public async Task<OperateResult> UpdateAsync(CreateUpdateQuartzNetDto createUpdateQuartzNetDto)
     {
         var oldQuartzNet =
             await TableWhere(x => x.Id == createUpdateQuartzNetDto.Id).FirstAsync();
         if (oldQuartzNet.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQuartzNetDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateQuartzNetDto,
                 LanguageKeyConstants.QuartzNet,
                 nameof(createUpdateQuartzNetDto.Id)));
         }
@@ -76,7 +95,7 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
                 q.ClassName == createUpdateQuartzNetDto.ClassName).AnyAsync())
         {
             return OperateResult.Error(
-                DataErrorHelper.IsExist(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.ClassName)));
+                ValidationError.IsExist(createUpdateQuartzNetDto, nameof(createUpdateQuartzNetDto.ClassName)));
         }
 
         var quartzNet = App.Mapper.MapTo<QuartzNet>(createUpdateQuartzNetDto);
@@ -84,7 +103,12 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
         return OperateResult.Result(result);
     }
 
-
+    /// <summary>
+    /// 更新作业
+    /// </summary>
+    /// <param name="quartzNet"></param>
+    /// <param name="quartzNetLog"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> UpdateJobInfoAsync(QuartzNet quartzNet, QuartzNetLog quartzNetLog)
     {
@@ -93,6 +117,11 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="quartzNets"></param>
+    /// <returns></returns>
     public async Task<OperateResult> DeleteAsync(List<QuartzNet> quartzNets)
     {
         var ids = quartzNets.Select(x => x.Id).ToList();
@@ -100,7 +129,13 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
         return OperateResult.Result(result);
     }
 
-    public async Task<List<QuartzNetDto>> QueryAsync(QuartzNetQueryCriteria quartzNetQueryCriteria,
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="quartzNetQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<QuartzNetVo>> QueryAsync(QuartzNetQueryCriteria quartzNetQueryCriteria,
         Pagination pagination)
     {
         var queryOptions = new QueryOptions<QuartzNet>
@@ -108,10 +143,15 @@ public class QuartzNetService : BaseServices<QuartzNet>, IQuartzNetService
             Pagination = pagination,
             ConditionalModels = quartzNetQueryCriteria.ApplyQueryConditionalModel()
         };
-        return App.Mapper.MapTo<List<QuartzNetDto>>(
+        return App.Mapper.MapTo<List<QuartzNetVo>>(
             await TablePageAsync(queryOptions));
     }
 
+    /// <summary>
+    /// 下载
+    /// </summary>
+    /// <param name="quartzNetQueryCriteria"></param>
+    /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync(QuartzNetQueryCriteria quartzNetQueryCriteria)
     {
         var quartzNets = await TableWhere(quartzNetQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();

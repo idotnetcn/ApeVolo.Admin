@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.System;
-using Ape.Volo.IBusiness.Interface.System;
-using Ape.Volo.IBusiness.QueryModel;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Dto.Core.System.Dict;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.System;

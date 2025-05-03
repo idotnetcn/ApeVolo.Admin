@@ -11,9 +11,9 @@ public class IocHelper
 {
     #region 私有成员
 
-    private string _lastName { get; } = "Last";
+    private string LastName { get; } = "Last";
 
-    private ConcurrentDictionary<Type, ConcurrentDictionary<string, Type>> _mapping { get; } =
+    private ConcurrentDictionary<Type, ConcurrentDictionary<string, Type>> Mapping { get; } =
         new ConcurrentDictionary<Type, ConcurrentDictionary<string, Type>>();
 
     #endregion
@@ -50,16 +50,16 @@ public class IocHelper
     public void RegisterType(Type typeFrom, Type typeTo, string name)
     {
         ConcurrentDictionary<string, Type> typeMapping = null;
-        if (!_mapping.ContainsKey(typeFrom))
+        if (!Mapping.ContainsKey(typeFrom))
         {
             typeMapping = new ConcurrentDictionary<string, Type>();
-            _mapping[typeFrom] = typeMapping;
+            Mapping[typeFrom] = typeMapping;
         }
         else
-            typeMapping = _mapping[typeFrom];
+            typeMapping = Mapping[typeFrom];
 
         if (name.IsNullOrEmpty())
-            name = _lastName;
+            name = LastName;
 
         typeMapping[name] = typeTo;
     }
@@ -121,11 +121,11 @@ public class IocHelper
     /// <returns></returns>
     public object Resolve(Type typeFrom, string name, params object[] paramters)
     {
-        if (!_mapping.ContainsKey(typeFrom))
+        if (!Mapping.ContainsKey(typeFrom))
             throw new System.Exception("该类型未注册！");
-        var typeMapping = _mapping[typeFrom];
+        var typeMapping = Mapping[typeFrom];
         if (name.IsNullOrEmpty())
-            name = _lastName;
+            name = LastName;
         if (!typeMapping.ContainsKey(name))
             throw new System.Exception("该类型实现名为注册！");
 

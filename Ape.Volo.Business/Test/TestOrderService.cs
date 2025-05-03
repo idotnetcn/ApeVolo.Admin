@@ -1,9 +1,11 @@
-﻿using Ape.Volo.Business.Base;
-using Ape.Volo.Entity.Test;
-using Ape.Volo.IBusiness.Interface.Test;
+﻿using Ape.Volo.Entity.Test;
+using Ape.Volo.IBusiness.Test;
 
 namespace Ape.Volo.Business.Test;
 
+/// <summary>
+/// 
+/// </summary>
 public class TestOrderService : BaseServices<TestOrder>, ITestOrderService
 {
 }

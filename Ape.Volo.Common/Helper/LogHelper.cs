@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Ape.Volo.Common.ClassLibrary;
+using Ape.Volo.Common.Global;
 
 namespace Ape.Volo.Common.Helper;
 
 /// <summary>
 /// 日志操作类
 /// </summary>
-public static class LogHelper
+public class LogHelper
 {
-    private static readonly UsingLock<object> Lock = new();
+    private static UsingLock<object> _lock = new UsingLock<object>();
 
 
     /// <summary>
@@ -19,7 +20,7 @@ public static class LogHelper
     /// </summary>
     /// <param name="folder">文件夹</param>
     /// <param name="message">消息</param>   
-    public static void WriteError(string message, IEnumerable<string> folder)
+    public static void WriteError(string message, List<string> folder)
     {
         AddLog(message, folder);
     }
@@ -29,7 +30,7 @@ public static class LogHelper
     /// </summary>
     /// <param name="folder">文件夹</param>
     /// <param name="message">消息</param> 
-    public static void WriteLog(string message, IEnumerable<string> folder)
+    public static void WriteLog(string message, List<string> folder)
     {
         AddLog(message, folder);
     }
@@ -39,12 +40,15 @@ public static class LogHelper
     /// </summary>
     /// <param name="folder">文件夹</param>
     /// <param name="message">日志存储目录名称</param>
-    private static void AddLog(string message, IEnumerable<string> folder)
+    private static void AddLog(string message, List<string> folder)
     {
         try
         {
-            var path = Path.Combine(App.WebHostEnvironment.ContentRootPath, "Logs");
-            path = folder.Aggregate(path, Path.Combine);
+            var path = Path.Combine(AppSettings.ContentRootPath, "Logs");
+            if (folder != null && folder.Count != 0)
+            {
+                path = folder.Aggregate(path, Path.Combine);
+            }
 
             if (!Directory.Exists(path))
             {
@@ -67,7 +71,7 @@ public static class LogHelper
                 fs.Close();
             }
 
-            using (Lock.Write())
+            using (_lock.Write())
             {
                 using var writer = new StreamWriter(logFilePath, true);
                 writer.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff"));
@@ -86,11 +90,11 @@ public static class LogHelper
     /// </summary>
     /// <param name="filename"></param>
     /// <param name="dataParas"></param>
-    public static void WriteSqlLog(string filename, IEnumerable<string> dataParas)
+    public static void WriteSqlLog(string filename, List<string> dataParas)
     {
         try
         {
-            var path = Path.Combine(App.WebHostEnvironment.ContentRootPath, "Logs", "Sql");
+            var path = Path.Combine(AppSettings.ContentRootPath, "Logs", "Sql");
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -101,7 +105,7 @@ public static class LogHelper
             var logContent =
                 DateTime.Now.ToString("yyyy-MM-dd HH:ss:mm fff") + "\r\n" +
                 string.Join("", dataParas) + "\r\n\r\n\r\n\r\n";
-            using (Lock.Write())
+            using (_lock.Write())
             {
                 File.AppendAllText(logFilePath, logContent);
             }

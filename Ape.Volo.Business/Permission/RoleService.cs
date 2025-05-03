@@ -1,20 +1,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Exception;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Permission;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.ExportModel.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.Permission.Role;
+using Ape.Volo.Entity.Core.Permission.User;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.SharedModel.Dto.Core.Permission.Role;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.Role;
+using Ape.Volo.ViewModel.Report.Permission;
 using SqlSugar;
 
 namespace Ape.Volo.Business.Permission;
@@ -26,19 +28,24 @@ public class RoleService : BaseServices<Role>, IRoleService
 {
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="createUpdateRoleDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> CreateAsync(CreateUpdateRoleDto createUpdateRoleDto)
     {
         await VerificationUserRoleLevelAsync(createUpdateRoleDto.Level);
         if (await TableWhere(r => r.Name == createUpdateRoleDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateRoleDto,
                 nameof(createUpdateRoleDto.Name)));
         }
 
         if (await TableWhere(r => r.Permission == createUpdateRoleDto.Permission).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateRoleDto,
                 nameof(createUpdateRoleDto.Permission)));
         }
 
@@ -62,6 +69,11 @@ public class RoleService : BaseServices<Role>, IRoleService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="createUpdateRoleDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> UpdateAsync(CreateUpdateRoleDto createUpdateRoleDto)
     {
@@ -69,21 +81,21 @@ public class RoleService : BaseServices<Role>, IRoleService
         var oldRole = await TableWhere(x => x.Id == createUpdateRoleDto.Id).Includes(x => x.Users).FirstAsync();
         if (oldRole.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateRoleDto, LanguageKeyConstants.Role,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateRoleDto, LanguageKeyConstants.Role,
                 nameof(createUpdateRoleDto.Id)));
         }
 
         if (oldRole.Name != createUpdateRoleDto.Name &&
             await TableWhere(x => x.Name == createUpdateRoleDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateRoleDto,
                 nameof(createUpdateRoleDto.Name)));
         }
 
         if (oldRole.Permission != createUpdateRoleDto.Permission &&
             await TableWhere(x => x.Permission == createUpdateRoleDto.Permission).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateRoleDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateRoleDto,
                 nameof(createUpdateRoleDto.Permission)));
         }
 
@@ -117,6 +129,11 @@ public class RoleService : BaseServices<Role>, IRoleService
         return OperateResult.Success();
     }
 
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
@@ -124,7 +141,7 @@ public class RoleService : BaseServices<Role>, IRoleService
         var roles = await TableWhere(x => ids.Contains(x.Id)).Includes(x => x.Users).ToListAsync();
         if (roles.Count == 0)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         int userCount = 0;
@@ -135,7 +152,7 @@ public class RoleService : BaseServices<Role>, IRoleService
 
         if (userCount > 0)
         {
-            return OperateResult.Error(DataErrorHelper.DataAssociationExists());
+            return OperateResult.Error(ValidationError.DataAssociationExists());
         }
 
 
@@ -150,7 +167,13 @@ public class RoleService : BaseServices<Role>, IRoleService
         return OperateResult.Result(result);
     }
 
-    public async Task<List<RoleDto>> QueryAsync(RoleQueryCriteria roleQueryCriteria, Pagination pagination)
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="roleQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<RoleVo>> QueryAsync(RoleQueryCriteria roleQueryCriteria, Pagination pagination)
     {
         var queryOptions = new QueryOptions<Role>
         {
@@ -162,11 +185,11 @@ public class RoleService : BaseServices<Role>, IRoleService
         var roleList =
             await TablePageAsync(queryOptions);
 
-        return App.Mapper.MapTo<List<RoleDto>>(roleList);
+        return App.Mapper.MapTo<List<RoleVo>>(roleList);
     }
 
     /// <summary>
-    /// 
+    /// 下载
     /// </summary>
     /// <param name="roleQueryCriteria"></param>
     /// <returns></returns>
@@ -193,13 +216,22 @@ public class RoleService : BaseServices<Role>, IRoleService
 
     #region 扩展方法
 
-    public async Task<List<RoleDto>> QueryAllAsync()
+    /// <summary>
+    /// 查询全部
+    /// </summary>
+    /// <returns></returns>
+    public async Task<List<RoleVo>> QueryAllAsync()
     {
         var roleList = await Table.Includes(x => x.MenuList).Includes(x => x.DepartmentList).ToListAsync();
 
-        return App.Mapper.MapTo<List<RoleDto>>(roleList);
+        return App.Mapper.MapTo<List<RoleVo>>(roleList);
     }
 
+    /// <summary>
+    /// 查询角色等级
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     public async Task<int?> QueryUserRoleLevelAsync(HashSet<long> ids)
     {
         var levels = await SugarClient.Queryable<Role, UserRole>((r, ur) => new JoinQueryInfos(
@@ -215,6 +247,12 @@ public class RoleService : BaseServices<Role>, IRoleService
         return null;
     }
 
+    /// <summary>
+    /// 验证用户角色等级
+    /// </summary>
+    /// <param name="level"></param>
+    /// <returns></returns>
+    /// <exception cref="BadRequestException"></exception>
     public async Task<int> VerificationUserRoleLevelAsync(int? level)
     {
         var minLevel = 999;
@@ -237,14 +275,18 @@ public class RoleService : BaseServices<Role>, IRoleService
         return minLevel;
     }
 
-
+    /// <summary>
+    /// 更新角色菜单
+    /// </summary>
+    /// <param name="updateRoleMenuDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> UpdateRolesMenusAsync(UpdateRoleMenuDto updateRoleMenuDto)
     {
         var role = await TableWhere(x => x.Id == updateRoleMenuDto.Id).Includes(x => x.Users).FirstAsync();
         if (role.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         await VerificationUserRoleLevelAsync(role.Level);
@@ -271,14 +313,18 @@ public class RoleService : BaseServices<Role>, IRoleService
         return OperateResult.Success();
     }
 
-
+    /// <summary>
+    /// 更新角色Api路由
+    /// </summary>
+    /// <param name="updateRoleApiDto"></param>
+    /// <returns></returns>
     [UseTran]
     public async Task<OperateResult> UpdateRolesApisAsync(UpdateRoleApiDto updateRoleApiDto)
     {
         var role = await TableWhere(x => x.Id == updateRoleApiDto.Id).Includes(x => x.Users).FirstAsync();
         if (role.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         await VerificationUserRoleLevelAsync(role.Level);

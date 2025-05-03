@@ -25,7 +25,7 @@ public class LocalizationService : ILocalizationService
         return _localizer[name, arguments];
     }
 
-    public IEnumerable<LocalizedString> RAll(bool includeParentCultures)
+    public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
     {
         return _localizer.GetAllStrings();
     }

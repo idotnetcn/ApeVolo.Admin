@@ -9,7 +9,7 @@ namespace Ape.Volo.Common.Helper;
 /// </summary>
 public static class RandomHelper
 {
-    private static Random _random { get; } = new Random();
+    private static Random Random { get; } = new Random();
 
     /// <summary>
     /// 下一个随机数
@@ -19,7 +19,7 @@ public static class RandomHelper
     /// <returns></returns>
     public static int Next(int minValue, int maxValue)
     {
-        return _random.Next(minValue, maxValue);
+        return Random.Next(minValue, maxValue);
     }
 
     /// <summary>

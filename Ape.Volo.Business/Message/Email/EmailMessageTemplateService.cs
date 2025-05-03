@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Message.Email;
-using Ape.Volo.IBusiness.Dto.Message.Email;
-using Ape.Volo.IBusiness.Interface.Message.Email;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.Message.Email;
+using Ape.Volo.IBusiness.Message.Email;
+using Ape.Volo.SharedModel.Dto.Core.Message.Email;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Message;
+using Ape.Volo.ViewModel.Core.Message.Email;
 
 namespace Ape.Volo.Business.Message.Email;
 
@@ -30,7 +31,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
     {
         if (await TableWhere(x => x.Name == createUpdateEmailMessageTemplateDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateEmailMessageTemplateDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateEmailMessageTemplateDto,
                 nameof(createUpdateEmailMessageTemplateDto.Name)));
         }
 
@@ -50,7 +51,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
         var emailMessageTemplate = await TableWhere(x => x.Id == createUpdateEmailMessageTemplateDto.Id).FirstAsync();
         if (emailMessageTemplate.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateEmailMessageTemplateDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateEmailMessageTemplateDto,
                 LanguageKeyConstants.EmailMessageTemplate,
                 nameof(createUpdateEmailMessageTemplateDto.Id)));
         }
@@ -58,7 +59,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
         if (emailMessageTemplate.Name != createUpdateEmailMessageTemplateDto.Name &&
             await TableWhere(j => j.Name == emailMessageTemplate.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateEmailMessageTemplateDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateEmailMessageTemplateDto,
                 nameof(createUpdateEmailMessageTemplateDto.Name)));
         }
 
@@ -77,7 +78,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
         var messageTemplateList = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (messageTemplateList.Count <= 0)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         var result = await LogicDelete<EmailMessageTemplate>(x => ids.Contains(x.Id));
@@ -90,7 +91,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
     /// <param name="messageTemplateQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
-    public async Task<List<EmailMessageTemplateDto>> QueryAsync(
+    public async Task<List<EmailMessageTemplateVo>> QueryAsync(
         EmailMessageTemplateQueryCriteria messageTemplateQueryCriteria, Pagination pagination)
     {
         var queryOptions = new QueryOptions<EmailMessageTemplate>
@@ -98,7 +99,7 @@ public class EmailMessageTemplateService : BaseServices<EmailMessageTemplate>, I
             Pagination = pagination,
             ConditionalModels = messageTemplateQueryCriteria.ApplyQueryConditionalModel(),
         };
-        return App.Mapper.MapTo<List<EmailMessageTemplateDto>>(
+        return App.Mapper.MapTo<List<EmailMessageTemplateVo>>(
             await TablePageAsync(queryOptions));
     }
 

@@ -2,14 +2,13 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.QueryModel;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.Core;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.SharedModel.Dto.Core.Permission.User;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Permission;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -170,6 +169,8 @@ public class UserController : BaseApiController
     [HttpGet]
     [Description("Sys.Query")]
     [Route("query")]
+    [Produces("application/json")]
+    //[ProducesResponseType(typeof(UserVo), StatusCodes.Status200OK)]
     public async Task<ActionResult> Query(UserQueryCriteria userQueryCriteria,
         Pagination pagination)
     {

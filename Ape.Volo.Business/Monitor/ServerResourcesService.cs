@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.IBusiness.Interface.Monitor;
-using Ape.Volo.IBusiness.Vo.ServerResources;
-using Disk = Ape.Volo.IBusiness.Vo.ServerResources.Disk;
+using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.ViewModel.ServerInfo;
+using Disk = Ape.Volo.ViewModel.ServerInfo.Disk;
 
 namespace Ape.Volo.Business.Monitor;
 
+/// <summary>
+/// 服务器资源服务
+/// </summary>
 public class ServerResourcesService : IServerResourcesService
 {
     private const int B = 1;
@@ -15,9 +17,13 @@ public class ServerResourcesService : IServerResourcesService
     private const int Mb = 1024 * Kb;
     private const int Gb = 1024 * Mb;
 
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <returns></returns>
     public async Task<ServerResourcesInfo> Query()
     {
-        var os = new OsInfoTo();
+        var os = new OsInfo();
 
         ServerResourcesInfo osInfo = new ServerResourcesInfo
         {

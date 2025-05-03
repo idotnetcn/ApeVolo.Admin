@@ -47,10 +47,10 @@ public static class IpHelper
     /// <returns></returns>
     public static int GetFirstAvailablePort()
     {
-        int BEGIN_PORT = 1024; //从这个端口开始检测
-        int MAX_PORT = 65535; //系统tcp/udp端口数最大是65535            
+        int beginPort = 1024; //从这个端口开始检测
+        int maxPort = 65535; //系统tcp/udp端口数最大是65535            
 
-        for (int i = BEGIN_PORT; i < MAX_PORT; i++)
+        for (int i = beginPort; i < maxPort; i++)
         {
             if (PortIsAvailable(i)) return i;
         }

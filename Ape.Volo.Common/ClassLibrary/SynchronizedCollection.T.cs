@@ -12,14 +12,14 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
     {
         get
         {
-            using (_lock.Read())
+            using (Lock.Read())
             {
                 return _list[index];
             }
         }
         set
         {
-            using (_lock.Write())
+            using (Lock.Write())
             {
                 _list[index] = value;
             }
@@ -30,7 +30,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
     {
         get
         {
-            using (_lock.Read())
+            using (Lock.Read())
             {
                 return _list.Count;
             }
@@ -39,7 +39,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public void Add(T item)
     {
-        using (_lock.Write())
+        using (Lock.Write())
         {
             _list.Add(item);
         }
@@ -47,7 +47,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public void Clear()
     {
-        using (_lock.Write())
+        using (Lock.Write())
         {
             _list.Clear();
         }
@@ -55,7 +55,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public bool Contains(T item)
     {
-        using (_lock.Read())
+        using (Lock.Read())
         {
             return _list.Contains(item);
         }
@@ -63,7 +63,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public void CopyTo(T[] array, int index)
     {
-        using (_lock.Read())
+        using (Lock.Read())
         {
             _list.CopyTo(array, index);
         }
@@ -71,7 +71,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public IEnumerator<T> GetEnumerator()
     {
-        using (_lock.Read())
+        using (Lock.Read())
         {
             return _list.GetEnumerator();
         }
@@ -79,7 +79,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public int IndexOf(T item)
     {
-        using (_lock.Read())
+        using (Lock.Read())
         {
             return _list.IndexOf(item);
         }
@@ -87,7 +87,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public void Insert(int index, T item)
     {
-        using (_lock.Write())
+        using (Lock.Write())
         {
             _list.Insert(index, item);
         }
@@ -95,7 +95,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public bool Remove(T item)
     {
-        using (_lock.Write())
+        using (Lock.Write())
         {
             return _list.Remove(item);
         }
@@ -103,7 +103,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     public void RemoveAt(int index)
     {
-        using (_lock.Write())
+        using (Lock.Write())
         {
             _list.RemoveAt(index);
         }
@@ -113,12 +113,12 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
 
     #region 私有成员
 
-    private UsingLock<object> _lock { get; } = new UsingLock<object>();
+    private UsingLock<object> Lock { get; } = new UsingLock<object>();
     private List<T> _list = new List<T>();
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        using (_lock.Read())
+        using (Lock.Read())
         {
             return _list.GetEnumerator();
         }
@@ -129,7 +129,7 @@ public class SynchronizedCollection<T> : IEnumerable<T>, IDisposable
         _list.Clear();
         _list = null;
 
-        _lock.Dispose();
+        Lock.Dispose();
     }
 
     #endregion

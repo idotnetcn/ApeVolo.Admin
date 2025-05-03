@@ -9,11 +9,15 @@ WORKDIR /src
 COPY ["Ape.Volo.Api/Ape.Volo.Api.csproj", "Ape.Volo.Api/"]
 COPY ["Ape.Volo.Business/Ape.Volo.Business.csproj", "Ape.Volo.Business/"]
 COPY ["Ape.Volo.Common/Ape.Volo.Common.csproj", "Ape.Volo.Common/"]
+COPY ["Ape.Volo.Core/Ape.Volo.Core.csproj", "Ape.Volo.Core/"]
 COPY ["Ape.Volo.Entity/Ape.Volo.Entity.csproj", "Ape.Volo.Entity/"]
 COPY ["Ape.Volo.EventBus/Ape.Volo.EventBus.csproj", "Ape.Volo.EventBus/"]
 COPY ["Ape.Volo.IBusiness/Ape.Volo.IBusiness.csproj", "Ape.Volo.IBusiness/"]
-COPY ["Ape.Volo.QuartzNetService/Ape.Volo.QuartzNetService.csproj", "Ape.Volo.QuartzNetService/"]
+COPY ["Ape.Volo.Infrastructure/.Ape.Volo.Infrastructure.csproj", "Ape.Volo.Infrastructure/"]
 COPY ["Ape.Volo.Repository/Ape.Volo.Repository.csproj", "Ape.Volo.Repository/"]
+COPY ["Ape.Volo.SharedModel/Ape.Volo.SharedModel.csproj", "Ape.Volo.SharedModel/"]
+COPY ["Ape.Volo.TaskService/Ape.Volo.TaskService.csproj", "Ape.Volo.TaskService/"]
+COPY ["Ape.Volo.ViewModel/Ape.Volo.ViewModel.csproj", "Ape.Volo.ViewModel/"]
 RUN dotnet restore "Ape.Volo.Api/Ape.Volo.Api.csproj"
 
 COPY . .

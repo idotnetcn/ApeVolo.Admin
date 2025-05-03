@@ -10,8 +10,8 @@ public class MurmurHash2
         return Hash(data, 0xc58f1a7b);
     }
 
-    const UInt32 m = 0x5bd1e995;
-    const Int32 r = 24;
+    const UInt32 M = 0x5bd1e995;
+    const Int32 R = 24;
 
     [StructLayout(LayoutKind.Explicit)]
     struct BytetoUInt32Converter
@@ -36,11 +36,11 @@ public class MurmurHash2
         while (length >= 4)
         {
             UInt32 k = hackArray[currentIndex++];
-            k *= m;
-            k ^= k >> r;
-            k *= m;
+            k *= M;
+            k ^= k >> R;
+            k *= M;
 
-            h *= m;
+            h *= M;
             h ^= k;
             length -= 4;
         }
@@ -51,15 +51,15 @@ public class MurmurHash2
             case 3:
                 h ^= (UInt16)(data[currentIndex++] | data[currentIndex++] << 8);
                 h ^= (UInt32)data[currentIndex] << 16;
-                h *= m;
+                h *= M;
                 break;
             case 2:
                 h ^= (UInt16)(data[currentIndex++] | data[currentIndex] << 8);
-                h *= m;
+                h *= M;
                 break;
             case 1:
                 h ^= data[currentIndex];
-                h *= m;
+                h *= M;
                 break;
         }
 
@@ -67,7 +67,7 @@ public class MurmurHash2
         // bytes are well-incorporated.
 
         h ^= h >> 13;
-        h *= m;
+        h *= M;
         h ^= h >> 15;
 
         return h;

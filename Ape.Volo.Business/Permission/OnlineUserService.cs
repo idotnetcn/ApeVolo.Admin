@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Ape.Volo.Common.WebApp;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.Vo;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.ViewModel.Core.Permission.User;
+using Ape.Volo.ViewModel.Jwt;
 using IP2Region.Net.Abstractions;
 using Shyjus.BrowserDetection;
 
@@ -24,6 +24,11 @@ public class OnlineUserService : IOnlineUserService
 
     #region 构造函数
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="browserDetector"></param>
+    /// <param name="searcher"></param>
     public OnlineUserService(IBrowserDetector browserDetector, ISearcher searcher)
     {
         _browserDetector = browserDetector;
@@ -61,11 +66,17 @@ public class OnlineUserService : IOnlineUserService
         return await Task.FromResult(onlineUser);
     }
 
-    public async Task<JwtUserVo> CreateJwtUserAsync(UserDto userDto, List<string> permissionRoles)
+    /// <summary>
+    /// 创建Jwt对象
+    /// </summary>
+    /// <param name="userVo"></param>
+    /// <param name="permissionRoles"></param>
+    /// <returns></returns>
+    public async Task<JwtUserVo> CreateJwtUserAsync(UserVo userVo, List<string> permissionRoles)
     {
         var jwtUser = new JwtUserVo
         {
-            User = userDto,
+            User = userVo,
             DataScopes = new List<string>(),
             Roles = permissionRoles
         };

@@ -5,12 +5,18 @@ using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Entity.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
+using Ape.Volo.Entity.Core.Permission;
+using Ape.Volo.Entity.Core.Permission.Role;
+using Ape.Volo.Entity.Core.Permission.User;
+using Ape.Volo.IBusiness.Permission;
 using SqlSugar;
+using Enumerable = System.Linq.Enumerable;
 
 namespace Ape.Volo.Business.Permission;
 
+/// <summary>
+/// 数据权限服务
+/// </summary>
 public class DataScopeService : IDataScopeService
 {
     #region 字段
@@ -21,6 +27,10 @@ public class DataScopeService : IDataScopeService
 
     #region 构造函数
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="db"></param>
     public DataScopeService(ISqlSugarClient db)
     {
         _db = db;
@@ -45,7 +55,7 @@ public class DataScopeService : IDataScopeService
             return accountList;
         }
 
-        var isAll = user.Roles.Any(x => x.DataScopeType == DataScopeType.All);
+        var isAll = Enumerable.Any(user.Roles, x => x.DataScopeType == DataScopeType.All);
 
         if (isAll)
         {
@@ -58,7 +68,7 @@ public class DataScopeService : IDataScopeService
             accountList.AddRange(await GetAccounts(role.DataScopeType, role.Id, user.DeptId, user.Username));
         }
 
-        return accountList.Distinct().ToList();
+        return Enumerable.ToList(Enumerable.Distinct(accountList));
     }
 
 
@@ -74,14 +84,14 @@ public class DataScopeService : IDataScopeService
             case DataScopeType.MyDept:
             {
                 var userList = await _db.Queryable<User>().Where(x => x.DeptId == deptId).ToListAsync();
-                accountList.AddRange(userList.Select(x => x.Username));
+                accountList.AddRange(Enumerable.Select(userList, x => x.Username));
                 break;
             }
             case DataScopeType.MyDeptAndBelow:
             {
                 var deptIds = await GetChildIds([deptId], null);
                 var userList = await _db.Queryable<User>().Where(x => deptIds.Contains(x.DeptId)).ToListAsync();
-                accountList.AddRange(userList.Select(x => x.Username));
+                accountList.AddRange(Enumerable.Select(userList, x => x.Username));
                 break;
             }
             case DataScopeType.Customize:

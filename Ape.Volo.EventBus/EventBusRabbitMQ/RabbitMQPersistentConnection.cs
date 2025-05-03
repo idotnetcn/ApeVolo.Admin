@@ -11,16 +11,16 @@ namespace Ape.Volo.EventBus.EventBusRabbitMQ;
 /// <summary>
 /// RabbitMQ 持久连接
 /// </summary>
-public class RabbitMQPersistentConnection : IRabbitMQPersistentConnection
+public class RabbitMqPersistentConnection : IRabbitMqPersistentConnection
 {
-    private static readonly ILogger Logger = SerilogManager.GetLogger(typeof(RabbitMQPersistentConnection));
+    private static readonly ILogger Logger = SerilogManager.GetLogger(typeof(RabbitMqPersistentConnection));
     private readonly IConnectionFactory _connectionFactory;
     private readonly int _retryCount;
     IConnection _connection;
     bool _disposed;
-    object sync_root = new object();
+    object _syncRoot = new object();
 
-    public RabbitMQPersistentConnection(IConnectionFactory connectionFactory, int retryCount = 5)
+    public RabbitMqPersistentConnection(IConnectionFactory connectionFactory, int retryCount = 5)
     {
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
         _retryCount = retryCount;
@@ -72,7 +72,7 @@ public class RabbitMQPersistentConnection : IRabbitMQPersistentConnection
     {
         Logger.Information("RabbitMQ Client is trying to connect");
 
-        lock (sync_root)
+        lock (_syncRoot)
         {
             var policy = Policy.Handle<SocketException>()
                 .Or<BrokerUnreachableException>()

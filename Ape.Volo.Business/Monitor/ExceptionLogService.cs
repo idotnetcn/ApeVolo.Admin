@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Monitor;
-using Ape.Volo.IBusiness.Dto.Monitor;
-using Ape.Volo.IBusiness.Interface.Monitor;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Entity.Logs;
+using Ape.Volo.IBusiness.Monitor;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.Monitor;
 
 namespace Ape.Volo.Business.Monitor;
 
@@ -18,13 +18,24 @@ public class ExceptionLogService : BaseServices<ExceptionLog>, IExceptionLogServ
 {
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="exceptionLog"></param>
+    /// <returns></returns>
     public async Task<OperateResult> CreateAsync(ExceptionLog exceptionLog)
     {
         var result = await SugarRepository.SugarClient.Insertable(exceptionLog).SplitTable().ExecuteCommandAsync() > 0;
         return OperateResult.Result(result);
     }
 
-    public async Task<List<ExceptionLogDto>> QueryAsync(LogQueryCriteria logQueryCriteria, Pagination pagination)
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="logQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<ExceptionLogVo>> QueryAsync(LogQueryCriteria logQueryCriteria, Pagination pagination)
     {
         var queryOptions = new QueryOptions<ExceptionLog>
         {
@@ -33,7 +44,7 @@ public class ExceptionLogService : BaseServices<ExceptionLog>, IExceptionLogServ
             IsSplitTable = true
         };
         var logs = await TablePageAsync(queryOptions);
-        return App.Mapper.MapTo<List<ExceptionLogDto>>(logs);
+        return App.Mapper.MapTo<List<ExceptionLogVo>>(logs);
     }
 
     #endregion

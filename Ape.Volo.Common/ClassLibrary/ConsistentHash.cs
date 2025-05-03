@@ -7,9 +7,9 @@ namespace Ape.Volo.Common.ClassLibrary;
 
 public class ConsistentHash<T>
 {
-    SortedDictionary<int, T> circle { get; set; } = new SortedDictionary<int, T>();
+    SortedDictionary<int, T> Circle { get; set; } = new SortedDictionary<int, T>();
     int _replicate = 100; //default _replicate count
-    int[] ayKeys; //cache the ordered keys for better performance
+    int[] _ayKeys; //cache the ordered keys for better performance
 
     //it's better you override the GetHashCode() of T.
     //we will use GetHashCode() to identify different node.
@@ -27,7 +27,7 @@ public class ConsistentHash<T>
             Add(node, false);
         }
 
-        ayKeys = circle.Keys.ToArray();
+        _ayKeys = Circle.Keys.ToArray();
     }
 
     public void Add(T node)
@@ -40,12 +40,12 @@ public class ConsistentHash<T>
         for (int i = 0; i < _replicate; i++)
         {
             int hash = BetterHash(node.GetHashCode().ToString() + i);
-            circle[hash] = node;
+            Circle[hash] = node;
         }
 
         if (updateKeyArray)
         {
-            ayKeys = circle.Keys.ToArray();
+            _ayKeys = Circle.Keys.ToArray();
         }
     }
 
@@ -54,31 +54,31 @@ public class ConsistentHash<T>
         for (int i = 0; i < _replicate; i++)
         {
             int hash = BetterHash(node.GetHashCode().ToString() + i);
-            if (!circle.Remove(hash))
+            if (!Circle.Remove(hash))
             {
                 throw new System.Exception("can not remove a node that not added");
             }
         }
 
-        ayKeys = circle.Keys.ToArray();
+        _ayKeys = Circle.Keys.ToArray();
     }
 
     //we keep this function just for performance compare
     private T GetNode_slow(String key)
     {
         int hash = BetterHash(key);
-        if (circle.ContainsKey(hash))
+        if (Circle.ContainsKey(hash))
         {
-            return circle[hash];
+            return Circle[hash];
         }
 
-        int first = circle.Keys.FirstOrDefault(h => h >= hash);
+        int first = Circle.Keys.FirstOrDefault(h => h >= hash);
         if (first == new int())
         {
-            first = ayKeys[0];
+            first = _ayKeys[0];
         }
 
-        T node = circle[first];
+        T node = Circle[first];
         return node;
     }
 
@@ -123,11 +123,11 @@ public class ConsistentHash<T>
 
         int hash = BetterHash(key);
 
-        int first = First_ge(ayKeys, hash);
+        int first = First_ge(_ayKeys, hash);
 
         //int diff = circle.Keys[first] - hash;
 
-        return circle[ayKeys[first]];
+        return Circle[_ayKeys[first]];
     }
 
     //default String.GetHashCode() can't well spread strings like "1", "2", "3"

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Ape.Volo.Common.Model;
 using SqlSugar;
 
 namespace Ape.Volo.Repository.SugarHandler;

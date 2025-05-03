@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.Message.Email;
-using Ape.Volo.IBusiness.Interface.Message.Email;
-using Ape.Volo.IBusiness.QueryModel;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.IBusiness.Message.Email;
+using Ape.Volo.SharedModel.Dto.Core.Message.Email;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Message;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Message.Email;

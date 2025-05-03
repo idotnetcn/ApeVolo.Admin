@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.Queued;
-using Ape.Volo.IBusiness.Dto.Queued;
-using Ape.Volo.IBusiness.Interface.Message.Email;
-using Ape.Volo.IBusiness.Interface.Queued;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.Queued;
+using Ape.Volo.IBusiness.Message.Email;
+using Ape.Volo.IBusiness.Queued;
+using Ape.Volo.SharedModel.Dto.Core.Queued;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Queued;
+using Ape.Volo.ViewModel.Core.Queued;
 using Microsoft.Extensions.Logging;
 
 namespace Ape.Volo.Business.Queued;
@@ -33,6 +35,13 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
 
     #region 构造函数
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="emailMessageTemplateService"></param>
+    /// <param name="emailAccountService"></param>
+    /// <param name="emailSender"></param>
+    /// <param name="logger"></param>
     public QueuedEmailService(IEmailMessageTemplateService emailMessageTemplateService,
         IEmailAccountService emailAccountService, IEmailSender emailSender, ILogger<QueuedEmailService> logger)
     {
@@ -57,7 +66,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             .SingleAsync();
         if (emailAccount.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQueuedEmailDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateQueuedEmailDto,
                 LanguageKeyConstants.EmailAccount,
                 nameof(createUpdateQueuedEmailDto.Id)));
         }
@@ -72,11 +81,10 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// <summary>
     /// 更新
     /// </summary>
-    /// <param name="queuedEmailDto"></param>
+    /// <param name="queuedEmail"></param>
     /// <returns></returns>
-    public async Task<OperateResult> UpdateTriesAsync(QueuedEmailDto queuedEmailDto)
+    public async Task<OperateResult> UpdateTriesAsync(QueuedEmail queuedEmail)
     {
-        var queuedEmail = App.Mapper.MapTo<QueuedEmail>(queuedEmailDto);
         var result = await UpdateAsync(queuedEmail);
         return OperateResult.Result(result);
     }
@@ -90,7 +98,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     {
         if (!await TableWhere(x => x.Id == createUpdateQueuedEmailDto.Id).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQueuedEmailDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateQueuedEmailDto,
                 LanguageKeyConstants.QueuedEmail,
                 nameof(createUpdateQueuedEmailDto.Id)));
         }
@@ -99,7 +107,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             .SingleAsync();
         if (emailAccount.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateQueuedEmailDto,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateQueuedEmailDto,
                 LanguageKeyConstants.EmailAccount,
                 nameof(createUpdateQueuedEmailDto.EmailAccountId)));
         }
@@ -121,7 +129,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
         var emailAccounts = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (emailAccounts.Count < 1)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         var result = await LogicDelete<QueuedEmail>(x => ids.Contains(x.Id));
@@ -134,7 +142,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
     /// <param name="queuedEmailQueryCriteria"></param>
     /// <param name="pagination"></param>
     /// <returns></returns>
-    public async Task<List<QueuedEmailDto>> QueryAsync(QueuedEmailQueryCriteria queuedEmailQueryCriteria,
+    public async Task<List<QueuedEmailVo>> QueryAsync(QueuedEmailQueryCriteria queuedEmailQueryCriteria,
         Pagination pagination)
     {
         var queryOptions = new QueryOptions<QueuedEmail>
@@ -142,7 +150,7 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             Pagination = pagination,
             ConditionalModels = queuedEmailQueryCriteria.ApplyQueryConditionalModel(),
         };
-        return App.Mapper.MapTo<List<QueuedEmailDto>>(
+        return App.Mapper.MapTo<List<QueuedEmailVo>>(
             await TablePageAsync(queryOptions));
     }
 
@@ -162,14 +170,14 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             await _emailMessageTemplateService.TableWhere(x => x.Name == messageTemplateName).FirstAsync();
         if (emailMessageTemplate.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         var emailAccount = await _emailAccountService.TableWhere(x => x.Id == emailMessageTemplate.EmailAccountId)
             .SingleAsync();
         if (emailAccount.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         //生成6位随机码
@@ -241,7 +249,17 @@ public class QueuedEmailService : BaseServices<QueuedEmail>, IQueuedEmailService
             }
         }
 
-        return OperateResult.Success();
+        return OperateResult.Result(isTrue);
+    }
+
+    /// <summary>
+    /// 查询 发送邮件
+    /// </summary>
+    /// <param name="queuedEmailQueryCriteria"></param>
+    /// <returns></returns>
+    public Task<List<QueuedEmail>> QueryToSendMailAsync(QueuedEmailQueryCriteria queuedEmailQueryCriteria)
+    {
+        return TableWhere(queuedEmailQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
     }
 
     #endregion

@@ -61,20 +61,20 @@ public static class TreeHelper<T> where T : new()
     {
         if (lists.Count > 0)
         {
-            var temp_lists =
+            var tempLists =
                 lists; //.Where(m => m.GetType().GetProperty(parentCode).GetValue(m, null).ToString() == value).ToList();
-            if (temp_lists.Count > 0)
+            if (tempLists.Count > 0)
             {
                 var treeDatas = new List<T>();
                 T t;
                 Type? type;
-                foreach (var obj in temp_lists)
+                foreach (var obj in tempLists)
                 {
                     t = obj;
                     type = obj?.GetType();
 
                     //var childs = ListToTrees(lists, code, parentCode, type.GetProperty(code).GetValue(t, null).ToString());
-                    var childs = temp_lists.Where(m =>
+                    var childs = tempLists.Where(m =>
                         m?.GetType().GetProperty(parentCode)?.GetValue(m, null)?.ToString() ==
                         type?.GetProperty(code)?.GetValue(t, null)?.ToString()).ToList();
                     if (childs.Count > 0)

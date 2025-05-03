@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
-using Ape.Volo.IBusiness.QueryModel;
-using Ape.Volo.IBusiness.RequestModel;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.SharedModel.Dto.Core.Permission;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.Permission;
+using Ape.Volo.ViewModel.Core.Permission.Department;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -128,8 +128,8 @@ public class DeptController : BaseApiController
     {
         var deptList = await _departmentService.QueryAllAsync();
 
-        var departmentDtos = TreeHelper<DepartmentDto>.ListToTrees(deptList, "Id", "ParentId", 0);
-        return JsonContent(departmentDtos);
+        var departmentVos = TreeHelper<DepartmentVo>.ListToTrees(deptList, "Id", "ParentId", 0);
+        return JsonContent(departmentVos);
     }
 
 

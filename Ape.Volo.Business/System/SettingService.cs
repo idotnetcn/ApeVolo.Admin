@@ -4,32 +4,41 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Ape.Volo.Business.Base;
-using Ape.Volo.Common;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
-using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.Entity.System;
-using Ape.Volo.IBusiness.Dto.System;
-using Ape.Volo.IBusiness.ExportModel.System;
-using Ape.Volo.IBusiness.Interface.System;
-using Ape.Volo.IBusiness.QueryModel;
+using Ape.Volo.Core;
+using Ape.Volo.Core.Utils;
+using Ape.Volo.Entity.Core.System;
+using Ape.Volo.IBusiness.System;
+using Ape.Volo.SharedModel.Dto.Core.System;
+using Ape.Volo.SharedModel.Queries.Common;
+using Ape.Volo.SharedModel.Queries.System;
+using Ape.Volo.ViewModel.Core.System;
+using Ape.Volo.ViewModel.Report.System;
 using Microsoft.Extensions.Logging;
 using static Ape.Volo.Common.Helper.ExceptionHelper;
 
 namespace Ape.Volo.Business.System;
 
+/// <summary>
+/// 全局设置服务
+/// </summary>
 public class SettingService : BaseServices<Setting>, ISettingService
 {
     #region 基础方法
 
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="createUpdateSettingDto"></param>
+    /// <returns></returns>
     public async Task<OperateResult> CreateAsync(CreateUpdateSettingDto createUpdateSettingDto)
     {
         if (await TableWhere(r => r.Name == createUpdateSettingDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateSettingDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateSettingDto,
                 nameof(createUpdateSettingDto.Name)));
         }
 
@@ -38,20 +47,25 @@ public class SettingService : BaseServices<Setting>, ISettingService
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 更新
+    /// </summary>
+    /// <param name="createUpdateSettingDto"></param>
+    /// <returns></returns>
     public async Task<OperateResult> UpdateAsync(CreateUpdateSettingDto createUpdateSettingDto)
     {
         //取出待更新数据
         var oldSetting = await TableWhere(x => x.Id == createUpdateSettingDto.Id).FirstAsync();
         if (oldSetting.IsNull())
         {
-            return OperateResult.Error(DataErrorHelper.NotExist(createUpdateSettingDto, LanguageKeyConstants.Setting,
+            return OperateResult.Error(ValidationError.NotExist(createUpdateSettingDto, LanguageKeyConstants.Setting,
                 nameof(createUpdateSettingDto.Id)));
         }
 
         if (oldSetting.Name != createUpdateSettingDto.Name &&
             await TableWhere(x => x.Name == createUpdateSettingDto.Name).AnyAsync())
         {
-            return OperateResult.Error(DataErrorHelper.IsExist(createUpdateSettingDto,
+            return OperateResult.Error(ValidationError.IsExist(createUpdateSettingDto,
                 nameof(createUpdateSettingDto.Name)));
         }
 
@@ -62,12 +76,17 @@ public class SettingService : BaseServices<Setting>, ISettingService
         return OperateResult.Result(result);
     }
 
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <returns></returns>
     public async Task<OperateResult> DeleteAsync(HashSet<long> ids)
     {
         var settings = await TableWhere(x => ids.Contains(x.Id)).ToListAsync();
         if (settings.Count == 0)
         {
-            return OperateResult.Error(DataErrorHelper.NotExist());
+            return OperateResult.Error(ValidationError.NotExist());
         }
 
         foreach (var setting in settings)
@@ -81,16 +100,27 @@ public class SettingService : BaseServices<Setting>, ISettingService
         return OperateResult.Result(result);
     }
 
-    public async Task<List<SettingDto>> QueryAsync(SettingQueryCriteria settingQueryCriteria, Pagination pagination)
+    /// <summary>
+    /// 查询
+    /// </summary>
+    /// <param name="settingQueryCriteria"></param>
+    /// <param name="pagination"></param>
+    /// <returns></returns>
+    public async Task<List<SettingVo>> QueryAsync(SettingQueryCriteria settingQueryCriteria, Pagination pagination)
     {
         var queryOptions = new QueryOptions<Setting>
         {
             Pagination = pagination,
             ConditionalModels = settingQueryCriteria.ApplyQueryConditionalModel()
         };
-        return App.Mapper.MapTo<List<SettingDto>>(await TablePageAsync(queryOptions));
+        return App.Mapper.MapTo<List<SettingVo>>(await TablePageAsync(queryOptions));
     }
 
+    /// <summary>
+    /// 下载
+    /// </summary>
+    /// <param name="settingQueryCriteria"></param>
+    /// <returns></returns>
     public async Task<List<ExportBase>> DownloadAsync(SettingQueryCriteria settingQueryCriteria)
     {
         var settings = await TableWhere(settingQueryCriteria.ApplyQueryConditionalModel()).ToListAsync();
@@ -107,6 +137,12 @@ public class SettingService : BaseServices<Setting>, ISettingService
         return settingExports;
     }
 
+    /// <summary>
+    /// 获取设置 值
+    /// </summary>
+    /// <param name="settingName"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     [UseCache(Expiration = 30, KeyPrefix = GlobalConstants.CachePrefix.LoadSettingByName)]
     public async Task<T> GetSettingValue<T>(string settingName)
     {
@@ -125,6 +161,12 @@ public class SettingService : BaseServices<Setting>, ISettingService
         }
     }
 
+    /// <summary>
+    /// 类型转换
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
     private static object ConvertValue(Type type, string value)
     {
         if (type == typeof(object))

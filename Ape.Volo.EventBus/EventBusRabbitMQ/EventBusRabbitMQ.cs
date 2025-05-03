@@ -19,14 +19,14 @@ namespace Ape.Volo.EventBus.EventBusRabbitMQ;
 /// <summary>
 /// RabbitMQ消息队列事件
 /// </summary>
-public class EventBusRabbitMQ : IEventBus, IDisposable
+public class EventBusRabbitMq : IEventBus, IDisposable
 {
     #region 字段
 
-    private static readonly ILogger Logger = SerilogManager.GetLogger(typeof(EventBusRabbitMQ));
+    private static readonly ILogger Logger = SerilogManager.GetLogger(typeof(EventBusRabbitMq));
     const string BrokerName = "apevolo_event_bus";
     const string AutofacScopeName = "apevolo_event_bus";
-    private readonly IRabbitMQPersistentConnection _persistentConnection;
+    private readonly IRabbitMqPersistentConnection _persistentConnection;
     private readonly IEventBusSubscriptionsManager _subsManager;
     private readonly ILifetimeScope _autofac;
     private readonly int _retryCount;
@@ -41,7 +41,7 @@ public class EventBusRabbitMQ : IEventBus, IDisposable
 
     #region 构造函数
 
-    public EventBusRabbitMQ(IServiceProvider serviceProvider, IRabbitMQPersistentConnection persistentConnection,
+    public EventBusRabbitMq(IServiceProvider serviceProvider, IRabbitMqPersistentConnection persistentConnection,
         ILifetimeScope autofac, string subscriptionClientName, IEventBusSubscriptionsManager? subsManager,
         int retryCount = 5)
     {

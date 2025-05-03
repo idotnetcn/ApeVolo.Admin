@@ -6,8 +6,9 @@ using Ape.Volo.Api.Controllers.Base;
 using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.Model;
-using Ape.Volo.IBusiness.Dto.Permission;
-using Ape.Volo.IBusiness.Interface.Permission;
+using Ape.Volo.IBusiness.Permission;
+using Ape.Volo.SharedModel.Dto.Core.Permission.Role;
+using Ape.Volo.ViewModel.Core.Permission.Menu;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ape.Volo.Api.Controllers.Permission;
@@ -51,7 +52,7 @@ public class PermissionsController : BaseApiController
     {
         var menus = await _menuService.QueryAllAsync();
 
-        var menuTree = TreeHelper<MenuDto>.ListToTrees(menus, "Id", "ParentId", 0);
+        var menuTree = TreeHelper<MenuVo>.ListToTrees(menus, "Id", "ParentId", 0);
         return JsonContent(menuTree);
     }
 

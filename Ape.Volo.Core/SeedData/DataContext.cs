@@ -65,7 +65,7 @@ namespace Ape.Volo.Core.SeedData
         {
             var defaultConnectionItem =
                 App.GetOptions<DataConnectionOptions>().ConnectionItem
-                    .FirstOrDefault(x => x.ConnId == App.GetOptions<SystemOptions>().DefaultDataBase);
+                    .FirstOrDefault(x => x.ConnId == App.GetOptions<SystemOptions>().MasterDataBase);
             if (defaultConnectionItem.IsNull())
             {
                 throw new Exception("Database configuration error, please check！");

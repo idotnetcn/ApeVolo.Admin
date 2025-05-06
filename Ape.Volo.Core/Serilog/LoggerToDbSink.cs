@@ -1,10 +1,13 @@
-﻿using Ape.Volo.Common.Extensions;
+﻿using System.Reflection;
+using Ape.Volo.Common.Attributes;
+using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Helper;
 using Ape.Volo.Common.IdGenerator;
+using Ape.Volo.Core.ConfigOptions;
 using Ape.Volo.Entity.Logs;
+using Ape.Volo.Repository.UnitOfWork;
 using Serilog.Events;
 using Serilog.Sinks.PeriodicBatching;
-using SqlSugar;
 
 namespace Ape.Volo.Core.Serilog;
 
@@ -12,7 +15,7 @@ public class LoggerToDbSink : IBatchedLogEventSink
 {
     public async Task EmitBatchAsync(IEnumerable<LogEvent> batch)
     {
-        var sugar = App.GetService<ISqlSugarClient>();
+        var sugar = App.GetService<IUnitOfWork>();
 
         var logEvents = batch.ToList();
         await RecordSql(sugar, logEvents.RecordSql());
@@ -25,9 +28,9 @@ public class LoggerToDbSink : IBatchedLogEventSink
     }
 
 
-    private async Task RecordLog(ISqlSugarClient db, List<LogEvent> logEvents)
+    private async Task RecordLog(IUnitOfWork unitOfWork, List<LogEvent> logEvents)
     {
-        if (!logEvents.Any())
+        if (logEvents.Count == 0)
         {
             return;
         }
@@ -38,24 +41,24 @@ public class LoggerToDbSink : IBatchedLogEventSink
             switch (v.Key)
             {
                 case LogEventLevel.Information:
-                    await RecordInformation(db, v.ToList());
+                    await RecordInformation(unitOfWork, v.ToList());
                     break;
                 case LogEventLevel.Warning:
-                    await RecordWarning(db, v.ToList());
+                    await RecordWarning(unitOfWork, v.ToList());
                     break;
                 case LogEventLevel.Error:
-                    await RecordError(db, v.ToList());
+                    await RecordError(unitOfWork, v.ToList());
                     break;
                 case LogEventLevel.Fatal:
-                    await RecordFatal(db, v.ToList());
+                    await RecordFatal(unitOfWork, v.ToList());
                     break;
             }
         }
     }
 
-    private async Task RecordInformation(ISqlSugarClient db, List<LogEvent> logEvents)
+    private async Task RecordInformation(IUnitOfWork unitOfWork, List<LogEvent> logEvents)
     {
-        if (!logEvents.Any())
+        if (logEvents.Count == 0)
         {
             return;
         }
@@ -77,17 +80,24 @@ public class LoggerToDbSink : IBatchedLogEventSink
 
         try
         {
-            await db.AsTenant().InsertableWithAttr(logs).SplitTable().ExecuteCommandAsync();
+            var sqlSugarScope = unitOfWork.GetDbClient();
+            var logDbAttribute = typeof(InformationLog).GetCustomAttribute<LogDataBaseAttribute>();
+            if (logDbAttribute != null)
+            {
+                var sugarClient = sqlSugarScope.GetConnectionScope(App.GetOptions<SystemOptions>().LogDataBase);
+                await sugarClient.Insertable(logs).SplitTable().ExecuteCommandAsync();
+            }
         }
         catch (Exception e)
         {
+            LogHelper.WriteLog(e.ToString(), null);
             ConsoleHelper.WriteLine(e.ToString(), ConsoleColor.Red);
         }
     }
 
-    private async Task RecordWarning(ISqlSugarClient db, List<LogEvent> batch)
+    private async Task RecordWarning(IUnitOfWork unitOfWork, List<LogEvent> batch)
     {
-        if (!batch.Any())
+        if (batch.Count == 0)
         {
             return;
         }
@@ -109,17 +119,24 @@ public class LoggerToDbSink : IBatchedLogEventSink
 
         try
         {
-            await db.AsTenant().InsertableWithAttr(logs).SplitTable().ExecuteCommandAsync();
+            var sqlSugarScope = unitOfWork.GetDbClient();
+            var logDbAttribute = typeof(WarningLog).GetCustomAttribute<LogDataBaseAttribute>();
+            if (logDbAttribute != null)
+            {
+                var sugarClient = sqlSugarScope.GetConnectionScope(App.GetOptions<SystemOptions>().LogDataBase);
+                await sugarClient.Insertable(logs).SplitTable().ExecuteCommandAsync();
+            }
         }
         catch (Exception e)
         {
+            LogHelper.WriteLog(e.ToString(), null);
             ConsoleHelper.WriteLine(e.ToString(), ConsoleColor.Red);
         }
     }
 
-    private async Task RecordError(ISqlSugarClient db, List<LogEvent> logEvents)
+    private async Task RecordError(IUnitOfWork unitOfWork, List<LogEvent> logEvents)
     {
-        if (!logEvents.Any())
+        if (logEvents.Count == 0)
         {
             return;
         }
@@ -141,17 +158,24 @@ public class LoggerToDbSink : IBatchedLogEventSink
 
         try
         {
-            await db.AsTenant().InsertableWithAttr(logs).SplitTable().ExecuteCommandAsync();
+            var sqlSugarScope = unitOfWork.GetDbClient();
+            var logDbAttribute = typeof(ErrorLog).GetCustomAttribute<LogDataBaseAttribute>();
+            if (logDbAttribute != null)
+            {
+                var sugarClient = sqlSugarScope.GetConnectionScope(App.GetOptions<SystemOptions>().LogDataBase);
+                await sugarClient.Insertable(logs).SplitTable().ExecuteCommandAsync();
+            }
         }
         catch (Exception e)
         {
+            LogHelper.WriteLog(e.ToString(), null);
             ConsoleHelper.WriteLine(e.ToString(), ConsoleColor.Red);
         }
     }
 
-    private async Task RecordFatal(ISqlSugarClient db, List<LogEvent> logEvents)
+    private async Task RecordFatal(IUnitOfWork unitOfWork, List<LogEvent> logEvents)
     {
-        if (!logEvents.Any())
+        if (logEvents.Count == 0)
         {
             return;
         }
@@ -173,18 +197,25 @@ public class LoggerToDbSink : IBatchedLogEventSink
 
         try
         {
-            await db.AsTenant().InsertableWithAttr(logs).SplitTable().ExecuteCommandAsync();
+            var sqlSugarScope = unitOfWork.GetDbClient();
+            var logDbAttribute = typeof(FatalLog).GetCustomAttribute<LogDataBaseAttribute>();
+            if (logDbAttribute != null)
+            {
+                var sugarClient = sqlSugarScope.GetConnectionScope(App.GetOptions<SystemOptions>().LogDataBase);
+                await sugarClient.Insertable(logs).SplitTable().ExecuteCommandAsync();
+            }
         }
         catch (Exception e)
         {
+            LogHelper.WriteLog(e.ToString(), null);
             ConsoleHelper.WriteLine(e.ToString(), ConsoleColor.Red);
         }
     }
 
 
-    private async Task RecordSql(ISqlSugarClient db, List<LogEvent> logEvents)
+    private async Task RecordSql(IUnitOfWork unitOfWork, List<LogEvent> logEvents)
     {
-        if (!logEvents.Any())
+        if (logEvents.Count == 0)
         {
             return;
         }
@@ -206,10 +237,17 @@ public class LoggerToDbSink : IBatchedLogEventSink
 
         try
         {
-            await db.AsTenant().InsertableWithAttr(logs).SplitTable().ExecuteCommandAsync();
+            var sqlSugarScope = unitOfWork.GetDbClient();
+            var logDbAttribute = typeof(AopSqlLog).GetCustomAttribute<LogDataBaseAttribute>();
+            if (logDbAttribute != null)
+            {
+                var sugarClient = sqlSugarScope.GetConnectionScope(App.GetOptions<SystemOptions>().LogDataBase);
+                await sugarClient.Insertable(logs).SplitTable().ExecuteCommandAsync();
+            }
         }
         catch (Exception e)
         {
+            LogHelper.WriteLog(e.ToString(), null);
             ConsoleHelper.WriteLine(e.ToString(), ConsoleColor.Red);
         }
     }

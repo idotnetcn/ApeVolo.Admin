@@ -3,10 +3,10 @@ using System.Text;
 using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.ClassLibrary;
 using Ape.Volo.Common.Enums;
-using Ape.Volo.Common.Extensions;
 using Ape.Volo.Common.Global;
 using Ape.Volo.Common.Helper;
-using Ape.Volo.Entity.Base;
+using Ape.Volo.Common.Model;
+using Ape.Volo.Core.ConfigOptions;
 using Ape.Volo.Entity.Core.Message.Email;
 using Ape.Volo.Entity.Core.Permission;
 using Ape.Volo.Entity.Core.Permission.Role;
@@ -30,8 +30,10 @@ namespace Ape.Volo.Core.SeedData
         /// <param name="dataContext"></param>
         /// <param name="isInitData"></param>
         /// <param name="isQuickDebug"></param>
+        /// <param name="tenantOptions"></param>
         /// <returns></returns>
-        public static async Task InitMasterDataAsync(DataContext dataContext, bool isInitData, bool isQuickDebug)
+        public static async Task InitMasterDataAsync(DataContext dataContext, bool isInitData, bool isQuickDebug,
+            TenantOptions tenantOptions)
         {
             try
             {
@@ -59,20 +61,18 @@ namespace Ape.Volo.Core.SeedData
 
                 #region 初始化主库数据表
 
-                //继承自BaseEntity或者RootKey<>的类型
-                //一些没有继承的需手动维护添加
-                //例如，用户与岗位(UserJobs)
                 var entityList = GlobalType.EntityTypes
-                    .Where(x => (x.BaseType == typeof(BaseEntity) || x.BaseType == typeof(BaseEntityNoDataScope) ||
-                                 x.BaseType == typeof(RootKey<long>)) &&
-                                x != typeof(BaseEntity) && x != typeof(BaseEntityNoDataScope) && x.Namespace != null &&
-                                x.GetCustomAttribute<MultiDbTenantAttribute>() == null &&
-                                !x.Namespace.StartsWith("Ape.Volo.Entity.Monitor")).ToList();
-                entityList.Add(typeof(UserRole));
-                entityList.Add(typeof(UserJob));
-                entityList.Add(typeof(RoleMenu));
-                entityList.Add(typeof(RoleDepartment));
-                entityList.Add(typeof(RoleApis));
+                    .Where(x => x.GetCustomAttribute<SugarTable>() != null &&
+                                !x.GetInterfaces().Contains(typeof(ITenantEntity)) &&
+                                x.GetCustomAttribute<LogDataBaseAttribute>() == null &&
+                                x.GetCustomAttribute<MultiDbTenantAttribute>() == null).ToList();
+                if (tenantOptions.Enabled && tenantOptions.Type == TenantType.Id)
+                {
+                    //多租户开启且使用ID隔离模式
+                    entityList.AddRange(GlobalType.EntityTypes
+                        .Where(x => x.GetInterfaces().Contains(typeof(ITenantEntity)) &&
+                                    x.GetCustomAttribute<LogDataBaseAttribute>() == null));
+                }
 
                 var masterTables = dataContext.Db.DbMaintenance.GetTableInfoList();
                 entityList.ForEach(entity =>
@@ -80,10 +80,6 @@ namespace Ape.Volo.Core.SeedData
                     var entityInfo = dataContext.Db.EntityMaintenance.GetEntityInfo(entity);
                     // var attr = entity.GetCustomAttribute<SugarTable>();
                     // var tableName = attr == null ? entity.Name : attr.TableName;
-                    if (entityInfo.DbTableName.IsNullOrEmpty())
-                    {
-                        throw new Exception($"类{entityInfo.EntityName}缺少SugarTable表名");
-                    }
 
                     if (!masterTables.Any(x =>
                             x.Name.Equals(entityInfo.DbTableName, StringComparison.OrdinalIgnoreCase)))
@@ -91,15 +87,14 @@ namespace Ape.Volo.Core.SeedData
                         if (entity.GetCustomAttribute<SplitTableAttribute>() != null)
                         {
                             dataContext.Db.CodeFirst.SplitTables().InitTables(entity);
-                            ConsoleHelper.WriteLine(
-                                $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
                         }
                         else
                         {
                             dataContext.Db.CodeFirst.InitTables(entity);
-                            ConsoleHelper.WriteLine(
-                                $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
                         }
+
+                        ConsoleHelper.WriteLine(
+                            $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
                     }
                 });
 
@@ -465,17 +460,18 @@ namespace Ape.Volo.Core.SeedData
         /// 初始化日志库
         /// </summary>
         /// <param name="dataContext"></param>
+        /// <param name="logDataBase"></param>
         /// <exception cref="Exception"></exception>
-        public static Task InitLogData(DataContext dataContext)
+        public static Task InitLogData(DataContext dataContext, string logDataBase)
         {
-            if (!dataContext.Db.IsAnyConnection(SqlSugarConfig.LogId))
+            if (!dataContext.Db.IsAnyConnection(logDataBase))
             {
                 throw new ApplicationException("未配置日志数据库，请在appsettings.json中DataConnection节点中配置");
             }
 
             ConsoleHelper.WriteLine("初始化日志数据库....！", ConsoleColor.Green);
 
-            var logDb = dataContext.Db.GetConnectionScope(SqlSugarConfig.LogId);
+            var logDb = dataContext.Db.GetConnectionScope(logDataBase);
             ConsoleHelper.WriteLine($"Log Db Id: {logDb.CurrentConnectionConfig.ConfigId}");
             ConsoleHelper.WriteLine($"Log Db Type: {logDb.CurrentConnectionConfig.DbType}");
             ConsoleHelper.WriteLine($"Log Db ConnectString: {logDb.CurrentConnectionConfig.ConnectionString}");
@@ -494,8 +490,8 @@ namespace Ape.Volo.Core.SeedData
             ConsoleHelper.WriteLine("初始化日志库数据表....");
 
             var logEntityList = GlobalType.EntityTypes
-                .Where(x => x.IsClass && x != typeof(SerilogBase) && x.Namespace != null &&
-                            x.Namespace.StartsWith("Ape.Volo.Entity.Monitor")).ToList();
+                .Where(x => x.GetCustomAttribute<SugarTable>() != null &&
+                            x.GetCustomAttribute<LogDataBaseAttribute>() != null).ToList();
 
 
             var logTables = logDb.DbMaintenance.GetTableInfoList();
@@ -503,12 +499,6 @@ namespace Ape.Volo.Core.SeedData
             logEntityList.ForEach(entity =>
             {
                 var entityInfo = dataContext.Db.EntityMaintenance.GetEntityInfo(entity);
-                // var attr = entity.GetCustomAttribute<SugarTable>();
-                // var tableName = attr == null ? entity.Name : attr.TableName;
-                if (entityInfo.DbTableName.IsNullOrEmpty())
-                {
-                    throw new Exception($"类{entityInfo.EntityName}缺少SugarTable表名");
-                }
 
                 // int lastUnderscoreIndex = entityInfo.DbTableName.LastIndexOf('_');
                 // var tableName = entityInfo.DbTableName.Substring(0, lastUnderscoreIndex);
@@ -522,15 +512,14 @@ namespace Ape.Volo.Core.SeedData
                     if (entity.GetCustomAttribute<SplitTableAttribute>() != null)
                     {
                         logDb.CodeFirst.SplitTables().InitTables(entity);
-                        ConsoleHelper.WriteLine(
-                            $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
                     }
                     else
                     {
                         logDb.CodeFirst.InitTables(entity);
-                        ConsoleHelper.WriteLine(
-                            $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
                     }
+
+                    ConsoleHelper.WriteLine(
+                        $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
                 }
             });
             ConsoleHelper.WriteLine("初始化日志库数据表成功！", ConsoleColor.Green);
@@ -585,41 +574,36 @@ namespace Ape.Volo.Core.SeedData
                 ConsoleHelper.WriteLine($"初始化租户{tenant.Name}数据表....");
 
                 var entityList = GlobalType.EntityTypes
-                    .Where(x => (x.BaseType == typeof(BaseEntity) || x.BaseType == typeof(RootKey<long>)) &&
-                                x != typeof(BaseEntity) && x.Namespace != null &&
-                                x.GetCustomAttribute<MultiDbTenantAttribute>() != null &&
-                                !x.Namespace.StartsWith("Ape.Volo.Entity.Monitor")).ToList();
-                if (entityList.Any())
+                    .Where(x => x.GetInterfaces().Contains(typeof(ITenantEntity)) &&
+                                x.GetCustomAttribute<LogDataBaseAttribute>() == null).ToList();
+
+
+                if (entityList.Count == 0)
                 {
-                    var masterTables = db.DbMaintenance.GetTableInfoList();
-                    entityList.ForEach(entity =>
+                    continue;
+                }
+
+                var masterTables = db.DbMaintenance.GetTableInfoList();
+                entityList.ForEach(entity =>
+                {
+                    var entityInfo = db.EntityMaintenance.GetEntityInfo(entity);
+
+                    if (!masterTables.Any(x =>
+                            x.Name.Equals(entityInfo.DbTableName, StringComparison.OrdinalIgnoreCase)))
                     {
-                        var entityInfo = db.EntityMaintenance.GetEntityInfo(entity);
-                        // var attr = entity.GetCustomAttribute<SugarTable>();
-                        // var tableName = attr == null ? entity.Name : attr.TableName;
-                        if (entityInfo.DbTableName.IsNullOrEmpty())
+                        if (entity.GetCustomAttribute<SplitTableAttribute>() != null)
                         {
-                            throw new Exception($"类{entityInfo.EntityName}缺少SugarTable表名");
+                            db.CodeFirst.SplitTables().InitTables(entity);
+                        }
+                        else
+                        {
+                            db.CodeFirst.InitTables(entity);
                         }
 
-                        if (!masterTables.Any(x =>
-                                x.Name.Equals(entityInfo.DbTableName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            if (entity.GetCustomAttribute<SplitTableAttribute>() != null)
-                            {
-                                db.CodeFirst.SplitTables().InitTables(entity);
-                                ConsoleHelper.WriteLine(
-                                    $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
-                            }
-                            else
-                            {
-                                db.CodeFirst.InitTables(entity);
-                                ConsoleHelper.WriteLine(
-                                    $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
-                            }
-                        }
-                    });
-                }
+                        ConsoleHelper.WriteLine(
+                            $"Entity:{entity.Name}-->Table:{entityInfo.DbTableName}-->Desc:{entityInfo.TableDescription}-->创建完成！");
+                    }
+                });
             }
 
             ConsoleHelper.WriteLine("初始化租户库完成！", ConsoleColor.Green);

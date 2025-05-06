@@ -40,10 +40,10 @@ public static class SqlSugarSetup
         //     dataConnection.ConnectionItem.Where(x => x.ConnId == configs.DefaultDataBase && x.Enabled).ToList();
         var allConnectionItem =
             options.ConnectionItem.Where(x => x.Enabled).ToList();
-        if (allConnectionItem.Count == 0 || allConnectionItem.All(x => x.ConnId != systemOptions.DefaultDataBase))
+        if (allConnectionItem.Count == 0 || allConnectionItem.All(x => x.ConnId != systemOptions.MasterDataBase))
         {
             throw new Exception(App.L.R("Error.Database.EnsureEnabled{0}",
-                systemOptions.DefaultDataBase));
+                systemOptions.MasterDataBase));
         }
 
         if (allConnectionItem.All(x => x.ConnId != systemOptions.LogDataBase))

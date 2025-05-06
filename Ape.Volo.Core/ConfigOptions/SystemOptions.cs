@@ -44,18 +44,17 @@ public class SystemOptions
     public string HmacSecret { get; set; }
 
     /// <summary>
-    /// 默认数据
+    /// 主库
     /// </summary>
-    public string DefaultDataBase { get; set; }
+    public string MasterDataBase { get; set; }
 
     /// <summary>
-    /// 日志数据库
+    /// 日志库
     /// </summary>
     public string LogDataBase { get; set; }
 
     /// <summary>
     /// 是否使用Redis缓存
     /// </summary>
-
     public bool UseRedisCache { get; set; }
 }

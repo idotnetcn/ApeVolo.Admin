@@ -1,14 +1,14 @@
 using System;
-using Ape.Volo.Common.Global;
+using Ape.Volo.Common.Attributes;
 using Ape.Volo.Entity.Base;
 using SqlSugar;
 
 namespace Ape.Volo.Entity.Logs
 {
     /// <summary>
-    /// 系统审计记录
+    /// 审计日志
     /// </summary>
-    [Tenant(SqlSugarConfig.LogId)]
+    [LogDataBase]
     [SplitTable(SplitType.Month)]
     [SugarTable($@"{"log_audit"}_{{year}}{{month}}{{day}}")]
     public class AuditLog : BaseEntity

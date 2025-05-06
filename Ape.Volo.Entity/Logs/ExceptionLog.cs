@@ -1,15 +1,15 @@
 using System;
+using Ape.Volo.Common.Attributes;
 using Ape.Volo.Common.Enums;
-using Ape.Volo.Common.Global;
 using Ape.Volo.Entity.Base;
 using SqlSugar;
 
 namespace Ape.Volo.Entity.Logs
 {
     /// <summary>
-    /// 系统异常日志
+    /// 异常日志
     /// </summary>
-    [Tenant(SqlSugarConfig.LogId)]
+    [LogDataBase]
     [SplitTable(SplitType.Month)]
     [SugarTable($@"{"log_exception"}_{{year}}{{month}}{{day}}")]
     public class ExceptionLog : BaseEntity

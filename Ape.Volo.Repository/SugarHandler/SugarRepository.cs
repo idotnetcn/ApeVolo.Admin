@@ -21,41 +21,47 @@ public class SugarRepository<TEntity> : ISugarRepository<TEntity> where TEntity 
     public SugarRepository(IUnitOfWork unitOfWork, IHttpUser httpUser)
     {
         var sqlSugarScope = unitOfWork.GetDbClient();
-        var tenantAttribute = typeof(TEntity).GetCustomAttribute<TenantAttribute>();
-        if (tenantAttribute != null)
+        var logDbAttribute = typeof(TEntity).GetCustomAttribute<LogDataBaseAttribute>();
+        if (logDbAttribute != null)
         {
-            SugarClient = sqlSugarScope.GetConnectionScope(tenantAttribute.configId.ToString());
+            SugarClient = sqlSugarScope.GetConnectionScope(AppSettings.GetValue<string>("System", "LogDataBase"));
             return;
         }
 
-        var multiDbTenantAttribute = typeof(TEntity).GetCustomAttribute<MultiDbTenantAttribute>();
-        if (multiDbTenantAttribute != null)
-            if (httpUser.IsNotNull() && httpUser.TenantId > 0)
+        //使用多租户
+        var useMultiTenant = AppSettings.GetValue<bool>("Tenant", "Enabled");
+        if (useMultiTenant)
+        {
+            var multiDbTenantAttribute = typeof(TEntity).GetCustomAttribute<MultiDbTenantAttribute>();
+            if (multiDbTenantAttribute != null)
             {
-                var tenants = sqlSugarScope.Queryable<Tenant>().WithCache(86400).ToList();
-                var tenant = tenants.FirstOrDefault(x => x.TenantId == httpUser.TenantId);
-                if (tenant != null)
+                if (httpUser.IsNotNull() && httpUser.TenantId > 0)
                 {
-                    var iTenant = sqlSugarScope.AsTenant();
-                    if (!iTenant.IsAnyConnection(tenant.ConfigId))
+                    var tenants = sqlSugarScope.Queryable<Tenant>().WithCache(86400).ToList();
+                    var tenant = tenants.FirstOrDefault(x => x.TenantId == httpUser.TenantId);
+                    if (tenant != null)
                     {
-                        var connectionString = tenant.ConnectionString;
-                        if (tenant.DbType == DbType.Sqlite)
+                        var iTenant = sqlSugarScope.AsTenant();
+                        if (!iTenant.IsAnyConnection(tenant.ConfigId))
                         {
-                            connectionString = "DataSource=" +
-                                               Path.Combine(AppSettings.ContentRootPath,
-                                                   tenant.ConnectionString);
+                            var connectionString = tenant.ConnectionString;
+                            if (tenant.DbType == DbType.Sqlite)
+                            {
+                                connectionString = "DataSource=" +
+                                                   Path.Combine(AppSettings.ContentRootPath,
+                                                       tenant.ConnectionString);
+                            }
+
+                            iTenant.AddConnection(TenantHelper.GetConnectionConfig(tenant.ConfigId, tenant.DbType,
+                                connectionString));
                         }
 
-                        iTenant.AddConnection(TenantHelper.GetConnectionConfig(tenant.ConfigId, tenant.DbType,
-                            connectionString));
+                        SugarClient = iTenant.GetConnectionScope(tenant.ConfigId);
+                        return;
                     }
-
-                    SugarClient = iTenant.GetConnectionScope(tenant.ConfigId);
-                    return;
                 }
             }
-
+        }
 
         SugarClient = sqlSugarScope;
     }

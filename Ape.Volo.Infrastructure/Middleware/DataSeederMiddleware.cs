@@ -1,3 +1,4 @@
+using Ape.Volo.Common.Enums;
 using Ape.Volo.Common.Helper.Serilog;
 using Ape.Volo.Core;
 using Ape.Volo.Core.ConfigOptions;
@@ -19,15 +20,19 @@ public static class DataSeederMiddleware
         try
         {
             var systemOptions = App.GetOptions<SystemOptions>();
+            var tenantOptions = App.GetOptions<TenantOptions>();
             if (systemOptions.IsInitTable)
             {
                 var dataContext = app.ApplicationServices.GetRequiredService<DataContext>();
                 SeedService.InitMasterDataAsync(dataContext, systemOptions.IsInitData,
-                    systemOptions.IsQuickDebug).Wait();
+                    systemOptions.IsQuickDebug, tenantOptions).Wait();
                 Thread.Sleep(500);
-                SeedService.InitLogData(dataContext).Wait();
-                Thread.Sleep(500);
-                SeedService.InitTenantDataAsync(dataContext).Wait();
+                SeedService.InitLogData(dataContext, systemOptions.LogDataBase).Wait();
+                if (tenantOptions.Enabled && tenantOptions.Type == TenantType.Db)
+                {
+                    Thread.Sleep(500);
+                    SeedService.InitTenantDataAsync(dataContext).Wait();
+                }
             }
         }
         catch (Exception e)

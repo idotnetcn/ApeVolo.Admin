@@ -70,8 +70,8 @@ namespace Ape.Volo.Core.SeedData
                 {
                     //多租户开启且使用ID隔离模式
                     entityList.AddRange(GlobalType.EntityTypes
-                        .Where(x => x.GetInterfaces().Contains(typeof(ITenantEntity)) &&
-                                    x.GetCustomAttribute<LogDataBaseAttribute>() == null));
+                        .Where(x => x.GetCustomAttribute<SugarTable>() != null &&
+                                    x.GetInterfaces().Contains(typeof(ITenantEntity))));
                 }
 
                 var masterTables = dataContext.Db.DbMaintenance.GetTableInfoList();
@@ -574,8 +574,8 @@ namespace Ape.Volo.Core.SeedData
                 ConsoleHelper.WriteLine($"初始化租户{tenant.Name}数据表....");
 
                 var entityList = GlobalType.EntityTypes
-                    .Where(x => x.GetInterfaces().Contains(typeof(ITenantEntity)) &&
-                                x.GetCustomAttribute<LogDataBaseAttribute>() == null).ToList();
+                    .Where(x => x.GetCustomAttribute<SugarTable>() != null &&
+                                x.GetCustomAttribute<MultiDbTenantAttribute>() != null).ToList();
 
 
                 if (entityList.Count == 0)
